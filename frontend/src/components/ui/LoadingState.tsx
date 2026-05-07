@@ -10,20 +10,20 @@ export function LoadingState({ message = 'Loading…', rows = 3 }: Props) {
     <div className="space-y-3" role="status" aria-busy="true" aria-label={message}>
       <p className="sr-only">{message}</p>
       {Array.from({ length: rows }).map((_, i) => (
-        <Card key={i} padding="md" className="animate-pulse">
-          <div className="h-4 w-1/3 rounded-lg bg-slate-200/90 dark:bg-slate-700" />
-          <div className="mt-3 h-3 w-2/3 rounded bg-slate-100/90 dark:bg-slate-800" />
-          <div className="mt-2 h-3 w-1/2 rounded bg-slate-100/90 dark:bg-slate-800" />
+        <Card key={i} padding="md" tone="strong" className="animate-pulse">
+          <div className="h-3 w-1/4 rounded-full bg-[var(--border-1)]" />
+          <div className="mt-4 h-2 w-3/4 rounded bg-[var(--border-1)]" />
+          <div className="mt-2 h-2 w-2/4 rounded bg-[var(--border-1)]" />
         </Card>
       ))}
     </div>
   )
 }
 
-export function Spinner({ className = 'h-8 w-8' }: { className?: string }) {
+export function Spinner({ className = 'h-5 w-5' }: { className?: string }) {
   return (
     <div
-      className={`inline-block animate-spin rounded-full border-2 border-slate-200 border-t-brand-600 dark:border-slate-700 dark:border-t-brand-300 ${className}`}
+      className={`inline-block animate-spin rounded-full border-2 border-[var(--border-1)] border-t-brand-500 ${className}`}
       role="presentation"
     />
   )

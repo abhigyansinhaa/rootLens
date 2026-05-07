@@ -7,12 +7,13 @@ import { api } from '../api/client'
 import {
   Button,
   Card,
-  CardDescription,
+  CardEyebrow,
   CardTitle,
   EmptyState,
   ErrorState,
   LoadingState,
   PageHeader,
+  SectionHeader,
   StatusBadge,
 } from '../components/ui'
 import type { AnalysisListItem, Dataset } from '../types'
@@ -23,6 +24,19 @@ function formatDate(iso: string) {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
+    })
+  } catch {
+    return iso
+  }
+}
+
+function formatDateTime(iso: string) {
+  try {
+    return new Date(iso).toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     })
   } catch {
     return iso
@@ -54,10 +68,14 @@ export function Dashboard() {
   })
 
   const datasets = useMemo(() => datasetsQuery.data ?? [], [datasetsQuery.data])
-  const analyses = analysesQuery.data ?? []
-  const count = datasets.length
+  const analyses = useMemo(() => analysesQuery.data ?? [], [analysesQuery.data])
+  const datasetCount = datasets.length
   const totalRows = datasets.reduce((s, d) => s + d.rows, 0)
   const completedAnalyses = analyses.filter((a) => a.status === 'completed').length
+  const failedAnalyses = analyses.filter((a) => a.status === 'failed').length
+  const inFlightAnalyses = analyses.filter(
+    (a) => a.status === 'queued' || a.status === 'running',
+  ).length
 
   const recent = useMemo(
     () =>
@@ -77,6 +95,29 @@ export function Dashboard() {
     }
     return map
   }, [analyses])
+
+  const recentRuns = useMemo(
+    () =>
+      [...analyses]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5),
+    [analyses],
+  )
+
+  const priorityQueue = useMemo(() => {
+    const items: { dataset: Dataset; reason: string; tone: 'risk' | 'warning' | 'info' }[] = []
+    for (const ds of datasets) {
+      const latest = latestByDataset.get(ds.id)
+      if (!latest) {
+        items.push({ dataset: ds, reason: 'No analysis yet', tone: 'warning' })
+      } else if (latest.status === 'failed') {
+        items.push({ dataset: ds, reason: 'Last run failed - retry', tone: 'risk' })
+      } else if (latest.status === 'queued' || latest.status === 'running') {
+        items.push({ dataset: ds, reason: 'Run in progress', tone: 'info' })
+      }
+    }
+    return items.slice(0, 4)
+  }, [datasets, latestByDataset])
 
   const listError =
     datasetsQuery.error || analysesQuery.error
@@ -99,7 +140,7 @@ export function Dashboard() {
     )
   }
 
-  if (!count && !analyses.length) {
+  if (!datasetCount && !analyses.length) {
     return (
       <EmptyState
         title="Start your RCA workspace"
@@ -110,15 +151,28 @@ export function Dashboard() {
   }
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       <PageHeader
-        eyebrow="RCA workspace"
-        title="Pick a dataset to see its business KPIs"
+        eyebrow="Command center"
+        title="Workspace cockpit"
         description="Workspace overview only. Open a dataset for target rates, risk segments, drivers, and revenue impact tied to that data."
+        meta={
+          <>
+            <StatusBadge tone="success" dot>
+              API healthy
+            </StatusBadge>
+            <StatusBadge tone="info">{`${datasetCount.toLocaleString()} datasets`}</StatusBadge>
+            <StatusBadge tone={inFlightAnalyses ? 'warning' : 'default'} dot={inFlightAnalyses > 0}>
+              {inFlightAnalyses ? `${inFlightAnalyses} runs in flight` : 'No runs in flight'}
+            </StatusBadge>
+          </>
+        }
         actions={
           <>
-            <Button to="/upload">Upload data</Button>
-            <Button to="/datasets" variant="secondary">Manage datasets</Button>
+            <Button to="/upload">Upload dataset</Button>
+            <Button to="/datasets" variant="secondary">
+              Manage datasets
+            </Button>
           </>
         }
       />
@@ -127,56 +181,157 @@ export function Dashboard() {
         <KpiCard
           tone="brand"
           label="Datasets indexed"
-          value={count.toLocaleString()}
-          hint={`${totalRows.toLocaleString()} rows available`}
+          value={datasetCount.toLocaleString()}
+          hint={`${totalRows.toLocaleString()} rows under coverage`}
         />
         <KpiCard
           tone="default"
           label="Tracked analyses"
           value={analyses.length.toLocaleString()}
-          hint={`${completedAnalyses} completed runs`}
+          hint={`${completedAnalyses} decision-ready · ${failedAnalyses} need attention`}
         />
         <KpiCard
           tone="emerald"
-          label="Decision-ready reports"
-          value={analyses.length ? formatPct01(completedAnalyses / analyses.length) : '0%'}
+          label="Completion rate"
+          value={analyses.length ? formatPct01(completedAnalyses / analyses.length, 0) : '0%'}
           hint="Completed analyses divided by all runs"
         />
         <KpiCard
-          tone="amber"
-          label="Datasets with KPIs"
-          value={latestByDataset.size.toLocaleString()}
-          hint="Open one to see its dashboard"
+          tone={priorityQueue.length ? 'amber' : 'default'}
+          label="Awaiting decision"
+          value={priorityQueue.length.toLocaleString()}
+          hint={priorityQueue.length ? 'Datasets needing operator action' : 'Queue is clear'}
         />
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
+      <section className="grid gap-6 lg:grid-cols-[1.3fr_0.9fr]">
         <Card padding="lg" tone="strong">
-          <CardTitle className="text-lg">RCA flow</CardTitle>
-          <div className="mt-5 space-y-4">
+          <SectionHeader
+            eyebrow="Action agenda"
+            title="Datasets that need attention"
+            description="Where the cockpit recommends operator action next."
+            actions={
+              <Button variant="secondary" size="sm" to="/datasets">
+                Open inventory
+              </Button>
+            }
+          />
+          {priorityQueue.length ? (
+            <ul className="mt-5 divide-y divide-[var(--border-1)]">
+              {priorityQueue.map(({ dataset, reason, tone }) => (
+                <li key={dataset.id} className="py-3 first:pt-0 last:pb-0">
+                  <Link
+                    to={`/datasets/${dataset.id}`}
+                    className="group flex flex-wrap items-center justify-between gap-3 rounded-lg px-2 py-1 transition-colors hover:bg-[var(--surface-3)]/60"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-bold text-[var(--text-1)]">{dataset.name}</p>
+                      <p className="mt-0.5 text-xs text-[var(--text-3)]">
+                        {dataset.rows.toLocaleString()} rows · {dataset.cols} cols · uploaded{' '}
+                        {formatDate(dataset.created_at)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <StatusBadge tone={tone} dot>
+                        {reason}
+                      </StatusBadge>
+                      <span
+                        aria-hidden
+                        className="text-[var(--text-3)] transition-transform group-hover:translate-x-0.5 group-hover:text-[var(--text-1)]"
+                      >
+                        →
+                      </span>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-5 rounded-xl border border-dashed border-[var(--border-1)] bg-[var(--surface-3)]/50 p-4 text-sm text-[var(--text-2)]">
+              No outstanding items - every dataset has a recent run. Open one to drill into business KPIs.
+            </p>
+          )}
+        </Card>
+
+        <Card padding="lg" tone="strong">
+          <SectionHeader eyebrow="Recent runs" title="Latest analyses" />
+          {recentRuns.length ? (
+            <ul className="mt-5 space-y-3">
+              {recentRuns.map((run) => (
+                <li key={run.id}>
+                  <Link
+                    to={`/analyses/${run.id}`}
+                    className="flex items-start justify-between gap-3 rounded-xl border border-[var(--border-1)] bg-[var(--surface-1)] p-3 transition-colors hover:border-[var(--border-2)] hover:bg-[var(--surface-3)]/60"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-[var(--text-1)]">
+                        {run.dataset_name}
+                      </p>
+                      <p className="mt-0.5 truncate font-mono text-[11px] text-[var(--text-3)]">
+                        target {run.target} · {formatDateTime(run.created_at)}
+                      </p>
+                    </div>
+                    <StatusBadge tone={statusTone(run.status)} dot>
+                      {run.status}
+                    </StatusBadge>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-5 rounded-xl border border-dashed border-[var(--border-1)] bg-[var(--surface-3)]/50 p-4 text-sm text-[var(--text-2)]">
+              No runs yet. Upload a dataset to begin.
+            </p>
+          )}
+        </Card>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
+        <Card padding="lg" tone="strong">
+          <SectionHeader eyebrow="Workflow" title="RCA in three moves" />
+          <ol className="mt-5 space-y-4">
             {[
-              { step: '01', title: 'Upload', body: 'Bring in CSV or Parquet tables with targets and optional value fields.' },
-              { step: '02', title: 'Analyze', body: 'Pick the target on a dataset and let the model produce drivers, SHAP summaries, and KPI rollups.' },
-              { step: '03', title: 'Act', body: 'Open the dataset to review business KPIs and prioritize the riskiest, most tractable segments.' },
+              {
+                step: '01',
+                title: 'Upload',
+                body: 'Bring in CSV or Parquet tables with targets and optional value fields.',
+              },
+              {
+                step: '02',
+                title: 'Analyze',
+                body: 'Pick the target on a dataset and let the model produce drivers, SHAP, and KPI rollups.',
+              },
+              {
+                step: '03',
+                title: 'Act',
+                body: 'Open the dataset to review business KPIs and prioritize the riskiest, most tractable segments.',
+              },
             ].map((item) => (
-              <div key={item.step} className="flex gap-4">
-                <span className="font-mono text-sm font-black text-brand-700 dark:text-brand-300">{item.step}</span>
+              <li key={item.step} className="flex gap-4">
+                <span className="font-mono text-sm font-black text-brand-600 dark:text-brand-300">
+                  {item.step}
+                </span>
                 <div>
-                  <h3 className="font-bold text-slate-950 dark:text-white">{item.title}</h3>
-                  <p className="text-sm leading-6 text-slate-600 dark:text-slate-400">{item.body}</p>
+                  <h3 className="text-sm font-bold tracking-tight text-[var(--text-1)]">
+                    {item.title}
+                  </h3>
+                  <p className="mt-1 text-sm leading-6 text-[var(--text-2)]">{item.body}</p>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ol>
         </Card>
 
         <Card padding="lg">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <CardTitle className="text-lg">Datasets</CardTitle>
-              <CardDescription>Open one to see its KPI dashboard.</CardDescription>
+              <CardEyebrow>Inventory</CardEyebrow>
+              <CardTitle className="mt-2 text-lg">Recently added datasets</CardTitle>
+              <p className="mt-1 text-sm text-[var(--text-2)]">Open one to see its KPI dashboard.</p>
             </div>
-            <Button variant="secondary" size="sm" to="/datasets">View all</Button>
+            <Button variant="secondary" size="sm" to="/datasets">
+              View all
+            </Button>
           </div>
           {recent.length ? (
             <ul className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -186,19 +341,23 @@ export function Dashboard() {
                   <li key={dataset.id}>
                     <Link
                       to={`/datasets/${dataset.id}#dataset-kpi-dashboard`}
-                      className="block rounded-2xl border border-slate-200/70 bg-white/60 p-4 transition hover:border-brand-300 hover:bg-white dark:border-slate-800 dark:bg-slate-950/35 dark:hover:border-brand-800"
+                      className="block rounded-xl border border-[var(--border-1)] bg-[var(--surface-1)] p-4 transition-colors hover:border-[var(--border-2)] hover:bg-[var(--surface-3)]/60"
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <span className="font-bold text-slate-950 dark:text-white">{dataset.name}</span>
-                        {latest && <StatusBadge tone={statusTone(latest.status)}>{latest.status}</StatusBadge>}
+                        <span className="font-bold text-[var(--text-1)]">{dataset.name}</span>
+                        {latest && (
+                          <StatusBadge tone={statusTone(latest.status)} dot>
+                            {latest.status}
+                          </StatusBadge>
+                        )}
                       </div>
-                      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                        {dataset.rows.toLocaleString()} rows - {dataset.cols} cols
+                      <p className="mt-1 text-sm text-[var(--text-2)] tabular-nums">
+                        {dataset.rows.toLocaleString()} rows · {dataset.cols} cols
                       </p>
-                      <p className="mt-3 text-xs font-medium text-slate-500 dark:text-slate-500">
+                      <p className="mt-3 text-[11px] font-medium text-[var(--text-3)]">
                         {latest
-                          ? `Latest analysis #${latest.id} on ${formatDate(latest.created_at)}`
-                          : `Uploaded ${formatDate(dataset.created_at)} - no analyses yet`}
+                          ? `Latest run #${latest.id} on ${formatDate(latest.created_at)}`
+                          : `Uploaded ${formatDate(dataset.created_at)} · no runs yet`}
                       </p>
                     </Link>
                   </li>
@@ -206,7 +365,7 @@ export function Dashboard() {
               })}
             </ul>
           ) : (
-            <CardDescription className="mt-5">No datasets yet. Upload one to get started.</CardDescription>
+            <p className="mt-5 text-sm text-[var(--text-2)]">No datasets yet. Upload one to get started.</p>
           )}
         </Card>
       </section>

@@ -1,5 +1,6 @@
 import { Button } from './Button'
 import { Card } from './Card'
+import { StatusBadge } from './StatusBadge'
 
 type Props = {
   title?: string
@@ -18,8 +19,13 @@ export function ErrorState({
     <Card padding="lg" tone="risk">
       <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
+          <div className="mb-2">
+            <StatusBadge tone="risk" dot>
+              Action needed
+            </StatusBadge>
+          </div>
           <h2 className="font-bold text-red-900 dark:text-red-200">{title}</h2>
-          <p className="mt-1 text-sm text-red-700/90 dark:text-red-400/90">{message}</p>
+          <p className="mt-1 text-sm leading-6 text-red-800/90 dark:text-red-300/90">{message}</p>
         </div>
         {onRetry && (
           <Button type="button" variant="secondary" onClick={onRetry}>

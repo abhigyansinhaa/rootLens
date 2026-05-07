@@ -12,15 +12,15 @@ export function SectionHeader({ eyebrow, title, description, actions }: Props) {
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
         {eyebrow && (
-          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-brand-700 dark:text-brand-300">
+          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-brand-600 dark:text-brand-300">
             {eyebrow}
           </p>
         )}
-        <h2 className="mt-1 text-xl font-black tracking-tight text-slate-950 dark:text-white">{title}</h2>
+        <h2 className="mt-1 text-lg font-black tracking-tight text-[var(--text-1)] sm:text-xl">
+          {title}
+        </h2>
         {description && (
-          <div className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-400">
-            {description}
-          </div>
+          <div className="mt-2 max-w-3xl text-sm leading-6 text-[var(--text-2)]">{description}</div>
         )}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}

@@ -1,14 +1,5 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import {
-  ConcentrationCallout,
-  CounterfactualCallout,
-  DriverImpactCard,
-  KpiCard,
-  ReliabilityBadge,
-  RiskSegmentsChart,
-} from '../kpi'
-import { formatCompactMoney, formatNumber, formatPct01 } from '../kpi/format'
 import { api } from '../../api/client'
 import {
   Button,
@@ -17,6 +8,7 @@ import {
   CardTitle,
   LoadingState,
   SectionHeader,
+  Select,
   StatusBadge,
 } from '../ui'
 import type { Analysis, AnalysisListItem } from '../../types'
@@ -38,17 +30,6 @@ function statusTone(status: string): 'default' | 'info' | 'success' | 'warning' 
   if (status === 'failed') return 'risk'
   if (status === 'queued' || status === 'running') return 'warning'
   return 'default'
-}
-
-function metricValue(detail: Analysis, kpis: NonNullable<NonNullable<Analysis['report']>['kpis']>) {
-  if (detail.task_type === 'regression') {
-    return kpis.target_level.target_mean !== undefined
-      ? formatNumber(kpis.target_level.target_mean, 4)
-      : 'No baseline'
-  }
-  return kpis.target_level.target_rate !== undefined
-    ? formatPct01(kpis.target_level.target_rate)
-    : 'No baseline'
 }
 
 type Props = {
@@ -97,10 +78,6 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
 
   const analyses = analysesQuery.data ?? []
   const detail = detailQuery.data
-  const kpis = detail?.report?.kpis
-  const revenueReady = !!(kpis?.impact_revenue && detail?.value_column)
-  const topInsights = detail?.insights?.slice(0, 3) ?? []
-  const topRecommendations = detail?.recommendations?.slice(0, 4) ?? []
 
   if (analysesQuery.isLoading) {
     return <LoadingState rows={3} message="Loading analyses…" />
@@ -110,15 +87,15 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
     return (
       <section id="dataset-kpi-dashboard" className="space-y-4">
         <SectionHeader
-          eyebrow="Business KPIs"
-          title={datasetName ? `KPIs for ${datasetName}` : 'Business KPIs'}
-          description="Run an analysis on this dataset to populate target rates, risk segments, drivers, and revenue impact."
+          eyebrow="Analysis dashboard"
+          title={datasetName ? `Runs for ${datasetName}` : 'Analysis dashboard'}
+          description="Start a root-cause analysis above. When a run finishes, open the dedicated result page for KPIs, drivers, metrics, and recommendations."
         />
         <Card padding="lg" tone="info">
           <CardTitle className="text-lg">No analyses yet</CardTitle>
           <CardDescription>
-            Pick a target column above and run a root-cause analysis. KPI panels will appear here once the first
-            run completes.
+            Pick a target column and run an analysis. You’ll be taken to the result page while the job runs; return
+            here anytime to switch runs or check status.
           </CardDescription>
         </Card>
       </section>
@@ -128,39 +105,37 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
   return (
     <section id="dataset-kpi-dashboard" className="space-y-8">
       <SectionHeader
-        eyebrow="Business KPIs"
-        title={datasetName ? `KPIs for ${datasetName}` : 'Business KPIs'}
-        description="Top-line signals, drivers, and recommended actions for this dataset's most recent analyses."
+        eyebrow="Analysis dashboard"
+        title={datasetName ? `Runs for ${datasetName}` : 'Analysis dashboard'}
+        description="Monitor queued and in-flight jobs and jump to the full report for any completed run."
       />
 
       <Card padding="md" tone="strong" elevated>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-          <label
-            className="flex flex-col text-sm font-bold text-slate-700 dark:text-slate-200"
-            htmlFor="dataset-analysis-select"
+          <Select
+            label="Analysis focus"
+            id="dataset-analysis-select"
+            value={activeAnalysisId ?? ''}
+            onChange={(e) => {
+              const next = Number(e.target.value)
+              setSelectedId(Number.isFinite(next) ? next : null)
+            }}
           >
-            Analysis focus
-            <select
-              id="dataset-analysis-select"
-              className="mt-2 w-full rounded-2xl border border-white/70 bg-white/85 px-4 py-3 text-base text-slate-900 shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-slate-700 dark:bg-slate-900/80 dark:text-white"
-              value={activeAnalysisId ?? ''}
-              onChange={(e) => {
-                const next = Number(e.target.value)
-                setSelectedId(Number.isFinite(next) ? next : null)
-              }}
-            >
-              {analyses.map((a) => (
-                <option key={a.id} value={a.id}>
-                  #{a.id} - {a.target} ({a.status}) - {formatDate(a.created_at)}
-                </option>
-              ))}
-            </select>
-          </label>
+            {analyses.map((a) => (
+              <option key={a.id} value={a.id}>
+                #{a.id} - {a.target} ({a.status}) - {formatDate(a.created_at)}
+              </option>
+            ))}
+          </Select>
           <div className="flex flex-wrap items-center gap-2">
-            {detail && <StatusBadge tone={statusTone(detail.status)}>{detail.status}</StatusBadge>}
+            {detail && (
+              <StatusBadge tone={statusTone(detail.status)} dot>
+                {detail.status}
+              </StatusBadge>
+            )}
             {detail && detail.status === 'completed' && (
               <Button variant="secondary" size="sm" to={`/analyses/${detail.id}`}>
-                Open full report
+                Open result page
               </Button>
             )}
           </div>
@@ -169,121 +144,28 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
 
       {detailQuery.isLoading ? (
         <LoadingState rows={4} />
-      ) : detail?.status === 'completed' && kpis ? (
-        <>
-          <section className="space-y-4">
-            <SectionHeader
-              eyebrow="1. Business impact"
-              title="Top-line signals"
-              description="Start with target behavior, high-risk exposure, monetized impact, and confidence before reading model artifacts."
-            />
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <KpiCard
-                tone="brand"
-                label={detail.task_type === 'regression' ? 'Target baseline' : 'Target/churn rate'}
-                value={metricValue(detail, kpis)}
-                hint={detail.target}
-              />
-              <KpiCard
-                tone="amber"
-                label="High-risk users"
-                value={formatPct01(kpis.target_level.high_risk_share)}
-                hint={`${kpis.target_level.high_risk_count.toLocaleString()} rows above threshold`}
-              />
-              <KpiCard
-                tone={kpis.impact_revenue ? 'risk' : 'default'}
-                label="Revenue at risk"
-                value={kpis.impact_revenue ? formatCompactMoney(kpis.impact_revenue.revenue_at_risk) : 'Not linked'}
-                hint={
-                  kpis.impact_revenue
-                    ? `Value column: ${detail.value_column ?? 'configured'}`
-                    : 'Add a numeric value column on the next run'
-                }
-              />
-              <KpiCard
-                tone={
-                  kpis.reliability.tier === 'high'
-                    ? 'emerald'
-                    : kpis.reliability.tier === 'low'
-                      ? 'risk'
-                      : 'amber'
-                }
-                label="Model performance"
-                value={formatNumber(kpis.reliability.headline_value)}
-                hint={`${kpis.reliability.headline_metric} - ${kpis.reliability.tier} confidence`}
-              />
-            </div>
-            <div className="grid gap-4 lg:grid-cols-2">
-              <ConcentrationCallout kpis={kpis} />
-              <CounterfactualCallout kpis={kpis} regression={detail.task_type === 'regression'} />
-            </div>
-          </section>
-
-          <section className="space-y-4">
-            <SectionHeader
-              eyebrow="2. Why it is happening"
-              title="Drivers, segments, and reliability"
-              description="Use feature importance, scenario lift, and segment concentration to identify where intervention should start."
-            />
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-              <RiskSegmentsChart kpis={kpis} hasValue={revenueReady} />
-              <ReliabilityBadge kpis={kpis} />
-            </div>
-            <DriverImpactCard kpis={kpis} />
-          </section>
-
-          <section className="space-y-4">
-            <SectionHeader
-              eyebrow="3. What to do next"
-              title="Insights and actions"
-              description="Convert model evidence into a short operating agenda for product, growth, risk, or retention teams."
-            />
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.8fr)]">
-              <Card padding="lg" tone="strong">
-                <CardTitle className="text-lg">Root-cause insights</CardTitle>
-                {topInsights.length ? (
-                  <ul className="mt-5 space-y-4">
-                    {topInsights.map((insight) => (
-                      <li
-                        key={`${insight.feature}-${insight.kind}`}
-                        className="rounded-2xl border border-slate-200/70 bg-white/60 p-4 dark:border-slate-800 dark:bg-slate-950/35"
-                      >
-                        <p className="font-mono text-xs font-bold text-brand-700 dark:text-brand-300">
-                          {insight.feature}
-                        </p>
-                        <p className="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">
-                          {insight.summary}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <CardDescription>No narrative insights were returned for this run.</CardDescription>
+      ) : detail?.status === 'completed' ? (
+        <Card padding="lg" tone="success" elevated>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle className="text-lg">Analysis complete</CardTitle>
+              <CardDescription className="mt-2">
+                Target{' '}
+                <code className="rounded-md bg-[var(--surface-3)] px-1.5 py-0.5 font-mono text-xs">{detail.target}</code>
+                {detail.task_type && (
+                  <>
+                    {' '}
+                    ·{' '}
+                    <span className="capitalize">{detail.task_type.replace('_', ' ')}</span>
+                  </>
                 )}
-              </Card>
-
-              <Card padding="lg" tone="info">
-                <CardTitle className="text-lg">Recommended actions</CardTitle>
-                {topRecommendations.length ? (
-                  <ol className="mt-5 space-y-3 text-sm leading-6 text-brand-950 dark:text-brand-100">
-                    {topRecommendations.map((recommendation, index) => (
-                      <li key={recommendation} className="flex gap-3">
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-600 text-xs font-black text-white">
-                          {index + 1}
-                        </span>
-                        <span>{recommendation}</span>
-                      </li>
-                    ))}
-                  </ol>
-                ) : (
-                  <CardDescription>
-                    Recommendations will appear when the analysis service returns action text.
-                  </CardDescription>
-                )}
-              </Card>
+                . Full KPIs, segment charts, feature drivers, model metrics, SHAP plots, insights, and recommendations
+                are on the result page.
+              </CardDescription>
             </div>
-          </section>
-        </>
+            <Button to={`/analyses/${detail.id}`}>Open result page</Button>
+          </div>
+        </Card>
       ) : (
         <Card padding="lg" tone={detail?.status === 'failed' ? 'risk' : 'warning'} elevated>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -294,7 +176,7 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
               <CardDescription>
                 {detail?.error ||
                   detail?.report?.user_message ||
-                  'KPI, driver, and recommendation panels appear here after the job finishes.'}
+                  'When this job finishes, open the result page for the full report.'}
               </CardDescription>
             </div>
             {detail && <StatusBadge tone={statusTone(detail.status)}>{detail.status}</StatusBadge>}

@@ -1,5 +1,5 @@
 import type { AnalysisKpis } from '../../types'
-import { Card, StatusBadge } from '../ui'
+import { Card, CardEyebrow, StatusBadge } from '../ui'
 import { formatCompactMoney, formatPct01, formatNumber } from './format'
 
 export function CounterfactualCallout({
@@ -14,7 +14,7 @@ export function CounterfactualCallout({
 
   const subtitle =
     apr === 'shap_zeroing'
-      ? 'SHAP drivers are associative. “Zero‑out” is a scenario estimate, not a guaranteed lift.'
+      ? 'SHAP drivers are associative. Zero-out is a scenario estimate, not a guaranteed lift.'
       : 'Uses importance shares when dense SHAP was unavailable.'
 
   const deltaAbs = Math.abs(t2.delta_target_rate)
@@ -22,41 +22,46 @@ export function CounterfactualCallout({
 
   const mainLine = regression ? (
     <>
-      Fixing the top <span className="font-semibold">2</span> modeled drivers shifts predicted outcome by ~
-      <span className="tabular-nums">{formatPct01(deltaAbs)}</span> of scale (scenario).
+      Neutralizing the top <span className="font-bold">2</span> drivers shifts the predicted outcome by{' '}
+      <span className="tabular-nums">{formatPct01(deltaAbs)}</span> of scale.
     </>
   ) : (
     <>
-      Fixing the top <span className="font-semibold">2</span> drivers shifts predicted positive rate by ~
-      <span className="tabular-nums">{formatPct01(deltaAbs)}</span> points (scenario).
+      Neutralizing the top <span className="font-bold">2</span> drivers shifts the predicted positive rate by{' '}
+      <span className="tabular-nums">{formatPct01(deltaAbs)}</span> points.
     </>
   )
 
   const revLine =
     rev != null && Number.isFinite(rev) && Math.abs(rev) > 1e-9 ? (
       <span>
-        Revenue lift signal (approx.):{' '}
-        <span className="font-semibold tabular-nums text-emerald-800 dark:text-emerald-400">
+        Revenue lift signal:{' '}
+        <span className="font-bold tabular-nums text-emerald-700 dark:text-emerald-300">
           {formatCompactMoney(rev)}
         </span>
-        {' · '}users crossing high→low thresholds:{' '}
-        <span className="font-semibold tabular-nums">{formatNumber(t2.users_savable, 0)}</span>.
+        {' · '}users crossing high to low thresholds:{' '}
+        <span className="font-bold tabular-nums text-[var(--text-1)]">
+          {formatNumber(t2.users_savable, 0)}
+        </span>
+        .
       </span>
     ) : (
-      <span>Set a numeric value column on the next analysis to quantify revenue-linked lift.</span>
+      <span>Add a numeric value column on the next analysis to quantify revenue-linked lift.</span>
     )
 
   return (
     <Card padding="lg" tone="info" className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <StatusBadge tone="info">Scenario</StatusBadge>
-        <span className="text-xs font-semibold text-brand-900/80 dark:text-brand-100/80" title={subtitle}>
+        <CardEyebrow>What-if scenario</CardEyebrow>
+        <StatusBadge tone="info" dot>
           Counterfactual estimate
-        </span>
+        </StatusBadge>
       </div>
-      <p className="text-xl font-black leading-relaxed text-slate-950 dark:text-white">{mainLine}</p>
-      <p className="text-sm leading-6 text-slate-700 dark:text-slate-200">{revLine}</p>
-      <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">{subtitle}</p>
+      <p className="text-xl font-bold leading-tight text-[var(--text-1)]">{mainLine}</p>
+      <p className="text-sm leading-6 text-[var(--text-2)]">{revLine}</p>
+      <p className="rounded-lg border border-[var(--border-1)] bg-[var(--surface-3)]/60 px-3 py-2 text-[11px] leading-5 text-[var(--text-3)]">
+        {subtitle}
+      </p>
     </Card>
   )
 }

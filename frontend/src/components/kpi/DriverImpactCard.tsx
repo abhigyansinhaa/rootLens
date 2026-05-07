@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { AnalysisKpis } from '../../types'
-import { Card, CardTitle } from '../ui'
+import { Card, CardEyebrow, CardTitle, DataTable, TBody, TD, TH, THead, TR } from '../ui'
 import { formatPct01, formatNumber } from './format'
 
 type Row = AnalysisKpis['driver_impact']['per_driver'][0] & {
@@ -33,71 +33,77 @@ export function DriverImpactCard({ kpis }: { kpis: AnalysisKpis }) {
     return null
   }
 
+  const sortBtn = (key: 'revenue' | 'delta', label: string) => (
+    <button
+      type="button"
+      onClick={() => setSortBy(key)}
+      className={`rounded-lg px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] transition-colors ${
+        sortBy === key
+          ? 'bg-brand-600 text-white shadow-sm'
+          : 'border border-[var(--border-1)] bg-[var(--surface-2)] text-[var(--text-2)] hover:border-[var(--border-2)]'
+      }`}
+    >
+      {label}
+    </button>
+  )
+
   return (
     <Card padding="lg" tone="strong">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <CardTitle className="text-lg">Driver impact scenario</CardTitle>
-          <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
-            Order by projected lift or revenue signal. Rollups show combined effect of neutralizing top drivers.
+          <CardEyebrow>Driver impact scenario</CardEyebrow>
+          <CardTitle className="mt-2 text-lg">Top drivers, ranked by lift or revenue</CardTitle>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--text-2)]">
+            Rollups show the combined effect of neutralizing each top driver. Use this to prioritize where to
+            intervene first.
           </p>
         </div>
-        <div className="flex gap-2 text-xs">
-          <button
-            type="button"
-            onClick={() => setSortBy('revenue')}
-            className={`rounded-full px-3 py-1 font-semibold ${
-              sortBy === 'revenue'
-                ? 'bg-brand-600 text-white shadow-sm'
-                : 'bg-white/70 text-slate-600 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700'
-            }`}
-          >
-            Sort · revenue
-          </button>
-          <button
-            type="button"
-            onClick={() => setSortBy('delta')}
-            className={`rounded-full px-3 py-1 font-semibold ${
-              sortBy === 'delta'
-                ? 'bg-brand-600 text-white shadow-sm'
-                : 'bg-white/70 text-slate-600 ring-1 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700'
-            }`}
-          >
-            Sort · Δ rate
-          </button>
+        <div className="flex gap-2">
+          {sortBtn('revenue', 'Revenue')}
+          {sortBtn('delta', 'Delta')}
         </div>
       </div>
-      <div className="mt-4 overflow-x-auto">
-        <table className="min-w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 text-xs uppercase tracking-[0.16em] text-slate-500 dark:border-slate-800">
-              <th className="py-2 pr-4 font-semibold">Driver</th>
-              <th className="py-2 pr-4 font-semibold">Driver share</th>
-              <th className="py-2 pr-4 font-semibold">Δ target (scenario)</th>
-              <th className="py-2 pr-4 font-semibold">Rows crossing band</th>
-              <th className="py-2 font-semibold">Revenue shift</th>
+      <div className="mt-5">
+        <DataTable>
+          <THead>
+            <tr>
+              <TH>Driver</TH>
+              <TH align="right">Importance</TH>
+              <TH align="right">Δ target</TH>
+              <TH align="right">Rows crossing</TH>
+              <TH align="right">Revenue shift</TH>
             </tr>
-          </thead>
-          <tbody>
+          </THead>
+          <TBody>
             {sorted.map((r) => (
-              <tr key={r.feature} className="border-b border-slate-100/80 dark:border-slate-800/80">
-                <td className="py-3 pr-4 font-mono text-xs text-slate-900 dark:text-slate-50">{r.feature}</td>
-                <td className="py-3 pr-4">{r.importance_share != null ? formatPct01(r.importance_share, 2) : '–'}</td>
-                <td className="py-3 pr-4">{formatPct01(Math.abs(r.delta_target_rate))}</td>
-                <td className="py-3 pr-4 tabular-nums">{formatNumber(r.users_savable, 0)}</td>
-                <td className="py-3">
+              <TR key={r.feature}>
+                <TD mono>{r.feature}</TD>
+                <TD align="right" numeric>
+                  {r.importance_share != null ? formatPct01(r.importance_share, 2) : '-'}
+                </TD>
+                <TD align="right" numeric>
+                  {formatPct01(Math.abs(r.delta_target_rate))}
+                </TD>
+                <TD align="right" numeric>
+                  {formatNumber(r.users_savable, 0)}
+                </TD>
+                <TD align="right" numeric>
                   {r.revenue_recoverable != null && Number.isFinite(r.revenue_recoverable)
-                    ? `$${Math.abs(r.revenue_recoverable).toLocaleString(undefined, { maximumFractionDigits: 0 })}`
-                    : '—'}
-                </td>
-              </tr>
+                    ? `$${Math.abs(r.revenue_recoverable).toLocaleString(undefined, {
+                        maximumFractionDigits: 0,
+                      })}`
+                    : '-'}
+                </TD>
+              </TR>
             ))}
-          </tbody>
-        </table>
+          </TBody>
+        </DataTable>
       </div>
-      <p className="mt-4 text-[11px] text-slate-500">
+      <p className="mt-4 text-[11px] text-[var(--text-3)]">
         Scenario mode:{' '}
-        <span className="font-semibold">{kpis.driver_impact.approximation.replace('_', ' ')}</span>.
+        <span className="font-bold uppercase tracking-wider text-[var(--text-2)]">
+          {kpis.driver_impact.approximation.replace('_', ' ')}
+        </span>
       </p>
     </Card>
   )
