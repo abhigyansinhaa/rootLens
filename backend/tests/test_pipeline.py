@@ -21,6 +21,8 @@ def test_train_binary_classification():
     assert "accuracy" in r.metrics
     assert r.model_kind in ("xgboost", "random_forest")
     assert len(r.feature_names) >= 1
+    assert isinstance(r.model_metadata, dict)
+    assert "training_rows" in r.model_metadata
 
 
 def test_train_regression():
@@ -32,3 +34,4 @@ def test_train_regression():
     assert r.task_type == "regression"
     assert "r2" in r.metrics
     assert r.model_kind in ("xgboost", "random_forest", "elastic_net")
+    assert isinstance(r.model_metadata, dict)

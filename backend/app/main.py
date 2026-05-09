@@ -2,10 +2,11 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from app.config import settings
-from app.db import init_db
+from app.rate_limit import limiter
 from app.routers import analyses, auth, datasets
 from app.storage import ensure_dirs
 
@@ -13,11 +14,12 @@ from app.storage import ensure_dirs
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     ensure_dirs()
-    init_db()
     yield
 
 
 app = FastAPI(title="RCA ML Platform", lifespan=lifespan)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,8 +32,6 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api")
 app.include_router(datasets.router, prefix="/api")
 app.include_router(analyses.router, prefix="/api")
-
-app.mount("/artifacts", StaticFiles(directory=str(settings.artifacts_dir)), name="artifacts")
 
 
 @app.get("/api/health")

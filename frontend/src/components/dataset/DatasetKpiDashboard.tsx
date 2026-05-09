@@ -41,7 +41,9 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
   const analysesQuery = useQuery({
     queryKey: ['datasetAnalyses', datasetId],
     queryFn: async () => {
-      const { data } = await api.get<AnalysisListItem[]>(`/datasets/${datasetId}/analyses`)
+      const { data } = await api.get<AnalysisListItem[]>(`/datasets/${datasetId}/analyses`, {
+        params: { limit: 100 },
+      })
       return data
     },
     enabled: Number.isFinite(datasetId),

@@ -4,7 +4,8 @@ import { Stat } from '../ui'
 type Props = {
   label: string
   value: ReactNode
-  hint?: string
+  hint?: ReactNode
+  ciHint?: ReactNode
   tone?: 'default' | 'amber' | 'emerald' | 'brand' | 'risk'
 }
 
@@ -16,6 +17,16 @@ const toneMap: Record<NonNullable<Props['tone']>, 'default' | 'warning' | 'succe
   risk: 'risk',
 }
 
-export function KpiCard({ label, value, hint, tone = 'default' }: Props) {
-  return <Stat label={label} value={value} hint={hint} tone={toneMap[tone]} />
+export function KpiCard({ label, value, hint, ciHint, tone = 'default' }: Props) {
+  const hintNode =
+    hint || ciHint ? (
+      <>
+        {hint ? <span className="text-[var(--text-2)]">{hint}</span> : null}
+        {ciHint ? (
+          <span className="block text-[11px] font-semibold tabular-nums text-[var(--text-3)]">{ciHint}</span>
+        ) : null}
+      </>
+    ) : undefined
+
+  return <Stat label={label} value={value} hint={hintNode} tone={toneMap[tone]} />
 }

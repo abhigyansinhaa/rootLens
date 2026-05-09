@@ -11,6 +11,7 @@ import {
   YAxis,
 } from 'recharts'
 import { api } from '../api/client'
+import { AuthenticatedApiImage } from '../components/AuthenticatedApiImage'
 import {
   ConcentrationCallout,
   CounterfactualCallout,
@@ -64,6 +65,21 @@ function metricValue(detail: Analysis, kpis: NonNullable<NonNullable<Analysis['r
   return kpis.target_level.target_rate !== undefined
     ? formatPct01(kpis.target_level.target_rate)
     : 'No baseline'
+}
+
+function ciPct(lo?: number, hi?: number) {
+  if (lo === undefined || hi === undefined) return undefined
+  return `95% CI ${formatPct01(lo)}–${formatPct01(hi)}`
+}
+
+function ciMoney(lo?: number, hi?: number) {
+  if (lo === undefined || hi === undefined) return undefined
+  return `95% CI ${formatCompactMoney(lo)}–${formatCompactMoney(hi)}`
+}
+
+function ciNum(lo?: number, hi?: number, digits = 4) {
+  if (lo === undefined || hi === undefined) return undefined
+  return `95% CI ${formatNumber(lo, digits)}–${formatNumber(hi, digits)}`
 }
 
 export function AnalysisResult() {
@@ -175,6 +191,14 @@ export function AnalysisResult() {
                     </code>
                   </span>
                 )}
+                {data.datetime_column && (
+                  <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border-1)] bg-[var(--surface-2)] px-3 py-1 text-[11px] font-semibold text-[var(--text-2)]">
+                    Time order
+                    <code className="rounded-md bg-[var(--surface-3)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-1)]">
+                      {data.datetime_column}
+                    </code>
+                  </span>
+                )}
               </>
             }
             actions={
@@ -250,12 +274,21 @@ export function AnalysisResult() {
                 label={data.task_type === 'regression' ? 'Target baseline' : 'Target/churn rate'}
                 value={metricValue(data, kpis)}
                 hint={data.target}
+                ciHint={
+                  data.task_type === 'regression'
+                    ? ciNum(kpis.target_level.target_mean_ci_low, kpis.target_level.target_mean_ci_high)
+                    : ciPct(kpis.target_level.target_rate_ci_low, kpis.target_level.target_rate_ci_high)
+                }
               />
               <KpiCard
                 tone="amber"
                 label="High-risk users"
                 value={formatPct01(kpis.target_level.high_risk_share)}
                 hint={`${kpis.target_level.high_risk_count.toLocaleString()} rows above threshold`}
+                ciHint={ciPct(
+                  kpis.target_level.high_risk_share_ci_low,
+                  kpis.target_level.high_risk_share_ci_high,
+                )}
               />
               <KpiCard
                 tone={kpis.impact_revenue ? 'risk' : 'default'}
@@ -265,6 +298,14 @@ export function AnalysisResult() {
                   kpis.impact_revenue
                     ? `Value column: ${data.value_column ?? 'configured'}`
                     : 'Add a numeric value column on the next run'
+                }
+                ciHint={
+                  kpis.impact_revenue
+                    ? ciMoney(
+                        kpis.impact_revenue.revenue_at_risk_ci_low,
+                        kpis.impact_revenue.revenue_at_risk_ci_high,
+                      )
+                    : undefined
                 }
               />
               <KpiCard
@@ -299,6 +340,21 @@ export function AnalysisResult() {
             <DriverImpactCard kpis={kpis} />
           </section>
         </>
+      )}
+
+      {data.status === 'completed' && data.model_metadata && Object.keys(data.model_metadata).length > 0 && (
+        <section className="space-y-4">
+          <SectionHeader
+            eyebrow="Training"
+            title="Model metadata"
+            description="Hyperparameters, timing, and feature inventory from this run."
+          />
+          <Card padding="lg" tone="strong">
+            <pre className="max-h-96 overflow-auto whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-[var(--text-2)]">
+              {JSON.stringify(data.model_metadata, null, 2)}
+            </pre>
+          </Card>
+        </section>
       )}
 
       {data.status === 'completed' && data.metrics && (
@@ -372,8 +428,9 @@ export function AnalysisResult() {
             description="Distribution view for feature impact and direction."
           />
           <Card padding="lg" tone="strong">
-            <img
-              src={data.shap_summary_image_url}
+            <AuthenticatedApiImage
+              key={`shap-${data.id}-${data.shap_summary_image_url}`}
+              apiPath={data.shap_summary_image_url}
               alt="SHAP summary"
               className="max-w-full rounded-xl border border-[var(--border-1)] bg-[var(--surface-1)]"
             />

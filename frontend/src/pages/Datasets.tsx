@@ -43,7 +43,7 @@ export function Datasets() {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['datasets'],
     queryFn: async () => {
-      const { data } = await api.get<Dataset[]>('/datasets')
+      const { data } = await api.get<Dataset[]>('/datasets', { params: { limit: 500 } })
       return data
     },
   })

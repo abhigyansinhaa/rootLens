@@ -1,15 +1,18 @@
 import json
 import logging
+from pathlib import Path
 from typing import Annotated, Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.db import SessionLocal, get_db
 from app.deps import get_current_user
-from app.config import settings
 from app.jobs import run_analysis
 from app.models import Analysis, Dataset, User
+from app.rate_limit import limiter
 from app.schemas import AnalysisCreate, AnalysisListItem, AnalysisOut
 from app.storage import remove_artifact_dir
 
@@ -51,6 +54,7 @@ def _analysis_to_out(a: Analysis) -> dict[str, Any]:
         "id": a.id,
         "dataset_id": a.dataset_id,
         "target": a.target,
+        "datetime_column": getattr(a, "datetime_column", None),
         "value_column": getattr(a, "value_column", None),
         "task_type": a.task_type,
         "status": a.status,
@@ -58,6 +62,7 @@ def _analysis_to_out(a: Analysis) -> dict[str, Any]:
         "created_at": a.created_at,
         "completed_at": a.completed_at,
         "metrics": json.loads(a.metrics_json) if a.metrics_json else None,
+        "model_metadata": json.loads(a.model_metadata_json) if getattr(a, "model_metadata_json", None) else None,
         "insights": json.loads(a.insights_json) if a.insights_json else None,
         "recommendations": json.loads(a.recommendations_json) if a.recommendations_json else None,
         "feature_importance": None,
@@ -77,7 +82,7 @@ def _analysis_to_out(a: Analysis) -> dict[str, Any]:
         ]
         base["shap_summary"] = shap
     if a.status == "completed" and a.id:
-        base["shap_summary_image_url"] = f"/artifacts/{a.id}/shap_summary.png"
+        base["shap_summary_image_url"] = f"analyses/{a.id}/artifacts/shap_summary.png"
     return base
 
 
@@ -88,6 +93,7 @@ def _analysis_list_item(a: Analysis, dataset_name: str) -> dict[str, Any]:
         "dataset_id": a.dataset_id,
         "dataset_name": dataset_name,
         "target": a.target,
+        "datetime_column": getattr(a, "datetime_column", None),
         "task_type": a.task_type,
         "status": a.status,
         "value_column": getattr(a, "value_column", None),
@@ -106,7 +112,9 @@ def _job_wrapper(analysis_id: int, test_size: float, max_rows: int | None) -> No
 
 
 @router.post("/datasets/{dataset_id}/analyses", response_model=AnalysisOut, status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/hour")
 def create_analysis(
+    request: Request,
     dataset_id: int,
     body: AnalysisCreate,
     background_tasks: BackgroundTasks,
@@ -136,9 +144,21 @@ def create_analysis(
             )
         val_col = vc
 
+    dt_col: str | None = None
+    if body.datetime_column and body.datetime_column.strip():
+        dc = body.datetime_column.strip()
+        if dc not in col_names:
+            raise HTTPException(status_code=400, detail=f"Datetime column '{dc}' is not a column in this dataset")
+        if dc == body.target:
+            raise HTTPException(status_code=400, detail="Datetime column must differ from the target column")
+        if dc == val_col:
+            raise HTTPException(status_code=400, detail="Datetime column must differ from the value column")
+        dt_col = dc
+
     analysis = Analysis(
         dataset_id=ds.id,
         target=body.target,
+        datetime_column=dt_col,
         value_column=val_col,
         status="queued",
     )
@@ -163,12 +183,16 @@ def create_analysis(
 def list_analyses(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
 ) -> Any:
     rows = (
         db.query(Analysis, Dataset)
         .join(Dataset, Analysis.dataset_id == Dataset.id)
         .filter(Dataset.user_id == current_user.id)
         .order_by(Analysis.created_at.desc())
+        .limit(limit)
+        .offset(offset)
         .all()
     )
     return [AnalysisListItem.model_validate(_analysis_list_item(a, ds.name)) for a, ds in rows]
@@ -179,6 +203,8 @@ def list_dataset_analyses(
     dataset_id: int,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
 ) -> Any:
     ds = db.query(Dataset).filter(Dataset.id == dataset_id, Dataset.user_id == current_user.id).first()
     if ds is None:
@@ -187,9 +213,38 @@ def list_dataset_analyses(
         db.query(Analysis)
         .filter(Analysis.dataset_id == ds.id)
         .order_by(Analysis.created_at.desc())
+        .limit(limit)
+        .offset(offset)
         .all()
     )
     return [AnalysisListItem.model_validate(_analysis_list_item(a, ds.name)) for a in rows]
+
+
+@router.get("/analyses/{analysis_id}/artifacts/{filename}")
+def download_analysis_artifact(
+    analysis_id: int,
+    filename: str,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> FileResponse:
+    safe_name = Path(filename).name
+    if safe_name != filename:
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    allowed = {"shap_summary.png", "predictions.parquet"}
+    if safe_name not in allowed:
+        raise HTTPException(status_code=400, detail="Unsupported artifact")
+
+    a = db.get(Analysis, analysis_id)
+    if a is None:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    ds = db.get(Dataset, a.dataset_id)
+    if ds is None or ds.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+
+    path = settings.artifacts_dir / str(analysis_id) / safe_name
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Artifact not found")
+    return FileResponse(path)
 
 
 @router.get("/analyses/{analysis_id}", response_model=AnalysisOut)

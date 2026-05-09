@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass
 from typing import Any, Literal
 
@@ -20,7 +21,7 @@ from sklearn.metrics import (
     roc_auc_score,
     r2_score,
 )
-from sklearn.model_selection import StratifiedKFold, KFold, cross_val_score, train_test_split
+from sklearn.model_selection import StratifiedKFold, KFold, TimeSeriesSplit, cross_val_score, train_test_split
 from sklearn.pipeline import Pipeline as SkPipeline
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 from xgboost import XGBClassifier, XGBRegressor
@@ -50,6 +51,18 @@ class TrainResult:
     preprocessor: SkPipeline | None  # full pipeline for transform()
     X_test_df: pd.DataFrame  # raw feature matrix (no target) aligned to X_test rows
     raw_feature_columns: list[str]
+    model_metadata: dict[str, Any]
+
+
+def _json_safe_hyperparams(params: dict[str, Any]) -> dict[str, Any]:
+    out: dict[str, Any] = {}
+    for k, v in params.items():
+        try:
+            json.dumps(v)
+            out[k] = v
+        except (TypeError, ValueError):
+            out[k] = str(v)
+    return out
 
 
 MAX_CAT_LEVELS = 25
@@ -61,13 +74,40 @@ def training_work_frame(
     target: str,
     max_rows: int | None = None,
     random_state: int = RANDOM_STATE,
-) -> tuple[pd.DataFrame, TaskType]:
+    datetime_column: str | None = None,
+    data_warnings: list[str] | None = None,
+) -> tuple[pd.DataFrame, TaskType, bool]:
     """
-    Same row subset as train_model: dropna(target), optional sample, regression numeric clean.
+    Same row subset as train_model: dropna(target), optional chronological sort,
+    optional sample, regression numeric clean.
+    Returns (work_frame, task_type, temporal_order_applied).
     """
+    warns = data_warnings if data_warnings is not None else []
     if target not in df.columns:
         raise ValueError(f"Target column '{target}' not found")
     work = df.dropna(subset=[target]).copy()
+
+    temporal_ordered = False
+    if datetime_column and datetime_column.strip():
+        dc = datetime_column.strip()
+        if dc not in work.columns:
+            raise ValueError(f"Datetime column '{dc}' not found")
+        ts = pd.to_datetime(work[dc], errors="coerce")
+        valid_ratio = float(ts.notna().mean()) if len(work) else 0.0
+        if len(work) >= 10 and valid_ratio >= 0.85:
+            work = (
+                work.assign(__rca_ts=ts)
+                .sort_values("__rca_ts", kind="mergesort")
+                .drop(columns=["__rca_ts"])
+                .reset_index(drop=True)
+            )
+            temporal_ordered = True
+        else:
+            warns.append(
+                "Datetime column had too many invalid values for reliable ordering; "
+                "using standard randomized train/test split instead of walk-forward CV.",
+            )
+
     if max_rows is not None and len(work) > max_rows:
         work = work.sample(n=max_rows, random_state=random_state)
 
@@ -77,7 +117,7 @@ def training_work_frame(
         y_num = pd.to_numeric(work[target], errors="coerce")
         work = work.loc[y_num.notna()].reset_index(drop=True)
 
-    return work, task
+    return work, task, temporal_ordered
 
 
 def _build_column_lists(X: pd.DataFrame) -> tuple[list[str], list[str]]:
@@ -220,19 +260,27 @@ def train_model(
     data_warnings: list[str] | None = None,
     force_model_kind: ModelKind | None = None,
     skip_cv: bool = False,
+    datetime_column: str | None = None,
 ) -> TrainResult:
     if target not in df.columns:
         raise ValueError(f"Target column '{target}' not found")
 
     warnings = list(data_warnings or [])
-    work, task = training_work_frame(df, target, max_rows, random_state)
+    work, task, temporal_ordered = training_work_frame(
+        df, target, max_rows, random_state, datetime_column, warnings
+    )
 
     if len(work) < 10:
         raise ValueError("Not enough rows after cleaning (need at least 10)")
 
-    y_raw = work[target]
+    dc_used = datetime_column.strip() if datetime_column and datetime_column.strip() else None
 
-    X_df = work.drop(columns=[target])
+    drop_cols = {target}
+    if dc_used and dc_used in work.columns:
+        drop_cols.add(dc_used)
+
+    y_raw = work[target]
+    X_df = work.drop(columns=list(drop_cols))
     num_cols, cat_cols = _build_column_lists(X_df)
     if not num_cols and not cat_cols:
         raise ValueError("No feature columns")
@@ -255,61 +303,102 @@ def train_model(
 
     full_pipe = SkPipeline([("prep", pre), ("model", est)])
 
-    # Stratify only when possible
-    if task == "classification":
-        unique, counts = np.unique(y, return_counts=True)
-        stratify = y if len(unique) > 1 and counts.min() >= 2 else None
+    use_temporal_holdout = temporal_ordered
+
+    if use_temporal_holdout:
+        n_total = len(work)
+        split_idx = max(1, min(n_total - 1, int(np.floor(n_total * (1 - float(test_size))))))
+        X_train_df = X_df.iloc[:split_idx].copy()
+        X_test_df = X_df.iloc[split_idx:].copy()
+        y_train = y[:split_idx]
+        y_test = y[split_idx:]
     else:
-        stratify = None
+        if task == "classification":
+            unique, counts = np.unique(y, return_counts=True)
+            stratify = y if len(unique) > 1 and counts.min() >= 2 else None
+        else:
+            stratify = None
 
-    X_train_df, X_test_df, y_train, y_test = train_test_split(
-        X_df,
-        y,
-        test_size=test_size,
-        random_state=random_state,
-        stratify=stratify,
-    )
+        X_train_df, X_test_df, y_train, y_test = train_test_split(
+            X_df,
+            y,
+            test_size=test_size,
+            random_state=random_state,
+            stratify=stratify,
+        )
 
-    # Cross-validation on training fold
     cv_metrics: dict[str, float] = {}
     validation_strategy = "holdout"
     n_splits = min(5, max(2, len(y_train) // 10))
+
     if skip_cv:
         validation_strategy = "holdout_cv_skipped"
     elif len(y_train) >= 30 and n_splits >= 2:
-        validation_strategy = f"{n_splits}-fold_cv_train"
-        if task == "classification":
-            cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+        if use_temporal_holdout:
+            n_splits_ts = min(5, max(2, len(y_train) // 15))
+            validation_strategy = f"walk_forward_{n_splits_ts}_fold_train"
+            tscv = TimeSeriesSplit(n_splits=n_splits_ts)
             try:
-                scores = cross_val_score(
-                    full_pipe,
-                    X_train_df,
-                    y_train,
-                    cv=cv,
-                    scoring="accuracy",
-                    n_jobs=-1,
-                )
-                cv_metrics["cv_accuracy_mean"] = float(np.mean(scores))
-                cv_metrics["cv_accuracy_std"] = float(np.std(scores))
+                if task == "classification":
+                    scores = cross_val_score(
+                        full_pipe,
+                        X_train_df,
+                        y_train,
+                        cv=tscv,
+                        scoring="accuracy",
+                        n_jobs=-1,
+                    )
+                    cv_metrics["cv_accuracy_mean"] = float(np.mean(scores))
+                    cv_metrics["cv_accuracy_std"] = float(np.std(scores))
+                else:
+                    scores = cross_val_score(
+                        full_pipe,
+                        X_train_df,
+                        y_train,
+                        cv=tscv,
+                        scoring="r2",
+                        n_jobs=-1,
+                    )
+                    cv_metrics["cv_r2_mean"] = float(np.mean(scores))
+                    cv_metrics["cv_r2_std"] = float(np.std(scores))
             except Exception:
                 validation_strategy = "holdout_cv_failed"
         else:
-            cv = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
-            try:
-                scores = cross_val_score(
-                    full_pipe,
-                    X_train_df,
-                    y_train,
-                    cv=cv,
-                    scoring="r2",
-                    n_jobs=-1,
-                )
-                cv_metrics["cv_r2_mean"] = float(np.mean(scores))
-                cv_metrics["cv_r2_std"] = float(np.std(scores))
-            except Exception:
-                validation_strategy = "holdout_cv_failed"
+            validation_strategy = f"{n_splits}-fold_cv_train"
+            if task == "classification":
+                cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+                try:
+                    scores = cross_val_score(
+                        full_pipe,
+                        X_train_df,
+                        y_train,
+                        cv=cv,
+                        scoring="accuracy",
+                        n_jobs=-1,
+                    )
+                    cv_metrics["cv_accuracy_mean"] = float(np.mean(scores))
+                    cv_metrics["cv_accuracy_std"] = float(np.std(scores))
+                except Exception:
+                    validation_strategy = "holdout_cv_failed"
+            else:
+                cv = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+                try:
+                    scores = cross_val_score(
+                        full_pipe,
+                        X_train_df,
+                        y_train,
+                        cv=cv,
+                        scoring="r2",
+                        n_jobs=-1,
+                    )
+                    cv_metrics["cv_r2_mean"] = float(np.mean(scores))
+                    cv_metrics["cv_r2_std"] = float(np.std(scores))
+                except Exception:
+                    validation_strategy = "holdout_cv_failed"
 
+    t_fit0 = time.perf_counter()
     full_pipe.fit(X_train_df, y_train)
+    training_duration_s = time.perf_counter() - t_fit0
 
     X_train_t = full_pipe.named_steps["prep"].transform(X_train_df)
     X_test_t = full_pipe.named_steps["prep"].transform(X_test_df)
@@ -345,6 +434,19 @@ def train_model(
 
     y_test_raw_vals = le.inverse_transform(y_test) if le is not None else y_test.astype(float)
 
+    model_metadata: dict[str, Any] = {
+        "model_kind": kind,
+        "hyperparameters": _json_safe_hyperparams(dict(full_pipe.named_steps["model"].get_params(deep=False))),
+        "feature_names_raw": list(X_df.columns),
+        "training_rows": int(len(work)),
+        "train_fold_rows": int(len(y_train)),
+        "test_fold_rows": int(len(y_test)),
+        "training_duration_s": round(float(training_duration_s), 4),
+        "datetime_column": dc_used,
+        "temporal_order_applied": temporal_ordered,
+        "holdout_strategy": "temporal_tail" if use_temporal_holdout else "random_stratified",
+    }
+
     return TrainResult(
         task_type=task,
         metrics=metrics,
@@ -364,6 +466,7 @@ def train_model(
         preprocessor=full_pipe,
         X_test_df=X_test_df.reset_index(drop=True),
         raw_feature_columns=list(X_df.columns),
+        model_metadata=model_metadata,
     )
 
 
@@ -378,6 +481,7 @@ def train_model_with_fallback(
     max_rows: int | None = None,
     random_state: int = RANDOM_STATE,
     data_warnings: list[str] | None = None,
+    datetime_column: str | None = None,
 ) -> tuple[TrainResult, list[str]]:
     """
     Train with automatic fallbacks (primary → random forest → linear/elastic, then CV skip).
@@ -400,6 +504,7 @@ def train_model_with_fallback(
                 max_rows=max_rows,
                 random_state=random_state,
                 data_warnings=w,
+                datetime_column=datetime_column,
             ),
             notes,
         )
@@ -417,6 +522,7 @@ def train_model_with_fallback(
                 random_state=random_state,
                 data_warnings=w,
                 force_model_kind="random_forest",
+                datetime_column=datetime_column,
             ),
             notes,
         )
@@ -437,6 +543,7 @@ def train_model_with_fallback(
                 data_warnings=w,
                 force_model_kind=linear_kind,
                 skip_cv=True,
+                datetime_column=datetime_column,
             ),
             notes,
         )
@@ -454,6 +561,7 @@ def train_model_with_fallback(
                 data_warnings=w,
                 force_model_kind="random_forest",
                 skip_cv=True,
+                datetime_column=datetime_column,
             ),
             notes + ["Used a minimal training path (hold-out only, no CV) after earlier model errors."],
         )

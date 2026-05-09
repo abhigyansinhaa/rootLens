@@ -18,7 +18,7 @@ def tmp_artifact(tmp_path: Path) -> Path:
 
 
 def _work_like_train(df: pd.DataFrame, target: str, max_rows: int | None = None) -> pd.DataFrame:
-    w, _ = training_work_frame(df, target, max_rows, RANDOM_STATE)
+    w, _, _ = training_work_frame(df, target, max_rows, RANDOM_STATE)
     return w
 
 

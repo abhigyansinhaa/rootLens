@@ -9,15 +9,19 @@ Web app for uploading tabular datasets, choosing a target variable, and getting 
 
 ## Quick start (Docker)
 
+Copy [`env.example`](env.example) to `.env` in the repo root and set **`SECRET_KEY`** (minimum 32 characters; generate with `python -c "import secrets; print(secrets.token_hex(32))"`).
+
 ```bash
 docker compose up --build
 ```
 
-- UI: http://localhost:5000  
-- API: http://localhost:8000/api/health  
-- Data (uploads, artifacts) persist under `./data`; MySQL data persists in Docker volume `mysql_data`  
+On first boot the backend runs **`alembic upgrade head`** then serves the API. Schema DDL is managed by Alembic (see [`backend/alembic`](backend/alembic)); MySQL only mounts [`backend/sql/mysql_init.sql`](backend/sql/mysql_init.sql) as a no-op bootstrap marker.
 
-Set a strong `SECRET_KEY` in production (e.g. `SECRET_KEY=... docker compose up`).
+- **UI:** http://localhost:8080 (nginx serving the production build; proxies `/api` to the backend)  
+- **API:** http://localhost:8000/api/health  
+- Data (uploads, artifacts) persist under `./data`; MySQL data persists in Docker volume `mysql_data`.
+
+Additional backend variables are documented in [`backend/.env.example`](backend/.env.example).
 
 ## Local development (no Docker)
 
@@ -29,10 +33,14 @@ python -m venv .venv
 .venv\Scripts\activate          # Windows
 # source .venv/bin/activate     # macOS/Linux
 pip install -r requirements.txt
+cp .env.example .env            # then edit SECRET_KEY and DATABASE_URL
+alembic upgrade head
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Set `DATABASE_URL` for local backend, for example:
+Set **`SECRET_KEY`** and **`DATABASE_URL`** in `backend/.env` (see [backend/.env.example](backend/.env.example)).
+
+Example database URL:
 
 ```bash
 set DATABASE_URL=mysql+pymysql://rca_user:rca_pass@127.0.0.1:3306/rca_db
@@ -48,13 +56,17 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:5000 — the dev server proxies `/api` and `/artifacts` to the backend.
+Open http://localhost:5000 — the dev server proxies `/api` to the backend.
+
+### Docker Compose (`frontend` service)
+
+The compose **`frontend`** service builds a static bundle plus nginx (production-style). For interactive frontend development use **`npm run dev`** locally instead.
 
 ## Usage
 
 1. **Register** a new account (or log in).  
 2. **Upload** a CSV or Parquet file.  
-3. Open the dataset, **select the target column**, optionally pick a **numeric value column** (revenue / LTV / ARPU-style) for KPIs, and run **Root-cause analysis**.  
+3. Open the dataset, **select the target column**, optionally pick a **numeric value column** (revenue / LTV / ARPU-style) for KPIs, optionally a **time column** for walk-forward CV, and run **Root-cause analysis**.  
 4. Wait for status **completed** (the results page polls automatically).  
 5. Open the **dataset page** for its **business KPIs**: risk concentration (Pareto), counterfactual driver rollups (estimate), segmented exposure, modeled reliability—and commercial overlays when a value column is set. Each dataset has its own KPI dashboard scoped to that dataset's analyses; the home **Dashboard** is a workspace overview that links into each dataset.  
 
@@ -66,16 +78,16 @@ Open http://localhost:5000 — the dev server proxies `/api` and `/artifacts` to
 | POST | `/api/auth/login` | Login → JWT |
 | GET | `/api/auth/me` | Current user (Bearer token) |
 | POST | `/api/datasets` | Multipart upload (`file`, optional `name`) |
-| GET | `/api/datasets` | List datasets |
+| GET | `/api/datasets` | List datasets (`limit`, `offset` query params) |
 | GET | `/api/datasets/{id}` | Dataset + schema |
 | GET | `/api/datasets/{id}/preview` | Preview rows |
 | POST | `/api/datasets/{id}/profile` | `{ "target" }` — suitability checks (no training) |
 | DELETE | `/api/datasets/{id}` | Delete dataset + analyses |
-| POST | `/api/datasets/{id}/analyses` | `{ target, test_size?, max_rows?, value_column? }` |
-| GET | `/api/datasets/{id}/analyses` | List analyses for one dataset (+ compact KPI summary) |
-| GET | `/api/analyses` | List analyses across the workspace (+ compact KPI summary for completed rows) |
-| GET | `/api/analyses/{id}` | Analysis status and results (`report.kpis`) |
-| GET | `/artifacts/{id}/shap_summary.png` | SHAP summary image |
+| POST | `/api/datasets/{id}/analyses` | `{ target, test_size?, max_rows?, value_column?, datetime_column? }` |
+| GET | `/api/datasets/{id}/analyses` | List analyses for one dataset (`limit`, `offset`; compact KPI summary) |
+| GET | `/api/analyses` | List analyses across workspace (`limit`, `offset`; compact KPI summary) |
+| GET | `/api/analyses/{id}` | Analysis status and results (`report.kpis`, `model_metadata`) |
+| GET | `/api/analyses/{id}/artifacts/{filename}` | Authenticated artifact download (`shap_summary.png`, `predictions.parquet`) |
 
 ## Project layout
 
@@ -83,7 +95,7 @@ Open http://localhost:5000 — the dev server proxies `/api` and `/artifacts` to
 backend/app/          # FastAPI app, ML pipeline, jobs
 frontend/src/         # React UI
 data/                 # uploads + analysis artifacts (gitignored contents)
-backend/sql/          # MySQL schema initialization script
+backend/sql/          # MySQL container bootstrap (DDL via Alembic)
 ```
 
 ## Notes

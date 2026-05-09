@@ -14,7 +14,20 @@ export default defineConfig(({ mode }) => {
       host: true,
       proxy: {
         '/api': { target, changeOrigin: true },
-        '/artifacts': { target, changeOrigin: true },
+      },
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) return 'react-vendor'
+            if (id.includes('node_modules/react-router')) return 'router'
+            if (id.includes('node_modules/@tanstack')) return 'rq'
+            if (id.includes('node_modules/recharts')) return 'charts'
+            if (id.includes('node_modules/axios')) return 'http'
+            return undefined
+          },
+        },
       },
     },
   }

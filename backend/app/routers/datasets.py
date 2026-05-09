@@ -2,7 +2,7 @@ import json
 from typing import Annotated, Any
 
 import pandas as pd
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -108,8 +108,17 @@ async def upload_dataset(
 def list_datasets(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
 ) -> Any:
-    rows = db.query(Dataset).filter(Dataset.user_id == current_user.id).order_by(Dataset.created_at.desc()).all()
+    rows = (
+        db.query(Dataset)
+        .filter(Dataset.user_id == current_user.id)
+        .order_by(Dataset.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+        .all()
+    )
     return [_dataset_to_out(ds) for ds in rows]
 
 

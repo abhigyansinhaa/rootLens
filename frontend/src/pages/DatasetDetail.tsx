@@ -51,6 +51,9 @@ function formatStartError(err: unknown): string {
     if (typeof d?.detail === 'string') return d.detail
     if (Array.isArray(d?.detail)) return d.detail.map((x) => x.msg).join('; ')
     if (err.response?.status === 401) return 'Not authenticated. Log in and try again.'
+    if (err.response?.status === 429) {
+      return 'Too many analysis requests. Try again in about an hour.'
+    }
     if (err.response?.status === 503 || err.response?.status === 500) {
       return 'Server error while starting analysis. If you use Docker, ensure Redis and DB migrations are applied.'
     }
@@ -112,6 +115,7 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
   const qc = useQueryClient()
   const [target, setTarget] = useState('')
   const [valuePick, setValuePick] = useState<string>('__auto__')
+  const [datetimePick, setDatetimePick] = useState<string>('__none__')
 
   const { data: ds, isLoading } = useQuery({
     queryKey: ['dataset', datasetId],
@@ -158,6 +162,7 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
         target: resolvedTarget,
         test_size: 0.2,
         ...(vc ? { value_column: vc } : {}),
+        ...(datetimePick && datetimePick !== '__none__' ? { datetime_column: datetimePick } : {}),
       })
       return data
     },
@@ -194,6 +199,22 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
 
   const numericSelectable = ds.columns.filter((c) => isNumericColumn(c) && c.name !== effectiveTarget)
   const suggestedValue = pickDefaultValueColumn(ds.columns, effectiveTarget)
+
+  let resolvedValueCol: string | undefined
+  if (!valuePick || valuePick === '__auto__') {
+    resolvedValueCol = suggestedValue || undefined
+  } else if (valuePick === '__none__') {
+    resolvedValueCol = undefined
+  } else {
+    resolvedValueCol = valuePick
+  }
+  if (resolvedValueCol === effectiveTarget) {
+    resolvedValueCol = undefined
+  }
+
+  const datetimeSelectable = ds.columns.filter(
+    (c) => c.name !== effectiveTarget && c.name !== resolvedValueCol,
+  )
 
   const avgNullRatio =
     ds.columns.length > 0
@@ -266,6 +287,7 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
             onChange={(e) => {
               setTarget(e.target.value)
               setValuePick('__auto__')
+              setDatetimePick('__none__')
             }}
           >
             {ds.columns.map((c) => (
@@ -291,6 +313,22 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
             {numericSelectable.map((c) => (
               <option key={c.name} value={c.name}>
                 {c.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="mt-4 max-w-xl">
+          <Select
+            label="Time column (optional)"
+            id="datetime-col"
+            value={datetimePick}
+            onChange={(e) => setDatetimePick(e.target.value)}
+            hint="Sort rows chronologically and use walk-forward CV on the training window. Leave unset for standard randomized splits."
+          >
+            <option value="__none__">None — standard randomized CV</option>
+            {datetimeSelectable.map((c) => (
+              <option key={c.name} value={c.name}>
+                {c.name} ({c.dtype})
               </option>
             ))}
           </Select>

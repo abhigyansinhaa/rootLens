@@ -57,16 +57,22 @@ class AnalysisCreate(BaseModel):
     test_size: float = Field(default=0.2, ge=0.05, le=0.5)
     max_rows: int | None = Field(default=None, description="Optional cap on rows used for training")
     value_column: str | None = Field(default=None, description="Optional numeric column for revenue / value KPIs")
+    datetime_column: str | None = Field(
+        default=None,
+        description="Optional datetime column for chronological ordering and walk-forward CV",
+    )
 
 
 class AnalysisOut(BaseModel):
     id: int
     dataset_id: int
     target: str
+    datetime_column: str | None = None
     value_column: str | None = None
     task_type: str | None
     status: str
     metrics: dict[str, Any] | None = None
+    model_metadata: dict[str, Any] | None = None
     insights: list[dict[str, Any]] | None = None
     recommendations: list[str] | None = None
     feature_importance: list[dict[str, Any]] | None = None
@@ -85,6 +91,7 @@ class AnalysisListItem(BaseModel):
     dataset_id: int
     dataset_name: str
     target: str
+    datetime_column: str | None = None
     task_type: str | None = None
     status: str
     value_column: str | None = None

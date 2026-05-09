@@ -54,7 +54,7 @@ export function Dashboard() {
   const datasetsQuery = useQuery({
     queryKey: ['datasets'],
     queryFn: async () => {
-      const { data } = await api.get<Dataset[]>('/datasets')
+      const { data } = await api.get<Dataset[]>('/datasets', { params: { limit: 500 } })
       return data
     },
   })
@@ -62,7 +62,7 @@ export function Dashboard() {
   const analysesQuery = useQuery({
     queryKey: ['analyses'],
     queryFn: async () => {
-      const { data } = await api.get<AnalysisListItem[]>('/analyses')
+      const { data } = await api.get<AnalysisListItem[]>('/analyses', { params: { limit: 200 } })
       return data
     },
   })

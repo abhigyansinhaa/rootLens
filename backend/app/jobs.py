@@ -72,6 +72,7 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
             test_size=test_size,
             max_rows=max_rows,
             data_warnings=merged_warnings,
+            datetime_column=analysis.datetime_column,
         )
         art_dir = analysis_artifact_dir(analysis_id)
         shap_rows, plot_err, explanation_fallback_notes = compute_explanations_with_fallback(
@@ -140,7 +141,14 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
             "user_message": user_message,
         }
 
-        work, _ = training_work_frame(df, analysis.target, max_rows, RANDOM_STATE)
+        work, _, _ = training_work_frame(
+            df,
+            analysis.target,
+            max_rows,
+            RANDOM_STATE,
+            analysis.datetime_column,
+            merged_warnings,
+        )
 
         value_col = analysis.value_column
         if value_col and value_col not in work.columns:
@@ -167,6 +175,7 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
 
         analysis.task_type = result.task_type
         analysis.metrics_json = json.dumps(result.metrics)
+        analysis.model_metadata_json = json.dumps(result.model_metadata)
         analysis.insights_json = insights_to_json(insights)
         analysis.recommendations_json = json.dumps(recs)
         analysis.shap_json = shap_json_dump(shap_rows)

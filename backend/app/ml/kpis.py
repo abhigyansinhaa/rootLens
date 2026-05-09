@@ -282,6 +282,46 @@ def compute_kpis(
         t66 = float(np.percentile(risk_scores, 200 / 3))
         masks = [risk_scores < t33, (risk_scores >= t33) & (risk_scores < t66), risk_scores >= t66]
 
+    target_ci_lo = target_ci_hi = None
+    hr_ci_lo = hr_ci_hi = None
+    rev_ci_lo = rev_ci_hi = None
+
+    if n_users >= 40:
+        n_boot = min(400, max(120, n_users * 4))
+        t_samples: list[float] = []
+        hr_samples: list[float] = []
+        rev_samples: list[float] = []
+        for _ in range(n_boot):
+            ix = rng.integers(0, n_users, size=n_users)
+            if task_type == "classification":
+                t_samples.append(float(np.mean(actual_bin[ix])))
+                hr_samples.append(float(np.mean((risk_scores[ix] >= 0.70).astype(float))))
+                if has_value_col:
+                    rs = risk_scores[ix]
+                    va = value_arr[ix]
+                    rev_samples.append(float(np.sum(va[rs >= 0.5])))
+            else:
+                yt_ix = pd.to_numeric(df_work[target].to_numpy(), errors="coerce")[ix]
+                t_samples.append(float(np.nanmean(yt_ix)))
+                pv_ix = pred_vals[ix]
+                q75_ix = float(np.percentile(pv_ix, 75))
+                hr_samples.append(float(np.mean((pv_ix >= q75_ix).astype(float))))
+                if has_value_col:
+                    pv_ix = pred_vals[ix]
+                    va = value_arr[ix]
+                    pm = pv_ix >= np.median(pv_ix)
+                    rev_samples.append(float(np.sum(va[pm])))
+        ta = np.asarray(t_samples, dtype=float)
+        ha = np.asarray(hr_samples, dtype=float)
+        _tclo, _tchi = np.percentile(ta, [2.5, 97.5])
+        target_ci_lo, target_ci_hi = float(_tclo), float(_tchi)
+        _hlo, _hhi = np.percentile(ha, [2.5, 97.5])
+        hr_ci_lo, hr_ci_hi = float(_hlo), float(_hhi)
+        if has_value_col and rev_samples:
+            ra = np.asarray(rev_samples, dtype=float)
+            _rlo, _rhi = np.percentile(ra, [2.5, 97.5])
+            rev_ci_lo, rev_ci_hi = float(_rlo), float(_rhi)
+
     headline_dict, lorenz_pts = _concentration_headline(concentration_loss)
     gini_val = float(_gini_nonnegative(concentration_loss))
 
@@ -486,6 +526,10 @@ def compute_kpis(
     except Exception as e:
         logger.warning("predictions parquet write failed: %s", e)
 
+    if impact_rev is not None and rev_ci_lo is not None and rev_ci_hi is not None:
+        impact_rev["revenue_at_risk_ci_low"] = rev_ci_lo
+        impact_rev["revenue_at_risk_ci_high"] = rev_ci_hi
+
     target_level: dict[str, Any] = {
         "n_users": n_users,
         "predicted_target_rate": float(predicted_target_rate),
@@ -493,11 +537,21 @@ def compute_kpis(
         "high_risk_share": high_risk_share,
     }
 
+    if hr_ci_lo is not None and hr_ci_hi is not None:
+        target_level["high_risk_share_ci_low"] = hr_ci_lo
+        target_level["high_risk_share_ci_high"] = hr_ci_hi
+
     if task_type == "classification":
         target_level["target_rate"] = float(target_rate)
+        if target_ci_lo is not None and target_ci_hi is not None:
+            target_level["target_rate_ci_low"] = target_ci_lo
+            target_level["target_rate_ci_high"] = target_ci_hi
     else:
         target_level["target_mean"] = float(target_rate)
         target_level["predicted_mean"] = float(predicted_target_rate)
+        if target_ci_lo is not None and target_ci_hi is not None:
+            target_level["target_mean_ci_low"] = target_ci_lo
+            target_level["target_mean_ci_high"] = target_ci_hi
 
     return {
         "target_level": target_level,

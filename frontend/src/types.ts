@@ -30,8 +30,14 @@ export type AnalysisKpis = {
     predicted_target_rate?: number
     target_mean?: number
     predicted_mean?: number
+    target_rate_ci_low?: number
+    target_rate_ci_high?: number
+    target_mean_ci_low?: number
+    target_mean_ci_high?: number
     high_risk_count: number
     high_risk_share: number
+    high_risk_share_ci_low?: number
+    high_risk_share_ci_high?: number
   }
   impact_revenue?: {
     total_value: number
@@ -39,6 +45,8 @@ export type AnalysisKpis = {
     potential_revenue_saved: number
     avg_value_high_risk: number
     currency?: string | null
+    revenue_at_risk_ci_low?: number
+    revenue_at_risk_ci_high?: number
   } | null
   concentration: {
     lorenz_points: { x: number; y: number }[]
@@ -105,6 +113,7 @@ export type Analysis = {
   id: number
   dataset_id: number
   target: string
+  datetime_column?: string | null
   value_column?: string | null
   task_type: string | null
   status: string
@@ -128,6 +137,7 @@ export type Analysis = {
     xgb_importance: number
   }[] | null
   shap_summary_image_url: string | null
+  model_metadata?: Record<string, unknown> | null
   report: AnalysisReport | null
   error: string | null
   created_at: string
@@ -139,6 +149,7 @@ export type AnalysisListItem = {
   dataset_id: number
   dataset_name: string
   target: string
+  datetime_column?: string | null
   task_type: string | null
   status: string
   value_column?: string | null
