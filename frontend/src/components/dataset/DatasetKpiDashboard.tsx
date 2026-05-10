@@ -110,7 +110,11 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
         eyebrow="Analysis dashboard"
         title={datasetName ? `Runs for ${datasetName}` : 'Analysis dashboard'}
         description="Monitor queued and in-flight jobs and jump to the full report for any completed run."
-      />
+      >
+        <Button variant="secondary" size="sm" to={`/datasets/${datasetId}`}>
+          View dataset
+        </Button>
+      </SectionHeader>
 
       <Card padding="md" tone="strong" elevated>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">

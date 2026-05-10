@@ -7,7 +7,7 @@ venv/
 *.egg-info/
 dist/
 build/
-
+*.pytest_cache/
 # Data & local DB
 data/uploads/*
 !data/uploads/.gitkeep
