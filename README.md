@@ -11,6 +11,8 @@ Web app for uploading tabular datasets, choosing a target variable, and getting 
 
 Copy [`env.example`](env.example) to `.env` in the repo root and set **`SECRET_KEY`** (minimum 32 characters; generate with `python -c "import secrets; print(secrets.token_hex(32))"`).
 
+Optional: set **`MYSQL_PASSWORD`** and **`MYSQL_ROOT_PASSWORD`** in `.env` for non-default database credentials. Compose substitutes them into the MySQL service and into **`DATABASE_URL`** for the backend and worker (defaults match [`env.example`](env.example)).
+
 ```bash
 docker compose up --build
 ```
@@ -21,7 +23,13 @@ On first boot the backend runs **`alembic upgrade head`** then serves the API. S
 - **API:** http://localhost:8000/api/health  
 - Data (uploads, artifacts) persist under `./data`; MySQL data persists in Docker volume `mysql_data`.
 
-Additional backend variables are documented in [`backend/.env.example`](backend/.env.example).
+Additional backend-only variables are documented in [`backend/.env.example`](backend/.env.example).
+
+## Development
+
+- **Backend tests:** `cd backend` then `python -m pytest tests -q` (or `-v` for verbose).
+- **Frontend lint:** `cd frontend` then `npm run lint`.
+- **New schema changes:** add an Alembic revision under [`backend/alembic/versions`](backend/alembic/versions) and run `alembic upgrade head` locally or rely on the backend container startup (see [`backend/Dockerfile`](backend/Dockerfile)).
 
 ## Local development (no Docker)
 
@@ -104,7 +112,7 @@ backend/sql/          # MySQL container bootstrap (DDL via Alembic)
 - **Models:** Sklearn `Pipeline` (imputation, scaling, one-hot) plus routed models: **XGBoost**, **Random Forest**, or **Elastic Net / Logistic Regression** depending on dataset size and task.  
 - **Profiling:** `POST /api/datasets/{id}/profile` with `{ "target": "column_name" }` returns suitability checks before training.  
 - **Report:** Completed analyses include a structured `report` (dataset health, model choice, CV hints, grouped drivers). Successful runs add **`report.kpis`**: concentration/Pareto headlines, segment value share with tractability hints, driver counterfactual rollups (SHAP-based scenario), reliability, and optional monetization metrics when `value_column` is set. Scenario numbers are **not** guaranteed business impact.  
-- **Database migration:** If you created the DB before `report_json` existed, run [backend/sql/migration_002_add_report_json.sql](backend/sql/migration_002_add_report_json.sql). If it predates **`value_column`**, run [backend/sql/migration_003_add_value_column.sql](backend/sql/migration_003_add_value_column.sql).  
+- **Database migration:** New environments should rely on **Alembic** only (`alembic upgrade head` on startup in Docker or run manually). The initial revision [`backend/alembic/versions/001_initial_schema.py`](backend/alembic/versions/001_initial_schema.py) already includes `report_json` and `value_column`. Legacy one-off SQL files [backend/sql/migration_002_add_report_json.sql](backend/sql/migration_002_add_report_json.sql) and [backend/sql/migration_003_add_value_column.sql](backend/sql/migration_003_add_value_column.sql) apply only if you have an **old** database that predates Alembic or those columns.  
 - **SHAP:** Tree models use `TreeExplainer`; linear baselines use coefficients and/or permutation importance. Plots are saved under `data/artifacts/{analysis_id}/`.  
 - **Causal language:** Outputs are **associative** (model-based), not proven causal effects.  
 
@@ -114,3 +122,5 @@ backend/sql/          # MySQL container bootstrap (DDL via Alembic)
 cd backend
 python -m pytest tests -q
 ```
+
+(See **Development** above for lint and migration workflow.)

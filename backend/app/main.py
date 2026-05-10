@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -10,10 +11,18 @@ from app.rate_limit import limiter
 from app.routers import analyses, auth, datasets
 from app.storage import ensure_dirs
 
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     ensure_dirs()
+    if not settings.redis_url:
+        logger.warning(
+            "REDIS_URL is not set — analyses run in-process via BackgroundTasks. "
+            "Jobs are lost if the API process crashes or the request scope ends unexpectedly; "
+            "not suitable for production. Set REDIS_URL and run the RQ worker."
+        )
     yield
 
 

@@ -11,15 +11,19 @@ services:
     environment:
       MYSQL_DATABASE: rca_db
       MYSQL_USER: rca_user
-      MYSQL_PASSWORD: rca_pass
-      MYSQL_ROOT_PASSWORD: root_pass
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-rca_pass}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_pass}
     ports:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/sql/mysql_init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot_pass --silent && mysql -uroot -proot_pass -e 'SELECT 1' rca_db"]
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent && mysql -uroot -p$$MYSQL_ROOT_PASSWORD -e 'SELECT 1' rca_db",
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -32,8 +36,8 @@ services:
     volumes:
       - ./data:/data
     environment:
-      SECRET_KEY: ${SECRET_KEY}
-      DATABASE_URL: mysql+pymysql://rca_user:rca_pass@mysql:3306/rca_db
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env — see env.example}
+      DATABASE_URL: mysql+pymysql://rca_user:${MYSQL_PASSWORD:-rca_pass}@mysql:3306/rca_db
       REDIS_URL: redis://redis:6379/0
     depends_on:
       mysql:
@@ -53,11 +57,12 @@ services:
 
   worker:
     build: ./backend
+    restart: unless-stopped
     volumes:
       - ./data:/data
     environment:
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env — see env.example}
-      DATABASE_URL: mysql+pymysql://rca_user:rca_pass@mysql:3306/rca_db
+      DATABASE_URL: mysql+pymysql://rca_user:${MYSQL_PASSWORD:-rca_pass}@mysql:3306/rca_db
       REDIS_URL: redis://redis:6379/0
     depends_on:
       mysql:
@@ -67,6 +72,15 @@ services:
       backend:
         condition: service_healthy
     command: ["rq", "worker", "default", "--url", "redis://redis:6379/0"]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import redis; redis.Redis.from_url('redis://redis:6379/0').ping()\"",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   frontend:
     build:

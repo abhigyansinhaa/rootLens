@@ -21,6 +21,7 @@ node_modules/
 frontend/dist/
 
 # IDE
+.cursor/
 .idea/
 .vscode/
 *.swp
