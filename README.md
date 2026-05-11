@@ -108,7 +108,7 @@ backend/sql/          # MySQL container bootstrap (DDL via Alembic)
 
 ## Notes
 
-- **Scaling:** With `REDIS_URL` set (see Docker Compose), analyses run on an **RQ worker**; otherwise they use FastAPI `BackgroundTasks`.  
+- **Scaling:** With `REDIS_URL` set (see Docker Compose), analyses run on an **RQ worker**; otherwise they use FastAPI `BackgroundTasks`. Run more workers for higher concurrency with `docker compose up -d --scale worker=N` (each worker handles one analysis at a time; default deployment runs a single worker per the performance budget in [`docs/ARCHITECTURE_AND_SCALABILITY.md`](docs/ARCHITECTURE_AND_SCALABILITY.md)).  
 - **Models:** Sklearn `Pipeline` (imputation, scaling, one-hot) plus routed models: **XGBoost**, **Random Forest**, or **Elastic Net / Logistic Regression** depending on dataset size and task.  
 - **Profiling:** `POST /api/datasets/{id}/profile` with `{ "target": "column_name" }` returns suitability checks before training.  
 - **Report:** Completed analyses include a structured `report` (dataset health, model choice, CV hints, grouped drivers). Successful runs add **`report.kpis`**: concentration/Pareto headlines, segment value share with tractability hints, driver counterfactual rollups (SHAP-based scenario), reliability, and optional monetization metrics when `value_column` is set. Scenario numbers are **not** guaranteed business impact.  

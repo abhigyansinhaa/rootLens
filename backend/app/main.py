@@ -6,10 +6,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
+from app.api import analyses, auth, datasets, feature_registry
 from app.config import settings
+from app.infrastructure.storage import ensure_dirs
 from app.rate_limit import limiter
-from app.routers import analyses, auth, datasets
-from app.storage import ensure_dirs
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +41,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api")
 app.include_router(datasets.router, prefix="/api")
 app.include_router(analyses.router, prefix="/api")
+app.include_router(feature_registry.router, prefix="/api")
 
 
 @app.get("/api/health")

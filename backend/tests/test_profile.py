@@ -45,3 +45,50 @@ def test_regression_ok():
     pr = profile_dataset_for_target(df, "y", _meta(df))
     assert pr.ok
     assert pr.task_type == "regression"
+
+
+def test_leakage_regression_warns_on_near_identical_column():
+    import numpy as np
+
+    rng = np.random.default_rng(0)
+    y = rng.normal(size=200)
+    leak = y + rng.normal(scale=1e-3, size=200)
+    df = pd.DataFrame({"y": y, "x_noise": rng.normal(size=200), "leaky": leak})
+    pr = profile_dataset_for_target(df, "y", _meta(df))
+    assert pr.ok
+    assert any("Potential leakage" in w and "leaky" in w for w in pr.warnings), pr.warnings
+
+
+def test_leakage_classification_warns_on_target_copy():
+    import numpy as np
+
+    rng = np.random.default_rng(1)
+    n = 240
+    y = rng.choice([0, 1], size=n)
+    df = pd.DataFrame(
+        {
+            "y": y,
+            "leaky_copy": y.astype(float) + rng.normal(scale=1e-4, size=n),
+            "noise": rng.normal(size=n),
+        }
+    )
+    pr = profile_dataset_for_target(df, "y", _meta(df))
+    assert pr.ok
+    assert any("leaky_copy" in w and "leakage" in w.lower() for w in pr.warnings), pr.warnings
+
+
+def test_no_leakage_for_independent_features():
+    import numpy as np
+
+    rng = np.random.default_rng(2)
+    n = 200
+    df = pd.DataFrame(
+        {
+            "y": rng.normal(size=n),
+            "a": rng.normal(size=n),
+            "b": rng.normal(size=n),
+        }
+    )
+    pr = profile_dataset_for_target(df, "y", _meta(df))
+    assert pr.ok
+    assert not any("Potential leakage" in w for w in pr.warnings)
