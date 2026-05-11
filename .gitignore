@@ -1,5 +1,5 @@
 # Python
-__pycache__/
+*.__pycache__/
 *.py[cod]
 .venv/
 venv/
@@ -15,6 +15,7 @@ data/artifacts/*
 !data/artifacts/.gitkeep
 data/*.db
 *.sqlite3
+.pytest_sqlite_app.db
 
 # Node
 node_modules/

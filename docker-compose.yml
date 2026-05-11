@@ -39,6 +39,11 @@ services:
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env — see env.example}
       DATABASE_URL: mysql+pymysql://rca_user:${MYSQL_PASSWORD:-rca_pass}@mysql:3306/rca_db
       REDIS_URL: redis://redis:6379/0
+      ANALYSIS_TIMEOUT_S: ${ANALYSIS_TIMEOUT_S:-1800}
+    command:
+      - "sh"
+      - "-c"
+      - "until alembic upgrade head; do echo 'DB not ready, retrying in 3s...'; sleep 3; done && exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --timeout-keep-alive 30"
     depends_on:
       mysql:
         condition: service_healthy
@@ -58,12 +63,15 @@ services:
   worker:
     build: ./backend
     restart: unless-stopped
+    mem_limit: ${WORKER_MEM_LIMIT:-8g}
+    pids_limit: ${WORKER_PIDS_LIMIT:-512}
     volumes:
       - ./data:/data
     environment:
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env — see env.example}
       DATABASE_URL: mysql+pymysql://rca_user:${MYSQL_PASSWORD:-rca_pass}@mysql:3306/rca_db
       REDIS_URL: redis://redis:6379/0
+      ANALYSIS_TIMEOUT_S: ${ANALYSIS_TIMEOUT_S:-1800}
     depends_on:
       mysql:
         condition: service_healthy

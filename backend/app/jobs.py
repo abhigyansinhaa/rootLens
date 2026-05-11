@@ -2,28 +2,64 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 from datetime import datetime, timezone
+from typing import Any
 
 import pandas as pd
 from sqlalchemy.orm import Session
 
-from app.ml import messages as user_msg
-from app.ml.explain import compute_explanations_with_fallback, shap_json_dump
-from app.ml.insights import aggregate_shap_by_column, build_insights, insights_to_json
-from app.ml.kpis import compute_kpis
-from app.ml.pipeline import RANDOM_STATE, train_model_with_fallback, training_work_frame
-from app.ml.profile import profile_dataset_for_target
-from app.ml.recommend import build_recommendations
-from app.models import Analysis, Dataset
-from app.storage import analysis_artifact_dir, ensure_dirs
+from app.decisioning import messages as user_msg
+from app.decisioning.governance import build_governance_block
+from app.decisioning.insights import aggregate_shap_by_column, build_insights, insights_to_json
+from app.decisioning.kpis import compute_kpis
+from app.decisioning.recommend import build_recommendations
+from app.domain.models import Analysis, Dataset
+from app.infrastructure.artifact_manifest import write_artifact_manifest
+from app.infrastructure.audit_logger import write_event as audit_write_event
+from app.infrastructure.storage import (
+    analysis_artifact_dir,
+    ensure_dirs,
+    has_parquet_sidecar,
+    parquet_sidecar_path,
+)
+from app.pipelines import PIPELINE_VERSION
+from app.pipelines.explain import compute_explanations_with_fallback, shap_json_dump
+from app.pipelines.pipeline import (
+    ENCODER_VERSION,
+    RANDOM_STATE,
+    train_model_with_fallback,
+    training_work_frame,
+)
+from app.pipelines.profile import profile_dataset_for_target
+
+
+def _schema_hash_from_columns(columns_json: str) -> str:
+    """Stable fingerprint of the dataset schema: sorted (name, dtype) pairs.
+
+    Stored on `Analysis.schema_hash` so we can detect dataset schema drift even
+    when the underlying bytes change (e.g. user reuploads with a new file).
+    """
+    try:
+        cols: list[dict[str, Any]] = json.loads(columns_json)
+    except Exception:
+        return ""
+    pairs = sorted((str(c.get("name", "")), str(c.get("dtype", ""))) for c in cols)
+    blob = "|".join(f"{n}::{t}" for n, t in pairs).encode("utf-8")
+    return hashlib.sha256(blob).hexdigest()
 
 logger = logging.getLogger(__name__)
 
 
 def _load_df(ds: Dataset) -> pd.DataFrame:
     if ds.file_format == "csv":
+        if has_parquet_sidecar(ds.storage_path, ds.file_format):
+            try:
+                return pd.read_parquet(parquet_sidecar_path(ds.storage_path))
+            except Exception:
+                logger.info("Parquet sidecar unreadable for %s; falling back to CSV", ds.storage_path)
         return pd.read_csv(ds.storage_path, low_memory=False)
     return pd.read_parquet(ds.storage_path)
 
@@ -42,8 +78,26 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
         db.commit()
         return
 
-    analysis.status = "running"
+    analysis.pipeline_version = PIPELINE_VERSION
+    analysis.encoder_version = ENCODER_VERSION
+    analysis.schema_hash = _schema_hash_from_columns(dataset.columns_json)
+    analysis.dataset_hash = dataset.content_hash
+    analysis.status = "profiling"
     db.commit()
+
+    audit_write_event(
+        "analysis.started",
+        {
+            "analysis_id": analysis.id,
+            "dataset_id": analysis.dataset_id,
+            "user_id": dataset.user_id,
+            "target": analysis.target,
+            "pipeline_version": analysis.pipeline_version,
+            "encoder_version": analysis.encoder_version,
+            "dataset_hash": analysis.dataset_hash,
+            "schema_hash": analysis.schema_hash,
+        },
+    )
 
     try:
         df = _load_df(dataset)
@@ -66,6 +120,8 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
             return
 
         merged_warnings = list(profile.warnings)
+        analysis.status = "training"
+        db.commit()
         result, training_fallback_notes = train_model_with_fallback(
             df,
             analysis.target,
@@ -75,6 +131,8 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
             datetime_column=analysis.datetime_column,
         )
         art_dir = analysis_artifact_dir(analysis_id)
+        analysis.status = "explaining"
+        db.commit()
         shap_rows, plot_err, explanation_fallback_notes = compute_explanations_with_fallback(
             result.model,
             result.X_test,
@@ -156,6 +214,9 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
         if value_col and value_col == analysis.target:
             value_col = None
 
+        analysis.status = "decisioning"
+        db.commit()
+        degraded: list[str] = []
         try:
             kpis = compute_kpis(
                 work,
@@ -172,6 +233,32 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
             report["kpis"] = kpis
         except Exception as e:
             logger.warning("KPI computation failed for analysis %s: %s", analysis_id, e, exc_info=True)
+            degraded.append("kpis")
+
+        if explanation_fallback_notes:
+            degraded.append("explanations")
+        if training_fallback_notes:
+            degraded.append("training")
+        if plot_err:
+            degraded.append("shap_plot")
+
+        if degraded:
+            report["degraded_components"] = sorted(set(degraded))
+
+        report["governance"] = build_governance_block(
+            data_warnings=list(result.data_warnings or []),
+            fallbacks=fallback_notes,
+            degraded_components=sorted(set(degraded)),
+            kpis=report.get("kpis") if isinstance(report.get("kpis"), dict) else None,
+            pipeline_version=analysis.pipeline_version,
+            encoder_version=analysis.encoder_version,
+            dataset_hash=analysis.dataset_hash,
+            schema_hash=analysis.schema_hash,
+            dataset_columns=[c.get("name") for c in column_meta if c.get("name")],
+            db=db,
+            user_id=dataset.user_id,
+            dataset_id=dataset.id,
+        )
 
         analysis.task_type = result.task_type
         analysis.metrics_json = json.dumps(result.metrics)
@@ -182,18 +269,116 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
         analysis.report_json = json.dumps(report)
         analysis.artifacts_path = str(art_dir.resolve())
         analysis.error = None
-        analysis.status = "completed"
+        analysis.status = "completed_with_warnings" if degraded else "completed"
         analysis.completed_at = datetime.now(timezone.utc)
         db.commit()
+
+        write_artifact_manifest(
+            art_dir,
+            pipeline_version=analysis.pipeline_version or PIPELINE_VERSION,
+            encoder_version=analysis.encoder_version or ENCODER_VERSION,
+            analysis_id=analysis.id,
+            dataset_hash=analysis.dataset_hash,
+        )
+        audit_write_event(
+            "analysis.completed",
+            {
+                "analysis_id": analysis.id,
+                "dataset_id": analysis.dataset_id,
+                "user_id": dataset.user_id,
+                "status": analysis.status,
+                "task_type": analysis.task_type,
+                "pipeline_version": analysis.pipeline_version,
+                "encoder_version": analysis.encoder_version,
+                "dataset_hash": analysis.dataset_hash,
+                "schema_hash": analysis.schema_hash,
+                "degraded_components": report.get("degraded_components", []),
+                "metrics_summary": _summarize_metrics(result.metrics),
+                "model_kind": result.model_kind,
+            },
+        )
+    except MemoryError:
+        logger.exception("Analysis %s ran out of memory", analysis_id)
+        analysis.status = "failed"
+        analysis.failed_reason = "oom"
+        analysis.error = (
+            "We ran out of memory while analyzing this dataset. Try again with a "
+            "smaller `max_rows` cap, or remove very wide categorical columns "
+            "from the upload."
+        )
+        analysis.report_json = json.dumps(
+            {
+                "user_message": analysis.error,
+                "fallbacks": [],
+                "failed_reason": "oom",
+            }
+        )
+        analysis.completed_at = datetime.now(timezone.utc)
+        db.commit()
+        audit_write_event(
+            "analysis.failed",
+            {
+                "analysis_id": analysis.id,
+                "dataset_id": analysis.dataset_id,
+                "user_id": dataset.user_id,
+                "failed_reason": "oom",
+            },
+        )
     except Exception as e:
         logger.exception("Analysis %s failed", analysis_id)
         analysis.status = "failed"
+        analysis.failed_reason = _classify_failure_reason(e)
         analysis.error = user_msg.failure_message_for_user()
         analysis.report_json = json.dumps(
             {
                 "user_message": user_msg.GOODWILL_FAILURE_SHORT,
                 "fallbacks": [],
+                "failed_reason": analysis.failed_reason,
             }
         )
         analysis.completed_at = datetime.now(timezone.utc)
         db.commit()
+        audit_write_event(
+            "analysis.failed",
+            {
+                "analysis_id": analysis.id,
+                "dataset_id": analysis.dataset_id,
+                "user_id": dataset.user_id,
+                "failed_reason": analysis.failed_reason,
+                "exception_type": type(e).__name__,
+            },
+        )
+
+
+def _summarize_metrics(metrics: dict[str, float] | None) -> dict[str, float]:
+    """Return a tiny subset of model metrics safe to drop into the audit log."""
+    if not metrics:
+        return {}
+    keep = ("accuracy", "f1_macro", "roc_auc", "r2", "mae", "rmse")
+    out: dict[str, float] = {}
+    for k in keep:
+        v = metrics.get(k)
+        if v is None:
+            continue
+        try:
+            out[k] = float(v)
+        except (TypeError, ValueError):
+            continue
+    return out
+
+
+def _classify_failure_reason(err: BaseException) -> str:
+    """Map a top-level exception to a short tag stored on `Analysis.failed_reason`.
+
+    Kept deliberately tiny: the UI keys off this tag for tailored copy, while the
+    full message stays in `Analysis.error`. New tags should be additive.
+    """
+    msg = (str(err) or "").lower()
+    name = type(err).__name__.lower()
+    if "memory" in msg or "memoryerror" in name:
+        return "oom"
+    if "timeout" in name or "timeout" in msg:
+        return "timeout"
+    if isinstance(err, ValueError):
+        return "data_error"
+    return "internal_error"

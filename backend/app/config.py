@@ -36,6 +36,12 @@ class Settings(BaseSettings):
     ]
 
     redis_url: str | None = Field(default=None)
+    analysis_timeout_s: int = Field(
+        default=1800,
+        ge=60,
+        le=24 * 60 * 60,
+        description="Wall-clock budget for a single analysis job, in seconds (RQ job_timeout).",
+    )
 
     @model_validator(mode="after")
     def set_subdirs(self) -> "Settings":
