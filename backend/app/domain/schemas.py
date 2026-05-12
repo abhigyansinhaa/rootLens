@@ -84,6 +84,7 @@ class AnalysisOut(BaseModel):
     feature_importance: list[dict[str, Any]] | None = None
     shap_summary: list[dict[str, Any]] | None = None
     shap_summary_image_url: str | None = None
+    shap_beeswarm_image_url: str | None = None
     report: dict[str, Any] | None = None
     pipeline_version: str | None = None
     encoder_version: str | None = None
@@ -138,6 +139,11 @@ class FeatureRegistryEntryOut(BaseModel):
     business_definition: str | None = None
     allowed_use: str | None = None
     notes: str | None = None
+    controllability: str | None = Field(
+        default=None,
+        description="controllable | partial | observational — for intervention UX.",
+        max_length=64,
+    )
     last_reviewed_at: datetime | None = None
     is_governed: bool
     is_in_dataset: bool
@@ -158,6 +164,11 @@ class FeatureRegistryEntryPatch(BaseModel):
     business_definition: str | None = Field(default=None, max_length=4000)
     allowed_use: str | None = Field(default=None, max_length=64)
     notes: str | None = Field(default=None, max_length=4000)
+    controllability: str | None = Field(
+        default=None,
+        max_length=64,
+        description="controllable | partial | observational",
+    )
     mark_reviewed: bool = Field(
         default=False,
         description="If true, set last_reviewed_at to the current server time.",

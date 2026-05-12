@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import {
   ResponsiveContainer,
   Area,
@@ -9,11 +10,29 @@ import {
 } from 'recharts'
 import type { AnalysisKpis } from '../../types'
 import { Card, CardEyebrow, StatusBadge } from '../ui'
-import { formatPct01 } from './format'
+import { formatCompactMoney, formatPct01 } from './format'
 
 export function ConcentrationCallout({ kpis }: { kpis: AnalysisKpis }) {
   const h = kpis.concentration.headline
   const pts = kpis.concentration.lorenz_points ?? []
+  const interpretation = kpis.concentration.interpretation
+  const paretoCuts = kpis.concentration.pareto_cuts ?? []
+
+  const cutOptions = useMemo(() => {
+    if (paretoCuts.length) return paretoCuts
+    return pts.map((p) => ({
+      top_pct: p.x,
+      share_of_risk: p.y,
+      approx_users: Math.max(1, Math.round(p.x * kpis.target_level.n_users)),
+      approx_revenue_at_risk:
+        kpis.impact_revenue != null
+          ? kpis.impact_revenue.revenue_at_risk * p.y
+          : null,
+    }))
+  }, [paretoCuts, pts, kpis.target_level.n_users, kpis.impact_revenue])
+
+  const [idx, setIdx] = useState(0)
+  const selected = cutOptions[Math.min(idx, Math.max(0, cutOptions.length - 1))]
 
   return (
     <Card padding="lg" tone="strong" className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -35,13 +54,60 @@ export function ConcentrationCallout({ kpis }: { kpis: AnalysisKpis }) {
           </span>{' '}
           of expected exposure
         </p>
-        <p className="text-sm leading-6 text-[var(--text-2)]">
-          Gini coefficient{' '}
-          <span className="font-semibold tabular-nums text-[var(--text-1)]">
-            {kpis.concentration.gini.toFixed(2)}
-          </span>{' '}
-          - the closer to 1.00, the more concentrated the modeled tail risk.
-        </p>
+        {interpretation ? (
+          <p className="text-sm leading-6 text-[var(--text-2)]">{interpretation}</p>
+        ) : (
+          <p className="text-sm leading-6 text-[var(--text-2)]">
+            Gini coefficient{' '}
+            <span className="font-semibold tabular-nums text-[var(--text-1)]">
+              {kpis.concentration.gini.toFixed(2)}
+            </span>{' '}
+            — the closer to 1.00, the more concentrated the modeled tail risk.
+          </p>
+        )}
+        {cutOptions.length > 0 ? (
+          <div className="rounded-xl border border-[var(--border-1)] bg-[var(--surface-1)] p-3 text-xs">
+            <p className="font-bold uppercase tracking-[0.14em] text-[var(--text-3)]">Threshold simulation</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {cutOptions.map((c, i) => (
+                <button
+                  key={`${c.top_pct}-${i}`}
+                  type="button"
+                  onClick={() => setIdx(i)}
+                  className={`rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${
+                    idx === i
+                      ? 'bg-brand-600 text-white'
+                      : 'border border-[var(--border-1)] bg-[var(--surface-2)] text-[var(--text-2)]'
+                  }`}
+                >
+                  Top {(c.top_pct * 100).toFixed(0)}%
+                </button>
+              ))}
+            </div>
+            {selected ? (
+              <dl className="mt-3 grid gap-1 text-[var(--text-2)]">
+                <div className="flex justify-between gap-2">
+                  <dt>Share of modeled exposure</dt>
+                  <dd className="font-bold tabular-nums text-[var(--text-1)]">{formatPct01(selected.share_of_risk)}</dd>
+                </div>
+                <div className="flex justify-between gap-2">
+                  <dt>Approx. users in tail</dt>
+                  <dd className="font-bold tabular-nums text-[var(--text-1)]">
+                    {selected.approx_users.toLocaleString()}
+                  </dd>
+                </div>
+                {selected.approx_revenue_at_risk != null && Number.isFinite(selected.approx_revenue_at_risk) ? (
+                  <div className="flex justify-between gap-2">
+                    <dt>Approx. revenue at risk (tail)</dt>
+                    <dd className="font-bold tabular-nums text-[var(--text-1)]">
+                      {formatCompactMoney(selected.approx_revenue_at_risk)}
+                    </dd>
+                  </div>
+                ) : null}
+              </dl>
+            ) : null}
+          </div>
+        ) : null}
       </div>
       <div className="h-44 w-full min-w-[220px] max-w-md">
         {pts.length ? (

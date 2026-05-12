@@ -11,6 +11,7 @@ import pandas as pd
 from app.pipelines.common import TaskType
 
 ConfidenceLevel = Literal["high", "medium", "low"]
+SeverityLevel = Literal["informational", "warning", "critical"]
 
 
 def _base_column_name(feature: str) -> str:
@@ -47,6 +48,72 @@ def aggregate_shap_by_column(
     return combined[:top_k]
 
 
+def _investigation_questions(stem: str, target: str) -> list[str]:
+    s = stem.lower()
+    t = target.lower()
+    qs: list[str] = [
+        f"Has '{stem}' changed in distribution versus prior periods?",
+        f"Are segments with extreme '{stem}' getting different treatment or pricing?",
+    ]
+    if "contract" in s or "month" in s:
+        qs.append("Did recent contract or term policy changes coincide with timing of {}".format(t))
+    if "charge" in s or "price" in s or "monthly" in s or "bill" in s:
+        qs.append("Were there billing or price adjustments that land hardest on high-risk cohorts?")
+    if "tenure" in s or "seniority" in s:
+        qs.append("Is onboarding or early-life support weaker for newer accounts?")
+    if "support" in s or "ticket" in s:
+        qs.append("Are support SLAs or contact channel mix correlated with save rates?")
+    return qs[:4]
+
+
+def _severity_for_row(strength: float, null_ratio: float, confidence: ConfidenceLevel) -> SeverityLevel:
+    if confidence == "low" or null_ratio > 0.35 or strength < 0.02:
+        return "warning"
+    if strength > 0.15 and confidence == "high":
+        return "critical"
+    if strength > 0.08:
+        return "warning"
+    return "informational"
+
+
+def _narrative_frame(
+    stem: str,
+    target: str,
+    direction: str,
+    strength: float,
+    confidence: ConfidenceLevel,
+    corr_txt: str | None,
+    null_note: str | None,
+    stability_note: str | None,
+    frame_idx: int,
+) -> str:
+    conf_adj = {"high": "High-confidence", "medium": "Moderate", "low": "Tentative"}[confidence]
+    dir_phrase = "pushes predictions toward higher risk" if direction == "increases" else "is associated with lower risk in the model"
+    behavioral = (
+        f"{conf_adj} pattern: customers with higher '{stem}' scores {dir_phrase} for '{target}'. "
+        f"This reads as a behavioral segmentation signal — validate with retention cohort reviews."
+    )
+    operational = (
+        f"Operational lens: '{stem}' is among the strongest levers in this model for '{target}'. "
+        f"Consider whether teams can influence this field through policy, packaging, or service design "
+        f"({direction} encoded values correlate with risk)."
+    )
+    economic = (
+        f"Economic framing: '{stem}' ranks in the top drivers by mean |impact| ≈ {strength:.4f}. "
+        f"If this association holds out-of-sample, interventions that move '{stem}' could re-rank margin "
+        f"at risk — {corr_txt or 'pair with unit economics before funding at scale'}."
+    )
+    frames = [behavioral, operational, economic]
+    base = frames[frame_idx % 3]
+    if corr_txt:
+        base += f" {corr_txt}"
+    if null_note:
+        base += f" {null_note}"
+    if stability_note:
+        base += f" {stability_note}"
+    return base
+
+
 def build_insights(
     df: pd.DataFrame,
     target: str,
@@ -57,42 +124,52 @@ def build_insights(
     confidence: ConfidenceLevel = "medium",
     explanation_stability: str | None = None,
 ) -> list[dict[str, Any]]:
-    """Correlation / SHAP-based insight strings with confidence tagging."""
+    """Correlation / SHAP-based insight strings with confidence + severity + follow-ups."""
     meta_by_name = {m["name"]: m for m in column_meta}
     ranked = sorted(shap_rows, key=lambda r: -r["mean_abs_shap"])[:top_n]
     insights: list[dict[str, Any]] = []
 
     y = df[target]
-    for r in ranked:
+    for idx, r in enumerate(ranked):
         fname = r["feature"]
         stem = _base_column_name(fname)
         direction = r["direction"]
         strength = r["mean_abs_shap"]
 
-        conf_note = "Strong" if confidence == "high" else "Moderate" if confidence == "medium" else "Tentative"
-        text = (
-            f"{conf_note} driver: '{stem}' is among the strongest modeled associations with '{target}' "
-            f"(mean |importance| ≈ {strength:.4f}). Higher encoded values tend to {direction} the predicted outcome."
-        )
-
+        corr_txt: str | None = None
         if stem in df.columns and pd.api.types.is_numeric_dtype(df[stem]):
             try:
                 sub = df[[stem, target]].dropna()
                 if len(sub) > 5:
                     corr = sub[stem].corr(pd.to_numeric(sub[target], errors="coerce"))
                     if corr is not None and not np.isnan(corr):
-                        text += f" Raw correlation with '{target}' is {corr:+.3f}."
+                        corr_txt = f"Raw correlation with '{target}' is {corr:+.3f} (descriptive only)."
             except Exception:
                 pass
 
-        if stem in meta_by_name and meta_by_name[stem].get("null_ratio", 0) > 0.3:
-            text += (
-                f" Note: '{stem}' has ~{meta_by_name[stem]['null_ratio']*100:.0f}% missing values; "
-                "treat this driver as less reliable until data quality improves."
+        null_note = None
+        null_ratio = float(meta_by_name.get(stem, {}).get("null_ratio") or 0)
+        if stem in meta_by_name and null_ratio > 0.3:
+            null_note = (
+                f"Note: '{stem}' has ~{null_ratio * 100:.0f}% missing values; treat this signal carefully "
+                "until data quality improves."
             )
 
-        if explanation_stability:
-            text += f" Note: {explanation_stability}"
+        stability_note = explanation_stability if idx == 0 and explanation_stability else None
+
+        text = _narrative_frame(
+            stem,
+            target,
+            direction,
+            strength,
+            confidence,
+            corr_txt,
+            null_note,
+            stability_note,
+            idx,
+        )
+
+        severity = _severity_for_row(strength, null_ratio, confidence)
 
         insights.append(
             {
@@ -103,6 +180,8 @@ def build_insights(
                 "summary": text,
                 "mean_abs_shap": strength,
                 "confidence": confidence,
+                "severity": severity,
+                "investigation_questions": _investigation_questions(stem, target),
             }
         )
 

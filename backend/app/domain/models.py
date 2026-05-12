@@ -64,6 +64,7 @@ class FeatureRegistryEntry(Base):
     business_definition: Mapped[str | None] = mapped_column(Text, nullable=True)
     allowed_use: Mapped[str | None] = mapped_column(String(64), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    controllability: Mapped[str | None] = mapped_column(String(64), nullable=True)
     last_reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(

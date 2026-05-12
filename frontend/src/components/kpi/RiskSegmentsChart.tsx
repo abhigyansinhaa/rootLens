@@ -10,11 +10,27 @@ import {
 } from 'recharts'
 import type { AnalysisKpis } from '../../types'
 import { Card, CardEyebrow, CardTitle, StatusBadge } from '../ui'
-import { formatPct01 } from './format'
+import { formatCompactMoney, formatPct01 } from './format'
+
+const BUCKET_LABEL: Record<AnalysisKpis['risk_segments'][0]['bucket'], string> = {
+  low: 'Stable customers',
+  medium: 'Watchlist accounts',
+  high: 'Critical retention risk',
+}
+
+const PLAYBOOK: Record<AnalysisKpis['risk_segments'][0]['bucket'], string[]> = {
+  low: ['Automated nurture and light-touch digital engagement.', 'Monitor monthly for sharp score spikes.'],
+  medium: ['Blend digital offers with targeted outreach.', 'Test save desk scripts on the next billing cycle.'],
+  high: [
+    'Prioritize human outreach and executive sponsorship for large accounts.',
+    'Bundle/discount options and long-term contract moves.',
+  ],
+}
 
 export function RiskSegmentsChart({ kpis, hasValue }: { kpis: AnalysisKpis; hasValue: boolean }) {
   const chart = kpis.risk_segments.map((s) => ({
-    bucket: s.bucket.toUpperCase(),
+    bucket: BUCKET_LABEL[s.bucket],
+    raw: s.bucket,
     users_share: s.share,
     value_share: hasValue ? s.value_share ?? 0 : 0,
     count: s.count,
@@ -84,10 +100,20 @@ function SegmentTile({
   hasValue: boolean
 }) {
   const tone = segment.bucket === 'high' ? 'risk' : segment.bucket === 'medium' ? 'warning' : 'success'
+  const label = BUCKET_LABEL[segment.bucket]
+  const playbook = PLAYBOOK[segment.bucket]
+  const evPerUser =
+    hasValue && segment.count > 0 && segment.value != null && Number.isFinite(segment.value)
+      ? segment.value / segment.count
+      : null
+
   return (
     <div className="rounded-xl border border-[var(--border-1)] bg-[var(--surface-1)] p-4">
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge tone={tone} dot>
+          {label}
+        </StatusBadge>
+        <StatusBadge tone="default" className="text-[10px] uppercase">
           {segment.bucket}
         </StatusBadge>
         {segment.easiest_to_fix ? <StatusBadge tone="success">Highest tractability</StatusBadge> : null}
@@ -109,6 +135,12 @@ function SegmentTile({
             </dd>
           </div>
         ) : null}
+        {evPerUser != null ? (
+          <div className="flex justify-between gap-2">
+            <dt>Expected value / user</dt>
+            <dd className="font-bold tabular-nums text-[var(--text-1)]">{formatCompactMoney(evPerUser)}</dd>
+          </div>
+        ) : null}
         <div className="flex justify-between gap-2">
           <dt>Avg model score</dt>
           <dd className="font-bold tabular-nums text-[var(--text-1)]">
@@ -116,11 +148,14 @@ function SegmentTile({
           </dd>
         </div>
       </dl>
-      <p className="mt-3 text-[11px] leading-5 text-[var(--text-3)]">
-        {segment.easiest_to_fix
-          ? 'Balances sizable population and strong driver sensitivity - prioritize this wedge first.'
-          : 'Drill into SHAP narratives for hypotheses on how to intervene.'}
-      </p>
+      <div className="mt-3 space-y-1 text-[11px] leading-5 text-[var(--text-3)]">
+        <p className="font-semibold text-[var(--text-2)]">Recommendations</p>
+        <ul className="list-disc space-y-1 pl-4">
+          {playbook.map((line, i) => (
+            <li key={i}>{line}</li>
+          ))}
+        </ul>
+      </div>
     </div>
   )
 }

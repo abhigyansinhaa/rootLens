@@ -432,6 +432,22 @@ def _render_shap_summary_png(
     plt.savefig(png_path, dpi=120, bbox_inches="tight")
     plt.close()
 
+    beeswarm_path = png_path.parent / "shap_beeswarm.png"
+    try:
+        shap.summary_plot(
+            sv_for_plot,
+            X_plot,
+            feature_names=feature_names,
+            show=False,
+            max_display=min(12, len(feature_names)),
+            plot_type="dot",
+        )
+        plt.tight_layout()
+        plt.savefig(beeswarm_path, dpi=120, bbox_inches="tight")
+        plt.close()
+    except Exception:
+        plt.close()
+
 
 def _aggregate_shap_for_plot(
     sv: Any,
