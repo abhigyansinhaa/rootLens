@@ -3,7 +3,8 @@ import logging
 from pathlib import Path
 from typing import Annotated, Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Request, status
+import pandas as pd
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, Query, Request, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
@@ -13,11 +14,46 @@ from app.domain.models import Analysis, Dataset, User
 from app.domain.schemas import AnalysisCreate, AnalysisListItem, AnalysisOut
 from app.infrastructure.db import SessionLocal, get_db
 from app.infrastructure.storage import remove_artifact_dir
+from app.jobs import _load_df
 from app.jobs import run_analysis
+from app.pipelines.pipeline import RANDOM_STATE, training_work_frame
 from app.rate_limit import limiter
 
 router = APIRouter(tags=["analyses"])
 logger = logging.getLogger(__name__)
+
+
+def _compact_kpi_history_payload(report: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not report:
+        return None
+    kpis = report.get("kpis")
+    if not isinstance(kpis, dict):
+        return None
+    tl = kpis.get("target_level") or {}
+    ir = kpis.get("impact_revenue") or {}
+    conc = kpis.get("concentration") or {}
+    segs = kpis.get("risk_segments") or []
+    return {
+        "target_rate": tl.get("target_rate"),
+        "predicted_target_rate": tl.get("predicted_target_rate"),
+        "target_mean": tl.get("target_mean"),
+        "predicted_mean": tl.get("predicted_mean"),
+        "high_risk_share": tl.get("high_risk_share"),
+        "revenue_at_risk": ir.get("revenue_at_risk") if isinstance(ir, dict) else None,
+        "concentration_headline": conc.get("headline") if isinstance(conc, dict) else None,
+        "segment_shares": {str(s.get("bucket")): s.get("share") for s in segs if isinstance(s, dict)},
+        "reliability_value": (kpis.get("reliability") or {}).get("headline_value"),
+    }
+
+
+def _owned_analysis(db: Session, analysis_id: int, user_id: int) -> tuple[Analysis, Dataset]:
+    a = db.get(Analysis, analysis_id)
+    if a is None:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    ds = db.get(Dataset, a.dataset_id)
+    if ds is None or ds.user_id != user_id:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    return a, ds
 
 
 def _compact_kpis(report: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -68,6 +104,7 @@ def _analysis_to_out(a: Analysis) -> dict[str, Any]:
         "feature_importance": None,
         "shap_summary": json.loads(a.shap_json) if a.shap_json else None,
         "shap_summary_image_url": None,
+        "shap_beeswarm_image_url": None,
         "report": json.loads(a.report_json) if getattr(a, "report_json", None) else None,
         "pipeline_version": getattr(a, "pipeline_version", None),
         "encoder_version": getattr(a, "encoder_version", None),
@@ -88,6 +125,9 @@ def _analysis_to_out(a: Analysis) -> dict[str, Any]:
         base["shap_summary"] = shap
     if a.status in ("completed", "completed_with_warnings") and a.id:
         base["shap_summary_image_url"] = f"analyses/{a.id}/artifacts/shap_summary.png"
+        beeswarm = settings.artifacts_dir / str(a.id) / "shap_beeswarm.png"
+        if beeswarm.is_file():
+            base["shap_beeswarm_image_url"] = f"analyses/{a.id}/artifacts/shap_beeswarm.png"
     return base
 
 
@@ -235,7 +275,7 @@ def download_analysis_artifact(
     safe_name = Path(filename).name
     if safe_name != filename:
         raise HTTPException(status_code=400, detail="Invalid filename")
-    allowed = {"shap_summary.png", "predictions.parquet", "artifacts.json"}
+    allowed = {"shap_summary.png", "shap_beeswarm.png", "predictions.parquet", "artifacts.json"}
     if safe_name not in allowed:
         raise HTTPException(status_code=400, detail="Unsupported artifact")
 
@@ -265,6 +305,132 @@ def get_analysis(
     if ds is None or ds.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Analysis not found")
     return AnalysisOut.model_validate(_analysis_to_out(a))
+
+
+@router.get("/analyses/{analysis_id}/kpi-history")
+def analysis_kpi_history(
+    analysis_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    limit: int = Query(12, ge=1, le=50),
+) -> dict[str, Any]:
+    a, _ = _owned_analysis(db, analysis_id, current_user.id)
+    if a.status not in ("completed", "completed_with_warnings"):
+        raise HTTPException(status_code=400, detail="Analysis is not complete")
+    if not a.completed_at:
+        raise HTTPException(status_code=400, detail="Analysis has no completion timestamp")
+
+    cur_rep = json.loads(a.report_json) if a.report_json else None
+    prior_rows = (
+        db.query(Analysis)
+        .filter(
+            Analysis.dataset_id == a.dataset_id,
+            Analysis.target == a.target,
+            Analysis.id != a.id,
+            Analysis.status.in_(("completed", "completed_with_warnings")),
+            Analysis.completed_at.isnot(None),
+            Analysis.completed_at < a.completed_at,
+        )
+        .order_by(Analysis.completed_at.desc())
+        .limit(limit)
+        .all()
+    )
+    chronological = list(reversed(prior_rows))
+    points: list[dict[str, Any]] = []
+    for row in chronological:
+        rep = json.loads(row.report_json) if row.report_json else None
+        kp = _compact_kpi_history_payload(rep)
+        if kp:
+            points.append(
+                {
+                    "analysis_id": row.id,
+                    "completed_at": row.completed_at.isoformat() if row.completed_at else None,
+                    "kpis": kp,
+                }
+            )
+    cur_kp = _compact_kpi_history_payload(cur_rep)
+    if cur_kp:
+        points.append(
+            {
+                "analysis_id": a.id,
+                "completed_at": a.completed_at.isoformat() if a.completed_at else None,
+                "kpis": cur_kp,
+            }
+        )
+    return {"points": points, "current_analysis_id": a.id}
+
+
+@router.get("/analyses/{analysis_id}/risk-by-column")
+def analysis_risk_by_column(
+    analysis_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    column: str = Query(..., min_length=1, max_length=512),
+) -> dict[str, Any]:
+    a, ds = _owned_analysis(db, analysis_id, current_user.id)
+    if a.status not in ("completed", "completed_with_warnings"):
+        raise HTTPException(status_code=400, detail="Analysis is not complete")
+    pred_path = settings.artifacts_dir / str(analysis_id) / "predictions.parquet"
+    if not pred_path.is_file():
+        raise HTTPException(status_code=404, detail="Predictions artifact not found")
+    pred = pd.read_parquet(pred_path)
+    df = _load_df(ds)
+    work, _, _ = training_work_frame(
+        df,
+        a.target,
+        max_rows=None,
+        random_state=RANDOM_STATE,
+        datetime_column=a.datetime_column,
+        data_warnings=None,
+    )
+    col = column.strip()
+    if col == a.target or col not in work.columns:
+        raise HTTPException(status_code=400, detail="Invalid or unknown column")
+    n = min(len(work), len(pred))
+    if n == 0:
+        raise HTTPException(status_code=400, detail="No rows to aggregate")
+    work_s = work.iloc[:n].reset_index(drop=True)
+    pred_s = pred.iloc[:n].reset_index(drop=True)
+    merged = work_s[[col]].copy()
+    merged["__prediction"] = pred_s["__prediction"].astype(float).values
+    merged["__loss"] = pred_s["__expected_loss"].astype(float).values
+    groups: list[dict[str, Any]] = []
+    for val, g in merged.groupby(merged[col].astype(str), dropna=False):
+        groups.append(
+            {
+                "value": str(val) if pd.notna(val) else "(null)",
+                "count": int(len(g)),
+                "mean_prediction": float(g["__prediction"].mean()),
+                "mean_expected_loss": float(g["__loss"].mean()),
+            }
+        )
+    groups.sort(key=lambda x: -x["mean_expected_loss"])
+    return {
+        "column": col,
+        "row_count": n,
+        "partial_alignment_warning": len(work) != len(pred),
+        "groups": groups[:50],
+    }
+
+
+@router.post("/analyses/{analysis_id}/sandbox")
+def analysis_sandbox_preview(
+    analysis_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+    body: Any = Body(default=None),
+) -> dict[str, Any]:
+    a, _ = _owned_analysis(db, analysis_id, current_user.id)
+    rep = json.loads(a.report_json) if getattr(a, "report_json", None) else {}
+    adj = []
+    if isinstance(body, dict):
+        adj = body.get("adjustments") or []
+    return {
+        "status": "preview_only",
+        "message": "Live counterfactual scoring from this endpoint is not enabled. Use scenario tables in the report or re-run training on updated data.",
+        "received_adjustments": adj,
+        "trust_copy": rep.get("trust_copy"),
+    }
 
 
 @router.delete("/analyses/{analysis_id}", status_code=status.HTTP_204_NO_CONTENT)

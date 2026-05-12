@@ -62,10 +62,17 @@ def _entry_to_out(entry: FeatureRegistryEntry, in_dataset: bool) -> FeatureRegis
         business_definition=entry.business_definition,
         allowed_use=entry.allowed_use,
         notes=entry.notes,
+        controllability=entry.controllability,
         last_reviewed_at=entry.last_reviewed_at,
         is_governed=any(
             v is not None and str(v).strip() != ""
-            for v in (entry.owner, entry.business_definition, entry.allowed_use, entry.notes)
+            for v in (
+                entry.owner,
+                entry.business_definition,
+                entry.allowed_use,
+                entry.notes,
+                entry.controllability,
+            )
         ),
         is_in_dataset=in_dataset,
     )
@@ -155,6 +162,8 @@ def upsert_entry(
         entry.allowed_use = patch.allowed_use.strip() or None
     if patch.notes is not None:
         entry.notes = patch.notes.strip() or None
+    if patch.controllability is not None:
+        entry.controllability = patch.controllability.strip() or None
     if patch.mark_reviewed:
         entry.last_reviewed_at = datetime.now(timezone.utc)
 

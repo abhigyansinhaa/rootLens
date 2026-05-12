@@ -23,7 +23,9 @@ from xgboost import XGBClassifier, XGBRegressor
 
 from app.decisioning.counterfactual import annotate_driver_impact
 from app.decisioning.kpis.concentration import concentration_headline, gini_nonnegative
+from app.decisioning.kpis.concentration_narrative import concentration_interpretation, pareto_cut_table
 from app.decisioning.kpis.driver_impact import feat_index, roll_topk, sigmoid_vec
+from app.decisioning.kpis.intervention_confidence import build_intervention_confidence
 from app.decisioning.kpis.monetization import (
     classification_impact_revenue,
     regression_impact_revenue,
@@ -60,6 +62,7 @@ class KpiEngine:
         cv_metrics: dict[str, float],
         value_column: str | None,
         artifact_dir: Path,
+        data_warning_count: int = 0,
     ) -> dict[str, Any]:
         return _compute_kpis_impl(
             df_work,
@@ -72,6 +75,7 @@ class KpiEngine:
             cv_metrics,
             value_column,
             artifact_dir,
+            data_warning_count=data_warning_count,
             random_state=self.random_state,
         )
 
@@ -88,6 +92,7 @@ def compute_kpis(
     value_column: str | None,
     artifact_dir: Path,
     *,
+    data_warning_count: int = 0,
     random_state: int = 42,
 ) -> dict[str, Any]:
     """Back-compat free-function wrapper around `KpiEngine`."""
@@ -102,6 +107,7 @@ def compute_kpis(
         cv_metrics=cv_metrics,
         value_column=value_column,
         artifact_dir=artifact_dir,
+        data_warning_count=data_warning_count,
     )
 
 
@@ -117,6 +123,7 @@ def _compute_kpis_impl(
     value_column: str | None,
     artifact_dir: Path,
     *,
+    data_warning_count: int = 0,
     random_state: int = 42,
 ) -> dict[str, Any]:
     rng = np.random.default_rng(random_state)
@@ -439,6 +446,12 @@ def _compute_kpis_impl(
         sv_matrix=sv_matrix_full,
         reliability_tier=reliability_info["tier"],
     )
+    intervention_confidence = build_intervention_confidence(
+        reliability_tier=reliability_info["tier"],
+        driver_impact=driver_impact,
+        approximation=str(driver_impact.get("approximation") or approx),
+        data_warning_count=int(data_warning_count),
+    )
 
     pv_col = np.asarray(pred_vals if task_type != "classification" else risk_scores)
     out_preds = pd.DataFrame(
@@ -485,6 +498,13 @@ def _compute_kpis_impl(
             target_level["target_mean_ci_low"] = target_ci_lo
             target_level["target_mean_ci_high"] = target_ci_hi
 
+    rev_at_risk = None
+    if impact_rev is not None and impact_rev.get("revenue_at_risk") is not None:
+        try:
+            rev_at_risk = float(impact_rev["revenue_at_risk"])
+        except (TypeError, ValueError):
+            rev_at_risk = None
+
     return {
         "target_level": target_level,
         "impact_revenue": impact_rev,
@@ -492,10 +512,22 @@ def _compute_kpis_impl(
             "lorenz_points": lorenz_pts,
             "headline": headline_dict,
             "gini": gini_val,
+            "interpretation": concentration_interpretation(
+                top_pct_users=float(headline_dict["top_pct_users"]),
+                share_of_risk=float(headline_dict["share_of_risk"]),
+                gini=gini_val,
+                n_users=n_users,
+            ),
+            "pareto_cuts": pareto_cut_table(
+                lorenz_points=lorenz_pts,
+                n_users=n_users,
+                revenue_at_risk=rev_at_risk,
+            ),
         },
         "risk_segments": risk_segments_out,
         "drivers": drivers_top,
         "top_driver_share": float(top_driver_share_val),
         "driver_impact": driver_impact,
         "reliability": reliability_info,
+        "intervention_confidence": intervention_confidence,
     }

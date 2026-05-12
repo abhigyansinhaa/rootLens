@@ -15,12 +15,14 @@ from sklearn.impute import SimpleImputer
 from sklearn.linear_model import ElasticNet, LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
+    brier_score_loss,
     f1_score,
     mean_absolute_error,
     mean_squared_error,
     roc_auc_score,
     r2_score,
 )
+from sklearn.calibration import calibration_curve
 from sklearn.model_selection import StratifiedKFold, KFold, TimeSeriesSplit, cross_val_score, train_test_split
 from sklearn.pipeline import Pipeline as SkPipeline
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
@@ -35,7 +37,7 @@ ModelKind = Literal["xgboost", "random_forest", "logistic_regression", "elastic_
 @dataclass
 class TrainResult:
     task_type: TaskType
-    metrics: dict[str, float]
+    metrics: dict[str, Any]
     model: Any  # fitted sklearn Pipeline ending in an estimator with tree or linear SHAP support
     X_test: np.ndarray
     y_test: np.ndarray
@@ -273,7 +275,7 @@ def _build_estimator(kind: ModelKind, task: TaskType, n_classes: int) -> Any:
 
 def _confidence_from_metrics(
     task: TaskType,
-    metrics: dict[str, float],
+    metrics: dict[str, Any],
     n_rows: int,
 ) -> Literal["high", "medium", "low"]:
     if task == "classification":
@@ -458,7 +460,7 @@ def train_model(
     y_pred = full_pipe.named_steps["model"].predict(X_test_t)
 
     if task == "classification":
-        metrics: dict[str, float] = {
+        metrics: dict[str, float | list[dict[str, float]]] = {
             "accuracy": float(accuracy_score(y_test, y_pred)),
             "f1_macro": float(f1_score(y_test, y_pred, average="macro", zero_division=0)),
         }
@@ -467,6 +469,24 @@ def train_model(
             try:
                 proba = full_pipe.named_steps["model"].predict_proba(X_test_t)[:, 1]
                 metrics["roc_auc"] = float(roc_auc_score(y_test, proba))
+                metrics["brier_score_loss"] = float(brier_score_loss(y_test, proba))
+                prob_true, prob_pred = calibration_curve(
+                    y_test,
+                    proba,
+                    n_bins=min(10, max(3, len(y_test) // 20)),
+                    strategy="uniform",
+                )
+                metrics["calibration_curve"] = [
+                    {"mean_predicted": float(a), "fraction_positive": float(b)}
+                    for a, b in zip(prob_pred, prob_true)
+                ]
+                try:
+                    log_baseline = LogisticRegression(max_iter=400, random_state=random_state)
+                    log_baseline.fit(X_train_t, y_train)
+                    proba_lb = log_baseline.predict_proba(X_test_t)[:, 1]
+                    metrics["logistic_baseline_roc_auc"] = float(roc_auc_score(y_test, proba_lb))
+                except Exception:
+                    pass
             except Exception:
                 metrics["roc_auc"] = 0.0
         metrics.update(cv_metrics)
@@ -521,7 +541,7 @@ def train_model(
     )
 
 
-def metrics_to_json(metrics: dict[str, float]) -> str:
+def metrics_to_json(metrics: dict[str, Any]) -> str:
     return json.dumps(metrics)
 
 

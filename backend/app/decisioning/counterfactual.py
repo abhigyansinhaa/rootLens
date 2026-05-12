@@ -170,3 +170,21 @@ def annotate_driver_impact(
             continue
         slice_tiers = [tier_by_feature[f] for f in ordered_features[:k] if f in tier_by_feature]
         rollup["confidence_tier"] = _aggregate_tier(slice_tiers) if slice_tiers else "low"
+        slice_entries = [e for e in per_driver if str(e.get("feature")) in set(ordered_features[:k])]
+        worst_cv = None
+        worst_support = None
+        for e in slice_entries:
+            sig = e.get("confidence_signals") if isinstance(e, dict) else None
+            if isinstance(sig, dict):
+                cr = sig.get("cv_ratio")
+                sp = sig.get("support")
+                if cr is not None and np.isfinite(float(cr)):
+                    worst_cv = float(cr) if worst_cv is None else max(worst_cv, float(cr))
+                if sp is not None:
+                    worst_support = float(sp) if worst_support is None else min(worst_support, float(sp))
+        rollup["confidence_signals"] = {
+            "rollup_drivers": k,
+            "worst_cv_ratio": worst_cv,
+            "min_support": worst_support,
+            "reliability_tier": reliability_tier,
+        }

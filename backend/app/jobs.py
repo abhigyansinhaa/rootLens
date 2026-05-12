@@ -13,6 +13,13 @@ from sqlalchemy.orm import Session
 
 from app.decisioning import messages as user_msg
 from app.decisioning.governance import build_governance_block
+from app.decisioning.governance_layer import build_quality_signals
+from app.decisioning.kpi_thresholds import UI_THRESHOLDS
+from app.decisioning.kpi_trust_copy import (
+    COUNTERFACTUAL_CAUSAL_DISCLAIMER,
+    CORRELATION_NOT_CAUSATION_SHORT,
+    ROI_ASSUMPTIONS_CLIENT_ONLY,
+)
 from app.decisioning.insights import aggregate_shap_by_column, build_insights, insights_to_json
 from app.decisioning.kpis import compute_kpis
 from app.decisioning.recommend import build_recommendations
@@ -229,6 +236,7 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
                 result.cv_metrics,
                 value_col,
                 art_dir,
+                data_warning_count=len(result.data_warnings or []),
             )
             report["kpis"] = kpis
         except Exception as e:
@@ -241,6 +249,28 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
             degraded.append("training")
         if plot_err:
             degraded.append("shap_plot")
+
+        report["trust_copy"] = {
+            "counterfactual_causal_disclaimer": COUNTERFACTUAL_CAUSAL_DISCLAIMER,
+            "correlation_not_causation": CORRELATION_NOT_CAUSATION_SHORT,
+            "roi_assumptions": ROI_ASSUMPTIONS_CLIENT_ONLY,
+        }
+        report["ui_thresholds"] = UI_THRESHOLDS
+        prof_section = profile.to_report_section() if profile else {}
+        profile_warns = list(prof_section.get("warnings") or [])
+        if isinstance(result.metrics, dict):
+            baselines: dict[str, Any] = {"random_classifier_roc_auc": 0.5}
+            lb = result.metrics.get("logistic_baseline_roc_auc")
+            if lb is not None:
+                baselines["logistic_regression_roc_auc"] = float(lb)
+            report["model_baselines"] = baselines
+        report["quality_signals"] = build_quality_signals(
+            profile_warnings=profile_warns,
+            training_warnings=list(merged_warnings),
+            data_warnings=list(result.data_warnings or []),
+            fallbacks=fallback_notes,
+            degraded_components=sorted(set(degraded)) if degraded else [],
+        )
 
         if degraded:
             report["degraded_components"] = sorted(set(degraded))
@@ -350,11 +380,11 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
         )
 
 
-def _summarize_metrics(metrics: dict[str, float] | None) -> dict[str, float]:
+def _summarize_metrics(metrics: dict[str, float] | dict[str, Any] | None) -> dict[str, float]:
     """Return a tiny subset of model metrics safe to drop into the audit log."""
     if not metrics:
         return {}
-    keep = ("accuracy", "f1_macro", "roc_auc", "r2", "mae", "rmse")
+    keep = ("accuracy", "f1_macro", "roc_auc", "r2", "mae", "rmse", "brier_score_loss", "logistic_baseline_roc_auc")
     out: dict[str, float] = {}
     for k in keep:
         v = metrics.get(k)

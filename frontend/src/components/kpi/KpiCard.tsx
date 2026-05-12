@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Stat } from '../ui'
 
 type Props = {
-  label: string
+  label: ReactNode
   value: ReactNode
   hint?: ReactNode
   ciHint?: ReactNode

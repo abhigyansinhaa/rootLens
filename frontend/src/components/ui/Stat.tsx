@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 type Tone = 'default' | 'risk' | 'warning' | 'success' | 'info'
 
 type Props = {
-  label: string
+  label: ReactNode
   value: ReactNode
   hint?: ReactNode
   delta?: ReactNode
