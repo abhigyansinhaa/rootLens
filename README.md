@@ -27,13 +27,20 @@ Additional backend-only variables are documented in [`backend/.env.example`](bac
 
 ## Development
 
-- **Backend tests:** `cd backend` then `python -m pytest tests -q` (or `-v` for verbose).
+- **Backend tests:** `cd backend` then `python -m pytest tests -q` (or `-v` for verbose). The suite applies **Alembic** `upgrade head` to a throwaway SQLite file so migrations stay aligned with MySQL.
 - **Frontend lint:** `cd frontend` then `npm run lint`.
-- **New schema changes:** add an Alembic revision under [`backend/alembic/versions`](backend/alembic/versions) and run `alembic upgrade head` locally or rely on the backend container startup (see [`backend/Dockerfile`](backend/Dockerfile)).
+- **New schema changes:** add an Alembic revision under [`backend/alembic/versions`](backend/alembic/versions) and run `alembic upgrade head` locally or rely on the backend container startup (see [`backend/Dockerfile`](backend/Dockerfile)). **Do not edit migrations that may already be applied** on shared environments; add a new revision (or an idempotent repair like [`005_ensure_core_columns.py`](backend/alembic/versions/005_ensure_core_columns.py)) instead. Full workflow and rules: [`backend/alembic/README.md`](backend/alembic/README.md).
 
 ## Local development (no Docker)
 
 ### Backend
+
+Docker Compose runs **`alembic upgrade head`** before Uvicorn. If you run **Uvicorn alone**, migrate first (same order as compose), or use:
+
+- **Windows:** `pwsh backend/scripts/run_local_api.ps1` from the **repository root** (the script changes into `backend` and starts the API on port 8000).
+- **macOS / Linux:** `bash backend/scripts/run_local_api.sh` from the **repository root**.
+
+Manual equivalent:
 
 ```bash
 cd backend
@@ -101,6 +108,7 @@ The compose **`frontend`** service builds a static bundle plus nginx (production
 
 ```
 backend/app/          # FastAPI app, ML pipeline, jobs
+backend/scripts/      # e.g. run_local_api.{ps1,sh} — migrate + Uvicorn for local MySQL
 frontend/src/         # React UI
 data/                 # uploads + analysis artifacts (gitignored contents)
 backend/sql/          # MySQL container bootstrap (DDL via Alembic)

@@ -24,19 +24,14 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # Single batch keeps SQLite happy (no standalone ADD CONSTRAINT without batch).
     with op.batch_alter_table("datasets") as batch_op:
         batch_op.add_column(sa.Column("content_hash", sa.String(length=64), nullable=True))
-    op.create_index(
-        op.f("ix_datasets_content_hash"),
-        "datasets",
-        ["content_hash"],
-        unique=False,
-    )
-    op.create_unique_constraint(
-        "uq_datasets_user_content_hash",
-        "datasets",
-        ["user_id", "content_hash"],
-    )
+        batch_op.create_index(op.f("ix_datasets_content_hash"), ["content_hash"], unique=False)
+        batch_op.create_unique_constraint(
+            "uq_datasets_user_content_hash",
+            ["user_id", "content_hash"],
+        )
 
     with op.batch_alter_table("analyses") as batch_op:
         batch_op.add_column(sa.Column("pipeline_version", sa.String(length=32), nullable=True))
@@ -54,7 +49,7 @@ def downgrade() -> None:
         batch_op.drop_column("encoder_version")
         batch_op.drop_column("pipeline_version")
 
-    op.drop_constraint("uq_datasets_user_content_hash", "datasets", type_="unique")
-    op.drop_index(op.f("ix_datasets_content_hash"), table_name="datasets")
     with op.batch_alter_table("datasets") as batch_op:
+        batch_op.drop_constraint("uq_datasets_user_content_hash", type_="unique")
+        batch_op.drop_index(op.f("ix_datasets_content_hash"))
         batch_op.drop_column("content_hash")

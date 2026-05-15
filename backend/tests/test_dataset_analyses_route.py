@@ -8,23 +8,21 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
-from app.db import Base, get_db
+from app.db import get_db
 from app.deps import get_current_user
 from app.main import app
 from app.models import Analysis, Dataset, User
+from tests.migration_utils import alembic_upgrade_head
 
 
 @pytest.fixture
-def client_and_db():
-    engine = create_engine(
-        "sqlite://",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
+def client_and_db(tmp_path):
+    db_file = tmp_path / "dataset_analyses_route.db"
+    url = f"sqlite:///{db_file.as_posix()}"
+    alembic_upgrade_head(url)
+    engine = create_engine(url, connect_args={"check_same_thread": False})
     TestSession = sessionmaker(bind=engine, autocommit=False, autoflush=False)
-    Base.metadata.create_all(bind=engine)
 
     db = TestSession()
     user = User(email="a@example.com", password_hash="x")
@@ -50,7 +48,7 @@ def client_and_db():
     finally:
         db.close()
         app.dependency_overrides.clear()
-        Base.metadata.drop_all(bind=engine)
+        engine.dispose()
 
 
 def _make_dataset(db, user_id: int, name: str) -> Dataset:

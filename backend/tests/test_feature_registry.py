@@ -11,14 +11,7 @@ import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
 
-from app.infrastructure.db import Base, engine
 from app.main import app
-
-
-@pytest.fixture(scope="module", autouse=True)
-def _create_tables():
-    Base.metadata.create_all(bind=engine)
-    yield
 
 
 def _register_and_login(client: TestClient) -> str:
