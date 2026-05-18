@@ -1,3 +1,16 @@
+/**
+ * Semantic KPI tones map numeric thresholds to consistent UI meaning across KPI cards and charts.
+ *
+ * | Tone    | Meaning                                        |
+ * |---------|------------------------------------------------|
+ * | emerald | Favorable / below risk threshold               |
+ * | amber   | Elevated / monitor                             |
+ * | risk    | Critical / above danger threshold              |
+ * | brand   | Neutral analytic emphasis (e.g. regression)   |
+ * | default | No verdict / insufficient data                  |
+ *
+ * Thresholds align with backend `report.ui_thresholds` defaults where applicable.
+ */
 export type MetricTone = 'default' | 'amber' | 'emerald' | 'brand' | 'risk'
 
 /** Threshold semantics aligned with `report.ui_thresholds` defaults. */

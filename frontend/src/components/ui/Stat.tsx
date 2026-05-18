@@ -28,12 +28,17 @@ const toneAccent: Record<Tone, string> = {
 }
 
 export function Stat({ label, value, hint, delta, tone = 'default', className = '' }: Props) {
+  const ringClass = tone === 'default' ? 'ring-0' : `ring-1 ${toneRing[tone]}`
   return (
     <div
-      className={`relative overflow-hidden rounded-xl border border-[var(--border-1)] bg-[var(--surface-1)] p-5 ring-1 ${toneRing[tone]} before:absolute before:left-0 before:top-0 before:h-full before:w-1 ${toneAccent[tone]} ${className}`.trim()}
+      className={`relative overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-[var(--card-gap)] ${ringClass} before:absolute before:left-0 before:top-0 before:h-full before:w-1 ${toneAccent[tone]} ${className}`.trim()}
     >
-      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[var(--text-3)]">{label}</p>
-      <p className="mt-3 text-3xl font-black tracking-tight tabular-nums text-[var(--text-1)]">{value}</p>
+      <p className="text-[length:var(--font-label-xs)] font-black uppercase tracking-[0.18em] leading-none text-[var(--text-3)]">
+        {label}
+      </p>
+      <p className="mt-3 text-[length:var(--font-kpi-xl)] font-black leading-none tracking-tight tabular-nums text-[var(--text-1)]">
+        {value}
+      </p>
       {(hint || delta) && (
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
           {hint && <span className="text-[var(--text-2)]">{hint}</span>}

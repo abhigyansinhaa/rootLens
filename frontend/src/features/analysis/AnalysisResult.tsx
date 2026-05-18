@@ -18,9 +18,11 @@ import {
   ConcentrationCallout,
   CounterfactualCallout,
   DriverImpactCard,
+  GovernancePanel,
   KpiCard,
   ReliabilityBadge,
   RiskSegmentsChart,
+  StickyExecutiveStrip,
 } from '../../components/kpi'
 import {
   concentrationShareTone,
@@ -42,6 +44,28 @@ import {
   StatusBadge,
 } from '../../components/ui'
 import type { Analysis, Dataset, KpiHistoryResponse } from '../../types'
+
+type ViewPreset = 'executive' | 'analyst' | 'ops' | 'ds'
+
+function presetShowsTrendChart(p: ViewPreset) {
+  return p !== 'executive'
+}
+
+function presetShowsHeatmap(p: ViewPreset) {
+  return p === 'analyst' || p === 'ds'
+}
+
+function presetShowsModelMetadata(p: ViewPreset) {
+  return p === 'analyst' || p === 'ds'
+}
+
+function presetShowsFeatureImportanceChart(p: ViewPreset) {
+  return p === 'analyst' || p === 'ds'
+}
+
+function presetShowsShapPlots(p: ViewPreset) {
+  return p === 'analyst' || p === 'ds'
+}
 
 const TERMINAL_OK_STATUSES = new Set(['completed', 'completed_with_warnings'])
 const IN_FLIGHT_STATUSES = new Set([
@@ -200,7 +224,6 @@ export function AnalysisResult() {
     enabled: Number.isFinite(analysisId) && !!heatmapColumn && !!data && isTerminalOk(data.status),
   })
 
-  type ViewPreset = 'executive' | 'analyst' | 'ops' | 'ds'
   const [viewPreset, setViewPreset] = useState<ViewPreset>(() => {
     try {
       const v = sessionStorage.getItem('rca-view-preset')
@@ -257,6 +280,12 @@ export function AnalysisResult() {
       ['reliability', 'tier', k.reliability.tier],
       ['reliability', 'headline_metric', k.reliability.headline_metric],
       ['intervention', 'tier', k.intervention_confidence?.tier ?? ''],
+      ['meta', 'pipeline_version', data.pipeline_version ?? ''],
+      ['meta', 'analysis_created_at', data.created_at],
+      ['drivers', 'top1', k.drivers[0]?.feature ?? ''],
+      ['drivers', 'top1_share', String(k.drivers[0]?.share ?? '')],
+      ['drivers', 'top2', k.drivers[1]?.feature ?? ''],
+      ['drivers', 'top3', k.drivers[2]?.feature ?? ''],
     ]
     const esc = (s: string) => `"${s.replace(/"/g, '""')}"`
     const body = rows.map((r) => r.map((c) => esc(String(c))).join(',')).join('\n')
@@ -301,10 +330,10 @@ export function AnalysisResult() {
   const revenueReady = !!(kpis?.impact_revenue && data.value_column)
 
   return (
-    <div className="space-y-10">
+    <div data-analysis-result className="analysis-result-page space-y-[var(--stack-gap)]">
       <div>
         <Link
-          className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-[0.18em] text-brand-600 hover:underline dark:text-brand-300"
+          className="print:hidden inline-flex items-center gap-1 text-xs font-bold uppercase tracking-[0.18em] text-brand-600 hover:underline dark:text-brand-300"
           to={`/datasets/${data.dataset_id}`}
         >
           <span aria-hidden>←</span> Back to dataset dashboard
@@ -354,16 +383,24 @@ export function AnalysisResult() {
             actions={
               <>
                 <select
-                  className="rounded-lg border border-[var(--border-1)] bg-[var(--surface-2)] px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[var(--text-1)]"
+                  className="print:hidden rounded-lg border border-[var(--border-1)] bg-[var(--surface-2)] px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[var(--text-1)]"
                   value={viewPreset}
                   onChange={(e) => setPreset(e.target.value as ViewPreset)}
                   aria-label="Dashboard preset"
                 >
-                  <option value="executive">Executive view</option>
-                  <option value="analyst">Analyst view</option>
-                  <option value="ops">Operations view</option>
-                  <option value="ds">Data science view</option>
+                  <option value="executive">Executive — summary KPIs & narrative</option>
+                  <option value="analyst">Analyst — balanced evidence</option>
+                  <option value="ops">Operations — KPIs & drivers (lighter plots)</option>
+                  <option value="ds">Data science — full diagnostics</option>
                 </select>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="print:hidden"
+                  to={`/datasets/${data.dataset_id}`}
+                >
+                  Compare runs
+                </Button>
                 <Button
                   variant="secondary"
                   size="sm"
@@ -435,31 +472,14 @@ export function AnalysisResult() {
 
       {finalOk && kpis && (
         <>
-          <div className="sticky top-0 z-30 border-b border-[var(--border-1)] bg-[var(--surface-1)]/95 py-3 backdrop-blur-md print:hidden">
-              <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold text-[var(--text-1)]">
-                <span className="rounded-full bg-[var(--surface-2)] px-2 py-1">
-                  KPI:{' '}
-                  <span className="tabular-nums">{metricValue(data, kpis)}</span>
-                </span>
-                <span className="rounded-full bg-[var(--surface-2)] px-2 py-1">
-                  Pareto: top {(kpis.concentration.headline.top_pct_users * 100).toFixed(0)}% →{' '}
-                  {formatPct01(kpis.concentration.headline.share_of_risk)} risk
-                </span>
-                <span className="rounded-full bg-[var(--surface-2)] px-2 py-1">
-                  Lead driver: {kpis.drivers[0]?.feature ?? '—'}
-                </span>
-                <span className="rounded-full bg-[var(--surface-2)] px-2 py-1">
-                  Model: {kpis.reliability.tier} · Intervention: {kpis.intervention_confidence?.tier ?? '—'}
-                </span>
-              </div>
-          </div>
+          <StickyExecutiveStrip detail={data} kpis={kpis} history={history} />
           <section className="space-y-4 print:break-inside-avoid">
             <SectionHeader
               eyebrow="1. Business impact"
               title="Top-line signals"
               description="Target behavior, high-risk exposure, monetized impact, and confidence before diving into model artifacts."
             />
-            {trendChart.length >= 2 && viewPreset !== 'executive' ? (
+            {trendChart.length >= 2 && presetShowsTrendChart(viewPreset) ? (
               <Card padding="md" tone="strong">
                 <CardEyebrow>Historical KPI trend (prior runs same dataset + target)</CardEyebrow>
                 <div className="mt-2 h-36 w-full">
@@ -651,10 +671,15 @@ export function AnalysisResult() {
               <RiskSegmentsChart kpis={kpis} hasValue={revenueReady} />
               <ReliabilityBadge kpis={kpis} />
             </div>
-            <DriverImpactCard kpis={kpis} directionByFeature={directionByFeature} />
+            <DriverImpactCard
+              kpis={kpis}
+              directionByFeature={directionByFeature}
+              roiAssumptions={data.report?.trust_copy?.roi_assumptions}
+            />
+            <GovernancePanel governance={data.report?.governance} />
           </section>
 
-          {datasetMeta && viewPreset !== 'executive' ? (
+          {datasetMeta && presetShowsHeatmap(viewPreset) ? (
             <section className="space-y-4">
               <SectionHeader
                 eyebrow="Risk heatmap"
@@ -706,7 +731,7 @@ export function AnalysisResult() {
         </>
       )}
 
-      {finalOk && data.model_metadata && Object.keys(data.model_metadata).length > 0 && viewPreset !== 'executive' && (
+      {finalOk && data.model_metadata && Object.keys(data.model_metadata).length > 0 && presetShowsModelMetadata(viewPreset) && (
         <section className="space-y-4">
           <SectionHeader
             eyebrow="Training"
@@ -721,7 +746,7 @@ export function AnalysisResult() {
         </section>
       )}
 
-      {finalOk && data.metrics && viewPreset !== 'executive' && (
+      {finalOk && data.metrics && presetShowsTrendChart(viewPreset) && (
         <section className="space-y-4">
           <SectionHeader
             eyebrow="Confidence"
@@ -791,7 +816,7 @@ export function AnalysisResult() {
         </section>
       )}
 
-      {finalOk && chartData.length > 0 && viewPreset !== 'executive' && (
+      {finalOk && chartData.length > 0 && presetShowsFeatureImportanceChart(viewPreset) && (
         <section className="space-y-4">
           <SectionHeader
             eyebrow="Drivers"
@@ -834,7 +859,7 @@ export function AnalysisResult() {
         </section>
       )}
 
-      {finalOk && data.shap_summary_image_url && viewPreset !== 'executive' && (
+      {finalOk && data.shap_summary_image_url && presetShowsShapPlots(viewPreset) && (
         <section className="space-y-4">
           <SectionHeader
             eyebrow="Evidence"
@@ -853,7 +878,8 @@ export function AnalysisResult() {
               key={`shap-${data.id}-${data.shap_summary_image_url}`}
               apiPath={data.shap_summary_image_url}
               alt="SHAP summary"
-              className="max-w-full rounded-xl border border-[var(--border-1)] bg-[var(--surface-1)]"
+              lazy
+              className="max-w-full rounded-xl border border-[var(--border-soft)] bg-[var(--surface-1)]"
             />
           </Card>
           {data.shap_beeswarm_image_url ? (
@@ -863,7 +889,8 @@ export function AnalysisResult() {
                 key={`shap-bw-${data.id}-${data.shap_beeswarm_image_url}`}
                 apiPath={data.shap_beeswarm_image_url}
                 alt="SHAP beeswarm"
-                className="max-w-full rounded-xl border border-[var(--border-1)] bg-[var(--surface-1)]"
+                lazy
+                className="max-w-full rounded-xl border border-[var(--border-soft)] bg-[var(--surface-1)]"
               />
             </Card>
           ) : null}

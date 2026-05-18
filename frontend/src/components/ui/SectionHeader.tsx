@@ -16,11 +16,13 @@ export function SectionHeader({ eyebrow, title, description, actions }: Props) {
             {eyebrow}
           </p>
         )}
-        <h2 className="mt-1 text-lg font-black tracking-tight text-[var(--text-1)] sm:text-xl">
+        <h2 className="mt-1 text-[length:var(--font-section-lg)] font-black leading-tight tracking-tight text-[var(--text-1)]">
           {title}
         </h2>
         {description && (
-          <div className="mt-2 max-w-3xl text-sm leading-6 text-[var(--text-2)]">{description}</div>
+          <div className="mt-2 max-w-3xl text-[length:var(--font-body-md)] leading-6 text-[var(--text-2)]">
+            {description}
+          </div>
         )}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
