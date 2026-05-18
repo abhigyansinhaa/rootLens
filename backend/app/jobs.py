@@ -149,6 +149,7 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
             task_type=result.task_type,
             y_test=result.y_test,
             X_test_raw=result.X_test_df,
+            label_encoder=result.label_encoder,
         )
 
         fallback_notes = list(training_fallback_notes) + list(explanation_fallback_notes)
@@ -163,6 +164,7 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
             if "cv_r2_std" in result.cv_metrics and result.cv_metrics["cv_r2_std"] > 0.2:
                 stability_note = "Cross-validation R² varies across folds; drivers may be less stable."
 
+        raw_cols = [str(c.get("name")) for c in column_meta if c.get("name")]
         insights = build_insights(
             df,
             analysis.target,
@@ -171,6 +173,7 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
             column_meta,
             confidence=result.confidence,
             explanation_stability=stability_note,
+            raw_columns=raw_cols,
         )
         recs = build_recommendations(
             result.task_type,
@@ -188,7 +191,7 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
                 *recs,
             ]
 
-        grouped = aggregate_shap_by_column(shap_rows, top_k=12)
+        grouped = aggregate_shap_by_column(shap_rows, top_k=12, raw_columns=raw_cols)
 
         user_message = user_msg.combined_user_message(fallback_notes)
 

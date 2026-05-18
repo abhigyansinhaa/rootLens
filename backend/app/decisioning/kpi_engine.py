@@ -32,7 +32,7 @@ from app.decisioning.kpis.monetization import (
 )
 from app.decisioning.kpis.reliability import reliability_block
 from app.decisioning.kpis.segment_value import build_risk_segments
-from app.pipelines.common import TaskType
+from app.pipelines.common import TaskType, positive_class_index_for_model
 from app.pipelines.explain import MAX_SHAP_SAMPLES
 
 logger = logging.getLogger(__name__)
@@ -144,11 +144,7 @@ def _compute_kpis_impl(
     approx = "shap_zeroing"
     driver_ordered = sorted(shap_rows, key=lambda r: float(r["mean_abs_shap"]), reverse=True)
 
-    positive_class_idx = 1
-    if task_type == "classification" and label_encoder is not None and len(label_encoder.classes_) >= 2:
-        classes_list = list(label_encoder.classes_)
-        pos_guess = [i for i, c in enumerate(classes_list) if str(c).lower() in {"1", "true", "yes", "churn"}]
-        positive_class_idx = pos_guess[0] if pos_guess else min(1, len(classes_list) - 1)
+    positive_class_idx = positive_class_index_for_model(task_type, label_encoder)
 
     has_value_col = bool(value_column and value_column in df_work.columns)
     value_arr = (
