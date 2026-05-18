@@ -21,9 +21,52 @@ def _base_column_name(feature: str) -> str:
     return feature
 
 
+def _longest_prefix_column(fname: str, raw_cols: list[str]) -> tuple[str | None, str | None]:
+    """Map sklearn-style dummy ``Contract_Month-to-month`` → base ``Contract``, level ``Month-to-month``."""
+    best: str | None = None
+    best_len = -1
+    for col in raw_cols:
+        cs = str(col)
+        if fname == cs:
+            return cs, None
+        pref = f"{cs}_"
+        if fname.startswith(pref) and len(cs) > best_len:
+            best = cs
+            best_len = len(cs)
+    if best is None:
+        return None, None
+    rest = fname[len(best) + 1 :]
+    return best, rest or None
+
+
+def _group_key_for_feature(fname: str, raw_cols: list[str] | None) -> str:
+    if raw_cols:
+        base, _lvl = _longest_prefix_column(fname, raw_cols)
+        if base is not None:
+            return base
+    return _base_column_name(fname)
+
+
+def _subject_clause_for_driver(fname: str, stem: str, df: pd.DataFrame, raw_cols: list[str] | None) -> str:
+    """Human-readable subject for narratives (avoids \"higher OnlineSecurity\" on ``OnlineSecurity_No`` dummies)."""
+    cols = raw_cols or []
+    base, level = _longest_prefix_column(fname, cols) if cols else (None, None)
+    if (
+        base is not None
+        and level is not None
+        and base in df.columns
+        and not pd.api.types.is_numeric_dtype(df[base])
+    ):
+        return f"customers where '{base}' is '{level}'"
+    if stem in df.columns and pd.api.types.is_numeric_dtype(df[stem]):
+        return f"customers with higher '{stem}'"
+    return f"customers with higher activation on encoded feature '{fname}'"
+
+
 def aggregate_shap_by_column(
     shap_rows: list[dict[str, Any]],
     top_k: int = 10,
+    raw_columns: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     """Sum mean_abs_shap for dummy columns sharing the same stem (e.g. cat prefix)."""
     from collections import defaultdict
@@ -32,7 +75,7 @@ def aggregate_shap_by_column(
     agg_signed: dict[str, float] = defaultdict(float)
     for r in shap_rows:
         name = r["feature"]
-        stem = _base_column_name(name)
+        stem = _group_key_for_feature(name, raw_columns)
         agg_abs[stem] += r["mean_abs_shap"]
         agg_signed[stem] += r["mean_signed_shap"]
 
@@ -86,11 +129,12 @@ def _narrative_frame(
     null_note: str | None,
     stability_note: str | None,
     frame_idx: int,
+    subject_clause: str,
 ) -> str:
     conf_adj = {"high": "High-confidence", "medium": "Moderate", "low": "Tentative"}[confidence]
     dir_phrase = "pushes predictions toward higher risk" if direction == "increases" else "is associated with lower risk in the model"
     behavioral = (
-        f"{conf_adj} pattern: customers with higher '{stem}' scores {dir_phrase} for '{target}'. "
+        f"{conf_adj} pattern: {subject_clause} {dir_phrase} for '{target}'. "
         f"This reads as a behavioral segmentation signal — validate with retention cohort reviews."
     )
     operational = (
@@ -123,18 +167,20 @@ def build_insights(
     top_n: int = 8,
     confidence: ConfidenceLevel = "medium",
     explanation_stability: str | None = None,
+    raw_columns: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     """Correlation / SHAP-based insight strings with confidence + severity + follow-ups."""
     meta_by_name = {m["name"]: m for m in column_meta}
     ranked = sorted(shap_rows, key=lambda r: -r["mean_abs_shap"])[:top_n]
     insights: list[dict[str, Any]] = []
 
-    y = df[target]
+    rc = raw_columns if raw_columns is not None else [str(m["name"]) for m in column_meta if m.get("name")]
     for idx, r in enumerate(ranked):
         fname = r["feature"]
-        stem = _base_column_name(fname)
+        stem = _group_key_for_feature(fname, rc)
         direction = r["direction"]
         strength = r["mean_abs_shap"]
+        subject_clause = _subject_clause_for_driver(fname, stem, df, rc)
 
         corr_txt: str | None = None
         if stem in df.columns and pd.api.types.is_numeric_dtype(df[stem]):
@@ -167,6 +213,7 @@ def build_insights(
             null_note,
             stability_note,
             idx,
+            subject_clause,
         )
 
         severity = _severity_for_row(strength, null_ratio, confidence)

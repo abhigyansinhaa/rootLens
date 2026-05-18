@@ -28,7 +28,7 @@ from sklearn.pipeline import Pipeline as SkPipeline
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 from xgboost import XGBClassifier, XGBRegressor
 
-from app.pipelines.common import TaskType, detect_task_type
+from app.pipelines.common import TaskType, detect_task_type, positive_class_index_for_model
 from app.pipelines.encoders import HIGH_CARD_MAX, HIGH_CARD_MIN, FrequencyEncoder, OOFTargetEncoder
 
 ModelKind = Literal["xgboost", "random_forest", "logistic_regression", "elastic_net"]
@@ -467,7 +467,8 @@ def train_model(
         n_classes_t = len(np.unique(y_train))
         if n_classes_t == 2:
             try:
-                proba = full_pipe.named_steps["model"].predict_proba(X_test_t)[:, 1]
+                pc_idx = positive_class_index_for_model(task, le)
+                proba = full_pipe.named_steps["model"].predict_proba(X_test_t)[:, pc_idx]
                 metrics["roc_auc"] = float(roc_auc_score(y_test, proba))
                 metrics["brier_score_loss"] = float(brier_score_loss(y_test, proba))
                 prob_true, prob_pred = calibration_curve(
@@ -483,7 +484,7 @@ def train_model(
                 try:
                     log_baseline = LogisticRegression(max_iter=400, random_state=random_state)
                     log_baseline.fit(X_train_t, y_train)
-                    proba_lb = log_baseline.predict_proba(X_test_t)[:, 1]
+                    proba_lb = log_baseline.predict_proba(X_test_t)[:, pc_idx]
                     metrics["logistic_baseline_roc_auc"] = float(roc_auc_score(y_test, proba_lb))
                 except Exception:
                     pass

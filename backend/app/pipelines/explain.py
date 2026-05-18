@@ -19,7 +19,7 @@ from sklearn.linear_model import ElasticNet, LogisticRegression
 from sklearn.pipeline import Pipeline as SkPipeline
 from xgboost import XGBClassifier, XGBRegressor
 
-from app.pipelines.common import TaskType
+from app.pipelines.common import TaskType, positive_class_index_for_model
 
 # Adaptive SHAP sampling. We keep the legacy `MAX_SHAP_SAMPLES` constant for
 # back-compat with `app.ml.kpis`, but explanation code routes through
@@ -104,6 +104,7 @@ def compute_explanations_with_fallback(
     task_type: TaskType,
     y_test: np.ndarray | None = None,
     X_test_raw: pd.DataFrame | None = None,
+    label_encoder: Any | None = None,
 ) -> tuple[list[dict[str, Any]], str | None, list[str]]:
     """
     Like compute_explanations, but never raises: falls back to model importances and optional empty plot.
@@ -124,6 +125,7 @@ def compute_explanations_with_fallback(
             task_type,
             y_test=y_test,
             X_test_raw=X_test_raw,
+            label_encoder=label_encoder,
         )
         if plot_err:
             notes.append(user_msg.GOODWILL_PLOT_SKIPPED)
@@ -195,24 +197,36 @@ def _squeeze_to_n_features(
 def _tree_explainer_shap(
     model: Any,
     X_sample: np.ndarray,
+    task_type: TaskType,
+    label_encoder: Any | None,
 ) -> tuple[np.ndarray, np.ndarray]:
     explainer = shap.TreeExplainer(model)
     sv = explainer.shap_values(X_sample)
+    pci = positive_class_index_for_model(task_type, label_encoder)
     if isinstance(sv, list):
-        abs_stack = np.stack([np.abs(s) for s in sv], axis=0)
-        mean_abs = abs_stack.mean(axis=(0, 1))
-        signed_stack = np.stack(sv, axis=0)
-        mean_signed = signed_stack.mean(axis=(0, 1))
+        idx = int(min(max(pci, 0), len(sv) - 1))
+        sel = np.asarray(sv[idx], dtype=float)
+        mean_abs = np.abs(sel).mean(axis=0)
+        mean_signed = sel.mean(axis=0)
     else:
         sv_arr = np.asarray(sv)
         n_f = X_sample.shape[1]
         if sv_arr.ndim == 3:
             if sv_arr.shape[1] == n_f:
-                mean_abs = np.abs(sv_arr).mean(axis=(0, 2))
-                mean_signed = sv_arr.mean(axis=(0, 2))
+                # (samples, features, classes)
+                c_axis = 2
+                n_cls = sv_arr.shape[c_axis]
+                c_i = int(min(max(pci, 0), n_cls - 1))
+                slab = sv_arr[:, :, c_i]
+                mean_abs = np.abs(slab).mean(axis=0)
+                mean_signed = slab.mean(axis=0)
             elif sv_arr.shape[2] == n_f:
-                mean_abs = np.abs(sv_arr).mean(axis=(0, 1))
-                mean_signed = sv_arr.mean(axis=(0, 1))
+                # (samples, classes, features)
+                n_cls = sv_arr.shape[1]
+                c_i = int(min(max(pci, 0), n_cls - 1))
+                slab = sv_arr[:, c_i, :]
+                mean_abs = np.abs(slab).mean(axis=0)
+                mean_signed = slab.mean(axis=0)
             else:
                 flat_abs = np.abs(sv_arr).mean(axis=0).ravel()
                 flat_s = sv_arr.mean(axis=0).ravel()
@@ -253,6 +267,7 @@ def compute_explanations(
     task_type: TaskType,
     y_test: np.ndarray | None = None,
     X_test_raw: pd.DataFrame | None = None,
+    label_encoder: Any | None = None,
 ) -> tuple[list[dict[str, Any]], str | None]:
     """
     Build per-feature explanation rows. Uses SHAP for tree models; coef / permutation for linear.
@@ -276,7 +291,7 @@ def compute_explanations(
     imp: np.ndarray | None = getattr(model, "feature_importances_", None)
 
     if isinstance(model, (XGBClassifier, XGBRegressor, RandomForestClassifier, RandomForestRegressor)):
-        mean_abs, mean_signed = _tree_explainer_shap(model, X_s)
+        mean_abs, mean_signed = _tree_explainer_shap(model, X_s, task_type, label_encoder)
         if imp is None or len(imp) != len(feature_names):
             imp = np.ones(len(feature_names)) / max(len(feature_names), 1)
     elif isinstance(model, (LogisticRegression, ElasticNet)):
@@ -340,6 +355,8 @@ def compute_explanations(
             feature_names=feature_names,
             rows=rows,
             png_path=png_path,
+            task_type=task_type,
+            label_encoder=label_encoder,
         )
     except Exception as e:
         plot_err = str(e)
@@ -377,6 +394,8 @@ def _render_shap_summary_png(
     feature_names: list[str],
     rows: list[dict[str, Any]],
     png_path: Path,
+    task_type: TaskType,
+    label_encoder: Any | None,
 ) -> None:
     """Render the per-feature SHAP summary, multiclass-safe.
 
@@ -404,7 +423,12 @@ def _render_shap_summary_png(
     explainer = shap.TreeExplainer(model)
     sv = explainer.shap_values(X_plot)
 
-    sv_for_plot, multiclass = _aggregate_shap_for_plot(sv, n_features=len(feature_names))
+    sv_for_plot, multiclass = _aggregate_shap_for_plot(
+        sv,
+        n_features=len(feature_names),
+        task_type=task_type,
+        label_encoder=label_encoder,
+    )
 
     if multiclass:
         # Use the aggregated mean |SHAP| as a 1D bar summary; values are stable
@@ -453,6 +477,8 @@ def _aggregate_shap_for_plot(
     sv: Any,
     *,
     n_features: int,
+    task_type: TaskType,
+    label_encoder: Any | None,
 ) -> tuple[np.ndarray, bool]:
     """Return (array_for_plot, is_multiclass).
 
@@ -460,6 +486,13 @@ def _aggregate_shap_for_plot(
     - Multiclass: mean |SHAP| of shape (n_features,), ``is_multiclass=True``.
     """
     if isinstance(sv, list):
+        if task_type == "classification" and len(sv) >= 2:
+            pci = int(min(max(positive_class_index_for_model(task_type, label_encoder), 0), len(sv) - 1))
+            arr = np.asarray(sv[pci], dtype=float)
+            if arr.ndim == 2 and arr.shape[1] == n_features:
+                return arr, False
+            if arr.ndim == 2 and arr.shape[0] == n_features:
+                return arr.T, False
         abs_stack = np.stack([np.abs(np.asarray(s, dtype=float)) for s in sv], axis=0)
         mean_abs = abs_stack.mean(axis=(0, 1))
         if mean_abs.shape[0] != n_features:
@@ -468,12 +501,26 @@ def _aggregate_shap_for_plot(
 
     arr = np.asarray(sv, dtype=float)
     if arr.ndim == 3:
+        pci = positive_class_index_for_model(task_type, label_encoder)
         if arr.shape[1] == n_features:
+            n_cls = arr.shape[2]
+            c_i = int(min(max(pci, 0), n_cls - 1))
+            sel = arr[:, :, c_i]
+            if n_cls <= 2:
+                return sel, False
             mean_abs = np.abs(arr).mean(axis=(0, 2))
         elif arr.shape[2] == n_features:
+            n_cls = arr.shape[1]
+            c_i = int(min(max(pci, 0), n_cls - 1))
+            sel = arr[:, c_i, :]
+            if n_cls <= 2:
+                return sel, False
             mean_abs = np.abs(arr).mean(axis=(0, 1))
         else:
             mean_abs = np.resize(np.abs(arr).mean(axis=0).ravel(), n_features)
+            return mean_abs, True
+        if mean_abs.shape[0] != n_features:
+            mean_abs = np.resize(mean_abs, n_features)
         return mean_abs, True
 
     if arr.ndim == 2 and arr.shape[1] == n_features:
