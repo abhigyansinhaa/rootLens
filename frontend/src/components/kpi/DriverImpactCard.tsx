@@ -27,9 +27,11 @@ function stabilityShort(signals: Record<string, unknown> | undefined): string {
 export function DriverImpactCard({
   kpis,
   directionByFeature,
+  roiAssumptions,
 }: {
   kpis: AnalysisKpis
   directionByFeature?: Record<string, string>
+  roiAssumptions?: string
 }) {
   const rows: Row[] = useMemo(() => {
     const byFeat = Object.fromEntries((kpis.drivers ?? []).map((d) => [d.feature, d.share]))
@@ -52,6 +54,10 @@ export function DriverImpactCard({
     })
     return copy
   }, [rows, sortBy])
+
+  const MAX_ROWS = 30
+  const [showAllDrivers, setShowAllDrivers] = useState(false)
+  const displayed = showAllDrivers ? sorted : sorted.slice(0, MAX_ROWS)
 
   if (!sorted.length) {
     return null
@@ -106,7 +112,7 @@ export function DriverImpactCard({
             </tr>
           </THead>
           <TBody>
-            {sorted.map((r) => {
+            {displayed.map((r) => {
               const stem = r.feature.includes('_') ? r.feature.split('_')[0] : r.feature
               const direction =
                 directionByFeature?.[r.feature] ?? directionByFeature?.[stem] ?? directionByFeature?.[r.feature]
@@ -173,6 +179,25 @@ export function DriverImpactCard({
           </TBody>
         </DataTable>
       </div>
+      {sorted.length > MAX_ROWS ? (
+        <div className="mt-3 flex justify-center print:hidden">
+          <button
+            type="button"
+            className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-[var(--text-2)] hover:bg-[var(--surface-3)]"
+            onClick={() => setShowAllDrivers((v) => !v)}
+          >
+            {showAllDrivers ? 'Show top drivers only' : `Show all ${sorted.length} drivers`}
+          </button>
+        </div>
+      ) : null}
+      {roiAssumptions ? (
+        <div className="mt-4 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-2)]/40 p-4">
+          <p className="text-[length:var(--font-label-xs)] font-black uppercase tracking-[0.14em] text-[var(--text-3)]">
+            ROI assumptions
+          </p>
+          <p className="mt-2 text-[length:var(--font-body-md)] leading-relaxed text-[var(--text-2)]">{roiAssumptions}</p>
+        </div>
+      ) : null}
       <p className="mt-4 text-[11px] text-[var(--text-3)]">
         Scenario mode:{' '}
         <span className="font-bold uppercase tracking-wider text-[var(--text-2)]">

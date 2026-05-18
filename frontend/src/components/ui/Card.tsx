@@ -33,11 +33,11 @@ export function Card({
   const shadow = elevated ? 'shadow-[var(--shadow-elevated)]' : 'shadow-[var(--shadow-soft)]'
   const tones: Record<NonNullable<Props['tone']>, string> = {
     default:
-      'border-[var(--border-1)] bg-[var(--surface-1)] backdrop-blur-xl',
+      'border-[var(--border-subtle)] bg-[var(--surface-1)] backdrop-blur-xl',
     strong:
-      'border-[var(--border-1)] bg-[var(--surface-2)] backdrop-blur-xl',
+      'border-[var(--border-subtle)] bg-[var(--surface-2)] backdrop-blur-xl',
     flat:
-      'border-[var(--border-1)] bg-[var(--surface-3)]',
+      'border-[var(--border-soft)] bg-[var(--surface-3)]',
     risk:
       'border-red-200/70 bg-red-50/80 dark:border-red-900/50 dark:bg-red-950/30',
     warning:
@@ -74,7 +74,7 @@ export function CardDescription({ children, className = '' }: { children: ReactN
 export function CardEyebrow({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
     <p
-      className={`text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-3)] ${className}`.trim()}
+      className={`text-[length:var(--font-label-xs)] font-black uppercase tracking-[0.2em] text-[var(--text-3)] ${className}`.trim()}
     >
       {children}
     </p>

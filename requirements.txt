@@ -1,0 +1,16 @@
+# RCA monorepo — Python dependencies
+#
+# Install (from repo root):
+#   pip install -r requirements.txt
+#
+# The FastAPI worker/API stack is pinned in backend/requirements.txt.
+# Additional packages below are used by repo-root scripts (docs PDF, e2e stress test).
+#
+# Frontend dependencies are separate: see frontend/package.json (npm).
+
+-r backend/requirements.txt
+
+# --- Optional tooling (scripts/) ---
+markdown==3.7
+xhtml2pdf==0.2.16
+requests==2.32.3

@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 
@@ -25,10 +26,26 @@ const ActiveIndicator = ({ isActive }: { isActive: boolean }) =>
 
 export function Layout() {
   const { user, logout } = useAuth()
+  const headerRef = useRef<HTMLElement>(null)
+
+  useLayoutEffect(() => {
+    const el = headerRef.current
+    if (!el) return
+    const sync = () => {
+      document.documentElement.style.setProperty('--app-header-height', `${el.offsetHeight}px`)
+    }
+    sync()
+    const ro = new ResizeObserver(sync)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [user])
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 border-b border-[var(--border-1)] bg-[var(--app-bg)]/80 backdrop-blur-xl">
+      <header
+        ref={headerRef}
+        className="sticky top-0 z-50 border-b border-[var(--border-subtle)] bg-[var(--app-bg)]/80 backdrop-blur-xl"
+      >
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:gap-4 lg:px-6">
           <div className="flex min-w-0 flex-1 items-center gap-6">
             <Link

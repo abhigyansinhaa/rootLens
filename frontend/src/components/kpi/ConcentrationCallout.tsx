@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
 import {
-  ResponsiveContainer,
   Area,
   AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
+  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -14,12 +16,12 @@ import { formatCompactMoney, formatPct01 } from './format'
 
 export function ConcentrationCallout({ kpis }: { kpis: AnalysisKpis }) {
   const h = kpis.concentration.headline
-  const pts = kpis.concentration.lorenz_points ?? []
   const interpretation = kpis.concentration.interpretation
-  const paretoCuts = kpis.concentration.pareto_cuts ?? []
 
   const cutOptions = useMemo(() => {
+    const paretoCuts = kpis.concentration.pareto_cuts ?? []
     if (paretoCuts.length) return paretoCuts
+    const pts = kpis.concentration.lorenz_points ?? []
     return pts.map((p) => ({
       top_pct: p.x,
       share_of_risk: p.y,
@@ -29,7 +31,23 @@ export function ConcentrationCallout({ kpis }: { kpis: AnalysisKpis }) {
           ? kpis.impact_revenue.revenue_at_risk * p.y
           : null,
     }))
-  }, [paretoCuts, pts, kpis.target_level.n_users, kpis.impact_revenue])
+  }, [
+    kpis.concentration.pareto_cuts,
+    kpis.concentration.lorenz_points,
+    kpis.target_level.n_users,
+    kpis.impact_revenue,
+  ])
+
+  const pts = kpis.concentration.lorenz_points ?? []
+
+  const paretoBars = useMemo(() => {
+    if (cutOptions.length < 2) return []
+    return cutOptions.map((c) => ({
+      name: `${(c.top_pct * 100).toFixed(0)}%`,
+      share: c.share_of_risk,
+      users: c.approx_users,
+    }))
+  }, [cutOptions])
 
   const [idx, setIdx] = useState(0)
   const selected = cutOptions[Math.min(idx, Math.max(0, cutOptions.length - 1))]
@@ -109,44 +127,80 @@ export function ConcentrationCallout({ kpis }: { kpis: AnalysisKpis }) {
           </div>
         ) : null}
       </div>
-      <div className="h-44 w-full min-w-[220px] max-w-md">
-        {pts.length ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={pts} margin={{ left: -8, right: 8, top: 4, bottom: 4 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" className="opacity-60" />
-              <XAxis
-                dataKey="x"
-                tickFormatter={(v) => `${(Number(v) * 100).toFixed(0)}%`}
-                tick={{ fontSize: 10, fill: 'var(--text-3)' }}
-              />
-              <YAxis
-                domain={[0, 1]}
-                tickFormatter={(v) => `${(Number(v) * 100).toFixed(0)}%`}
-                tick={{ fontSize: 10, fill: 'var(--text-3)' }}
-              />
-              <Tooltip
-                formatter={(value) => [formatPct01(Number(value)), 'Share of risk']}
-                contentStyle={{
-                  backgroundColor: 'var(--surface-2)',
-                  border: '1px solid var(--border-1)',
-                  borderRadius: 12,
-                  fontSize: 12,
-                  color: 'var(--text-1)',
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="y"
-                stroke="var(--chart-primary)"
-                fill="var(--chart-primary)"
-                fillOpacity={0.18}
-                strokeWidth={2.5}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        ) : (
-          <p className="text-sm text-[var(--text-3)]">Not enough variance to plot.</p>
-        )}
+      <div className="flex w-full min-w-[220px] max-w-md flex-col gap-5">
+        <div className="h-44 w-full">
+          {pts.length ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={pts} margin={{ left: -8, right: 8, top: 4, bottom: 4 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" className="opacity-60" />
+                <XAxis
+                  dataKey="x"
+                  tickFormatter={(v) => `${(Number(v) * 100).toFixed(0)}%`}
+                  tick={{ fontSize: 10, fill: 'var(--text-3)' }}
+                />
+                <YAxis
+                  domain={[0, 1]}
+                  tickFormatter={(v) => `${(Number(v) * 100).toFixed(0)}%`}
+                  tick={{ fontSize: 10, fill: 'var(--text-3)' }}
+                />
+                <Tooltip
+                  formatter={(value) => [formatPct01(Number(value)), 'Share of risk']}
+                  contentStyle={{
+                    backgroundColor: 'var(--surface-2)',
+                    border: '1px solid var(--border-1)',
+                    borderRadius: 12,
+                    fontSize: 12,
+                    color: 'var(--text-1)',
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="y"
+                  stroke="var(--chart-primary)"
+                  fill="var(--chart-primary)"
+                  fillOpacity={0.18}
+                  strokeWidth={2.5}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-sm text-[var(--text-3)]">Not enough variance to plot.</p>
+          )}
+        </div>
+        {paretoBars.length >= 2 ? (
+          <div className="h-36 w-full">
+            <p className="mb-1 text-[10px] font-black uppercase tracking-[0.14em] text-[var(--text-3)]">
+              Pareto cuts (share of risk by tail %)
+            </p>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={paretoBars} margin={{ left: -12, right: 8, top: 4, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" className="opacity-60" />
+                <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'var(--text-3)' }} />
+                <YAxis
+                  domain={[0, 1]}
+                  tickFormatter={(v) => `${(Number(v) * 100).toFixed(0)}%`}
+                  tick={{ fontSize: 10, fill: 'var(--text-3)' }}
+                />
+                <Tooltip
+                  formatter={(value, _name, item) => {
+                    const payload = item?.payload as { users?: number } | undefined
+                    const u = payload?.users
+                    const suffix = u != null ? ` (~${u.toLocaleString()} users)` : ''
+                    return [`${formatPct01(Number(value))}${suffix}`, 'Share of risk']
+                  }}
+                  contentStyle={{
+                    backgroundColor: 'var(--surface-2)',
+                    border: '1px solid var(--border-1)',
+                    borderRadius: 12,
+                    fontSize: 12,
+                    color: 'var(--text-1)',
+                  }}
+                />
+                <Bar dataKey="share" fill="var(--chart-primary)" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : null}
       </div>
     </Card>
   )

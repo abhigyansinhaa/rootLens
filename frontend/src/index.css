@@ -25,6 +25,24 @@
 :root {
   color-scheme: light dark;
 
+  /* Shared UI tokens — typography */
+  --font-kpi-xl: 3rem;
+  --font-section-lg: 1.5rem;
+  --font-body-md: 0.875rem;
+  --font-label-xs: 0.75rem;
+
+  /* Shared UI tokens — spacing */
+  --page-gap: 1.25rem;
+  --card-gap: 1rem;
+  --stack-gap: 2rem;
+
+  /* Border emphasis (maps to surfaces below) */
+  --border-soft: color-mix(in oklab, var(--border-1) 55%, transparent);
+  --border-subtle: var(--border-1);
+  --border-strong: var(--border-2);
+
+  --app-header-height: 64px;
+
   --app-bg: oklch(0.985 0.005 264);
   --surface-1: oklch(1 0 0 / 0.94);
   --surface-2: oklch(0.99 0.006 264 / 0.96);
@@ -123,4 +141,34 @@ table,
 /* Hairline divider helper */
 .hairline {
   background: linear-gradient(90deg, transparent, var(--border-1), transparent);
+}
+
+/* Analysis result — print-friendly executive export */
+@media print {
+  body {
+    background: white !important;
+    background-image: none !important;
+  }
+
+  [data-analysis-result] .print\:hidden {
+    display: none !important;
+  }
+
+  [data-analysis-result] {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  [data-analysis-result] .sticky {
+    position: relative !important;
+    top: auto !important;
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  [data-analysis-result] section,
+  [data-analysis-result] .print\:break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 }

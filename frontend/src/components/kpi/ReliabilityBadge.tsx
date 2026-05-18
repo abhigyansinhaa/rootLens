@@ -9,7 +9,7 @@ export function ReliabilityBadge({ kpis }: { kpis: AnalysisKpis }) {
 
   return (
     <Card padding="lg" tone={tone}>
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">
         <div className="min-w-[180px] flex-1">
           <CardEyebrow>Model reliability</CardEyebrow>
           <CardTitle className="mt-2 text-lg">Separation &amp; stability</CardTitle>
@@ -19,7 +19,7 @@ export function ReliabilityBadge({ kpis }: { kpis: AnalysisKpis }) {
             </StatusBadge>
           </div>
         </div>
-        <div className="min-w-[180px] flex-1 border-t border-[var(--border-1)] pt-4 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+        <div className="min-w-[180px] flex-1 lg:border-l lg:border-[var(--border-soft)] lg:pl-10">
           <CardEyebrow>Intervention confidence</CardEyebrow>
           <CardTitle className="mt-2 text-lg">Action readiness</CardTitle>
           <div className="mt-3">
@@ -45,7 +45,7 @@ export function ReliabilityBadge({ kpis }: { kpis: AnalysisKpis }) {
             </p>
           )}
         </div>
-        <div className="flex-1 text-sm leading-6 text-[var(--text-1)]">
+        <div className="flex-1 border-t border-[var(--border-soft)] pt-6 text-sm leading-6 text-[var(--text-1)] lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
           <p className="text-base font-bold tracking-tight">
             Headline{' '}
             <span className="tabular-nums">{formatNumber(r.headline_value)}</span>{' '}
