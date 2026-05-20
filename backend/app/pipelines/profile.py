@@ -319,12 +319,19 @@ def _mutual_info_leakage_signals(work: pd.DataFrame, target: str) -> list[str]:
     if mi.size == 0 or not np.any(mi > 0):
         return []
 
-    mi_norm = mi / float(np.max(mi))
+    peak = float(np.max(mi))
+    if peak <= 1e-12:
+        return []
+    mi_norm = mi / peak
+    second_peak = float(np.partition(mi, -2)[-2]) if mi.size >= 2 else 0.0
     flagged: list[str] = []
-    for col, score in zip(numeric_X.columns, mi_norm):
-        if not np.isfinite(score):
+    for col, score, raw_mi in zip(numeric_X.columns, mi_norm, mi):
+        if not np.isfinite(score) or not np.isfinite(raw_mi):
             continue
-        if score >= LEAKAGE_MI_SCORE_THRESHOLD:
+        # Normalizing by max(mi) always yields 1.0 for the top feature; require a
+        # large gap vs the next-strongest signal so legitimate top drivers (e.g.
+        # contract_type on churn) are not auto-flagged.
+        if score >= LEAKAGE_MI_SCORE_THRESHOLD and raw_mi >= max(second_peak * 2.0, second_peak + 0.05):
             flagged.append(
                 f"Potential leakage: '{col}' carries mutual-information signal "
                 f"comparable to '{target}' itself (relative MI={score:.2f}). "

@@ -36,6 +36,7 @@ class InsightEngine:
         column_meta: list[dict[str, Any]],
         confidence: ConfidenceLevel = "medium",
         explanation_stability: str | None = None,
+        raw_columns: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         return _build_insights_impl(
             df=df,
@@ -46,6 +47,7 @@ class InsightEngine:
             top_n=self.top_n,
             confidence=confidence,
             explanation_stability=explanation_stability,
+            raw_columns=raw_columns,
         )
 
     def to_json(self, insights: list[dict[str, Any]]) -> str:

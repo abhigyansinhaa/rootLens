@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { AnalysisKpis } from '../../types'
 import { Card, CardEyebrow, CardTitle, DataTable, Input, StatusBadge, TBody, TD, TH, THead, TR } from '../ui'
+import { directionForFeature, formatDriverLabel } from '../../lib/driverLabels'
 import { categoryForDriver, controllabilityBadgeLabel, controllabilityForFeature } from './driverMeta'
 import { formatPct01, formatNumber } from './format'
 
@@ -28,10 +29,12 @@ export function DriverImpactCard({
   kpis,
   directionByFeature,
   roiAssumptions,
+  rawColumns,
 }: {
   kpis: AnalysisKpis
   directionByFeature?: Record<string, string>
   roiAssumptions?: string
+  rawColumns?: string[]
 }) {
   const rows: Row[] = useMemo(() => {
     const byFeat = Object.fromEntries((kpis.drivers ?? []).map((d) => [d.feature, d.share]))
@@ -113,10 +116,8 @@ export function DriverImpactCard({
           </THead>
           <TBody>
             {displayed.map((r) => {
-              const stem = r.feature.includes('_') ? r.feature.split('_')[0] : r.feature
-              const direction =
-                directionByFeature?.[r.feature] ?? directionByFeature?.[stem] ?? directionByFeature?.[r.feature]
-              const ctrl = controllabilityForFeature(stem)
+              const direction = directionForFeature(r.feature, directionByFeature)
+              const ctrl = controllabilityForFeature(r.feature)
               const tier = r.confidence_tier
               const costStr = costs[r.feature] ?? ''
               const costNum = parseFloat(costStr.replace(/[^0-9.-]/g, ''))
@@ -128,7 +129,7 @@ export function DriverImpactCard({
 
               return (
                 <TR key={r.feature}>
-                  <TD mono>{r.feature}</TD>
+                  <TD>{formatDriverLabel(r.feature, rawColumns)}</TD>
                   <TD className="whitespace-nowrap text-[11px] text-[var(--text-2)]">
                     {categoryForDriver(stem)}
                   </TD>

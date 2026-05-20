@@ -145,6 +145,7 @@ export type Analysis = {
   metrics: Record<string, unknown> | null
   insights: {
     feature: string
+    display_label?: string
     kind: string
     task_type: string
     summary: string

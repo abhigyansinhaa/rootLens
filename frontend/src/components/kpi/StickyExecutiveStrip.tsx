@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { Analysis, AnalysisKpis, KpiHistoryResponse } from '../../types'
 import { HelpTooltip, StatusBadge } from '../ui'
+import { formatDriverLabel } from '../../lib/driverLabels'
 import { formatCompactMoney, formatNumber, formatPct01 } from './format'
 
 function primaryMetric(detail: Analysis, kpis: AnalysisKpis): { label: string; value: string } {
@@ -52,10 +53,12 @@ export function StickyExecutiveStrip({
   detail,
   kpis,
   history,
+  rawColumns,
 }: {
   detail: Analysis
   kpis: AnalysisKpis
   history?: KpiHistoryResponse
+  rawColumns?: string[]
 }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const primary = useMemo(() => primaryMetric(detail, kpis), [detail, kpis])
@@ -63,7 +66,9 @@ export function StickyExecutiveStrip({
   const r = kpis.reliability
   const iv = kpis.intervention_confidence
   const relTone = r.tier === 'high' ? 'success' : r.tier === 'medium' ? 'warning' : 'risk'
-  const topDriver = kpis.drivers[0]?.feature ?? '—'
+  const topDriver = kpis.drivers[0]
+    ? formatDriverLabel(kpis.drivers[0].feature, rawColumns)
+    : '—'
 
   return (
     <div

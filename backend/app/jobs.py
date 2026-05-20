@@ -140,6 +140,7 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
         art_dir = analysis_artifact_dir(analysis_id)
         analysis.status = "explaining"
         db.commit()
+        raw_cols_early = [str(c.get("name")) for c in column_meta if c.get("name")]
         shap_rows, plot_err, explanation_fallback_notes = compute_explanations_with_fallback(
             result.model,
             result.X_test,
@@ -150,6 +151,7 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
             y_test=result.y_test,
             X_test_raw=result.X_test_df,
             label_encoder=result.label_encoder,
+            raw_columns=raw_cols_early,
         )
 
         fallback_notes = list(training_fallback_notes) + list(explanation_fallback_notes)
@@ -184,6 +186,7 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
             confidence=result.confidence,
             model_kind=result.model_kind,
             validation_strategy=result.validation_strategy,
+            raw_columns=raw_cols,
         )
         if fallback_notes:
             recs = [

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
+from app.decisioning.driver_labels import format_driver_label, humanize_target_label
+
 TaskType = Literal["classification", "regression"]
 ConfidenceLevel = Literal["high", "medium", "low"]
 
@@ -18,6 +20,7 @@ def build_recommendations(
     model_kind: str = "xgboost",
     validation_strategy: str = "holdout",
     top_k: int = 6,
+    raw_columns: list[str] | None = None,
 ) -> list[str]:
     recs: list[str] = []
 
@@ -43,20 +46,24 @@ def build_recommendations(
             "Low confidence: prioritize data collection and validation before operational changes based on drivers."
         )
 
+    rc = raw_columns if raw_columns is not None else [str(m["name"]) for m in column_meta if m.get("name")]
+    target_h = humanize_target_label(target)
     ranked = sorted(shap_rows, key=lambda r: -r["mean_abs_shap"])[:top_k]
+    prefix = "Tentative model signal: " if confidence == "low" else ""
     for r in ranked:
         feat = r["feature"]
+        label = format_driver_label(feat, rc)
         mag = r["mean_abs_shap"]
         direction = r["direction"]
         if direction == "increases":
             recs.append(
-                f"Operational lever: strategies that increase '{feat}' are associated with higher predicted '{target}' "
-                f"(approx. importance {mag:.3f}). Pilot interventions and measure '{target}'."
+                f"{prefix}Mitigation focus: {label} is associated with higher predicted {target_h} risk "
+                f"(mean |SHAP| ≈ {mag:.3f}). Pilot interventions and measure {target_h} outcomes experimentally."
             )
         else:
             recs.append(
-                f"Risk / efficiency: higher '{feat}' is associated with lower predicted '{target}' "
-                f"(importance {mag:.3f}). Investigate processes affecting this driver."
+                f"{prefix}Retention stabilizer: {label} is associated with lower predicted {target_h} risk "
+                f"(mean |SHAP| ≈ {mag:.3f}). Investigate processes reinforcing this model signal."
             )
 
     meta_by_name = {m["name"]: m for m in column_meta}
@@ -68,9 +75,11 @@ def build_recommendations(
             )
 
     if len(ranked) >= 2 and len({r["feature"].split("_")[0] for r in ranked[:3]}) >= 2:
+        a = format_driver_label(ranked[0]["feature"], rc)
+        b = format_driver_label(ranked[1]["feature"], rc)
         recs.append(
-            "Segment deep-dive: top drivers span multiple factors — consider segmenting by "
-            f"'{ranked[0]['feature']}' and '{ranked[1]['feature']}' for tailored playbooks."
+            f"Segment deep-dive: top drivers span multiple factors — consider segmenting by {a} and {b} "
+            "for tailored playbooks."
         )
 
     return recs[:14]
