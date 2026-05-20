@@ -43,6 +43,7 @@ import {
   Stat,
   StatusBadge,
 } from '../../components/ui'
+import { formatDriverLabel } from '../../lib/driverLabels'
 import type { Analysis, Dataset, KpiHistoryResponse } from '../../types'
 
 type ViewPreset = 'executive' | 'analyst' | 'ops' | 'ds'
@@ -167,19 +168,6 @@ export function AnalysisResult() {
     },
   })
 
-  const chartData = useMemo(() => {
-    const fi = data?.feature_importance
-    if (!fi?.length) return []
-    return [...fi]
-      .sort((a, b) => b.mean_abs_shap - a.mean_abs_shap)
-      .slice(0, 15)
-      .map((r) => ({
-        name: r.feature.length > 28 ? `${r.feature.slice(0, 26)}…` : r.feature,
-        full: r.feature,
-        importance: r.mean_abs_shap,
-      }))
-  }, [data?.feature_importance])
-
   const directionByFeature = useMemo(() => {
     const m: Record<string, string> = {}
     if (!data) return m
@@ -209,6 +197,27 @@ export function AnalysisResult() {
     },
     enabled: Number.isFinite(analysisId) && !!data?.dataset_id && isTerminalOk(data.status),
   })
+
+  const rawColumnNames = useMemo(
+    () => datasetMeta?.columns?.map((c) => c.name) ?? [],
+    [datasetMeta?.columns],
+  )
+
+  const chartData = useMemo(() => {
+    const fi = data?.feature_importance
+    if (!fi?.length) return []
+    return [...fi]
+      .sort((a, b) => b.mean_abs_shap - a.mean_abs_shap)
+      .slice(0, 15)
+      .map((r) => {
+        const label = formatDriverLabel(r.feature, rawColumnNames)
+        return {
+          name: label.length > 28 ? `${label.slice(0, 26)}…` : label,
+          full: label,
+          importance: r.mean_abs_shap,
+        }
+      })
+  }, [data?.feature_importance, rawColumnNames])
 
   const [heatmapColumn, setHeatmapColumn] = useState('')
   const { data: heatmapData } = useQuery({
@@ -282,10 +291,10 @@ export function AnalysisResult() {
       ['intervention', 'tier', k.intervention_confidence?.tier ?? ''],
       ['meta', 'pipeline_version', data.pipeline_version ?? ''],
       ['meta', 'analysis_created_at', data.created_at],
-      ['drivers', 'top1', k.drivers[0]?.feature ?? ''],
+      ['drivers', 'top1', k.drivers[0] ? formatDriverLabel(k.drivers[0].feature, rawColumnNames) : ''],
       ['drivers', 'top1_share', String(k.drivers[0]?.share ?? '')],
-      ['drivers', 'top2', k.drivers[1]?.feature ?? ''],
-      ['drivers', 'top3', k.drivers[2]?.feature ?? ''],
+      ['drivers', 'top2', k.drivers[1] ? formatDriverLabel(k.drivers[1].feature, rawColumnNames) : ''],
+      ['drivers', 'top3', k.drivers[2] ? formatDriverLabel(k.drivers[2].feature, rawColumnNames) : ''],
     ]
     const esc = (s: string) => `"${s.replace(/"/g, '""')}"`
     const body = rows.map((r) => r.map((c) => esc(String(c))).join(',')).join('\n')
@@ -472,7 +481,7 @@ export function AnalysisResult() {
 
       {finalOk && kpis && (
         <>
-          <StickyExecutiveStrip detail={data} kpis={kpis} history={history} />
+          <StickyExecutiveStrip detail={data} kpis={kpis} history={history} rawColumns={rawColumnNames} />
           <section className="space-y-4 print:break-inside-avoid">
             <SectionHeader
               eyebrow="1. Business impact"
@@ -675,6 +684,7 @@ export function AnalysisResult() {
               kpis={kpis}
               directionByFeature={directionByFeature}
               roiAssumptions={data.report?.trust_copy?.roi_assumptions}
+              rawColumns={rawColumnNames}
             />
             <GovernancePanel governance={data.report?.governance} />
           </section>
@@ -925,8 +935,8 @@ export function AnalysisResult() {
                       </StatusBadge>
                     ) : null}
                   </div>
-                  <p className="mt-3 font-mono text-sm font-bold text-brand-700 dark:text-brand-300">
-                    {ins.feature}
+                  <p className="mt-3 text-sm font-bold text-brand-700 dark:text-brand-300">
+                    {ins.display_label ?? formatDriverLabel(ins.feature, rawColumnNames)}
                   </p>
                   <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[var(--text-2)]">
                     {ins.summary}

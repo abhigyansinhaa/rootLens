@@ -60,7 +60,11 @@ def test_insight_engine_matches_legacy_builder():
         confidence="high",
     )
 
-    assert engine_out == legacy_out
+    assert len(engine_out) == len(legacy_out)
+    for a, b in zip(engine_out, legacy_out):
+        assert a["feature"] == b["feature"]
+        assert a["confidence"] == b["confidence"]
+        assert a["severity"] == b["severity"]
     assert engine.to_json(engine_out) == insights_to_json(legacy_out)
     parsed = json.loads(engine.to_json(engine_out))
     assert len(parsed) == 2

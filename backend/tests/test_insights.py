@@ -11,7 +11,7 @@ def test_aggregate_one_hot_stems():
         {"feature": "city_LA", "mean_abs_shap": 0.3, "mean_signed_shap": -0.1, "direction": "decreases"},
         {"feature": "age", "mean_abs_shap": 0.1, "mean_signed_shap": 0.05, "direction": "increases"},
     ]
-    agg = aggregate_shap_by_column(rows, top_k=5)
+    agg = aggregate_shap_by_column(rows, top_k=5, raw_columns=["city", "age"])
     names = {r["feature"] for r in agg}
     assert "city" in names
     assert len(agg) >= 1
@@ -72,6 +72,8 @@ def test_insights_one_hot_narrative_uses_level_not_higher_scores():
     )
     assert out
     summary = out[0]["summary"]
-    assert "Contract' is 'Month-to-month" in summary
-    assert "higher 'Contract' scores" not in summary
+    assert "customers where" not in summary.lower()
+    assert "month-to-month" in summary.lower()
+    assert "encoded values correlate" not in summary.lower()
+    assert out[0].get("display_label") == "Month-to-month contracts"
 
