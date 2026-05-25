@@ -45,28 +45,9 @@ import {
 } from '../../components/ui'
 import { formatDriverLabel } from '../../lib/driverLabels'
 import type { Analysis, Dataset, KpiHistoryResponse } from '../../types'
+import { ArrowLeft, Download, Printer, Settings2, BarChart3, Target, LayoutDashboard, ShieldCheck, FileJson, CheckCircle2, AlertCircle } from 'lucide-react'
 
 type ViewPreset = 'executive' | 'analyst' | 'ops' | 'ds'
-
-function presetShowsTrendChart(p: ViewPreset) {
-  return p !== 'executive'
-}
-
-function presetShowsHeatmap(p: ViewPreset) {
-  return p === 'analyst' || p === 'ds'
-}
-
-function presetShowsModelMetadata(p: ViewPreset) {
-  return p === 'analyst' || p === 'ds'
-}
-
-function presetShowsFeatureImportanceChart(p: ViewPreset) {
-  return p === 'analyst' || p === 'ds'
-}
-
-function presetShowsShapPlots(p: ViewPreset) {
-  return p === 'analyst' || p === 'ds'
-}
 
 const TERMINAL_OK_STATUSES = new Set(['completed', 'completed_with_warnings'])
 const IN_FLIGHT_STATUSES = new Set([
@@ -147,12 +128,13 @@ function deltaVsPriorLine(
   if (a == null || b == null || !Number.isFinite(a) || !Number.isFinite(b)) return undefined
   const d = b - a
   const arrow = d < 0 ? '↓' : '↑'
-  return `${arrow} ${fmt(Math.abs(d))} vs prior analysis on this dataset`
+  return `${arrow} ${fmt(Math.abs(d))} vs prior analysis`
 }
 
 export function AnalysisResult() {
   const { id } = useParams<{ id: string }>()
   const analysisId = Number(id)
+  const [activeTab, setActiveTab] = useState<'impact' | 'drivers' | 'diagnostics' | 'lineage'>('impact')
 
   const { data, error, refetch, isLoading } = useQuery({
     queryKey: ['analysis', analysisId],
@@ -233,35 +215,6 @@ export function AnalysisResult() {
     enabled: Number.isFinite(analysisId) && !!heatmapColumn && !!data && isTerminalOk(data.status),
   })
 
-  const [viewPreset, setViewPreset] = useState<ViewPreset>(() => {
-    try {
-      const v = sessionStorage.getItem('rca-view-preset')
-      if (v === 'executive' || v === 'analyst' || v === 'ops' || v === 'ds') return v
-    } catch {
-      /* ignore */
-    }
-    return 'analyst'
-  })
-
-  const setPreset = (p: ViewPreset) => {
-    setViewPreset(p)
-    try {
-      sessionStorage.setItem('rca-view-preset', p)
-    } catch {
-      /* ignore */
-    }
-  }
-
-  const trendChart = useMemo(() => {
-    const pts = history?.points ?? []
-    return pts.map((p, xi) => ({
-      xi,
-      label: String(xi + 1),
-      churn: p.kpis.predicted_target_rate ?? p.kpis.target_rate ?? 0,
-      highRisk: p.kpis.high_risk_share ?? 0,
-    }))
-  }, [history])
-
   const downloadJson = () => {
     if (!data) return
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -293,8 +246,6 @@ export function AnalysisResult() {
       ['meta', 'analysis_created_at', data.created_at],
       ['drivers', 'top1', k.drivers[0] ? formatDriverLabel(k.drivers[0].feature, rawColumnNames) : ''],
       ['drivers', 'top1_share', String(k.drivers[0]?.share ?? '')],
-      ['drivers', 'top2', k.drivers[1] ? formatDriverLabel(k.drivers[1].feature, rawColumnNames) : ''],
-      ['drivers', 'top3', k.drivers[2] ? formatDriverLabel(k.drivers[2].feature, rawColumnNames) : ''],
     ]
     const esc = (s: string) => `"${s.replace(/"/g, '""')}"`
     const body = rows.map((r) => r.map((c) => esc(String(c))).join(',')).join('\n')
@@ -305,10 +256,6 @@ export function AnalysisResult() {
     a.download = `analysis-${data.id}-summary.csv`
     a.click()
     URL.revokeObjectURL(url)
-  }
-
-  const printExecutive = () => {
-    window.print()
   }
 
   if (!Number.isFinite(analysisId)) {
@@ -330,7 +277,7 @@ export function AnalysisResult() {
   }
 
   if (isLoading || !data) {
-    return <LoadingState rows={2} message="Loading analysis…" />
+    return <LoadingState rows={4} message="Loading analysis results…" />
   }
 
   const running = isInFlight(data.status)
@@ -339,665 +286,403 @@ export function AnalysisResult() {
   const revenueReady = !!(kpis?.impact_revenue && data.value_column)
 
   return (
-    <div data-analysis-result className="analysis-result-page space-y-[var(--stack-gap)]">
-      <div>
+    <div data-analysis-result className="space-y-8 animate-fade-in-up pb-20">
+      <div className="flex flex-col gap-4">
         <Link
-          className="print:hidden inline-flex items-center gap-1 text-xs font-bold uppercase tracking-[0.18em] text-brand-600 hover:underline dark:text-brand-300"
+          className="print:hidden inline-flex items-center gap-2 text-sm font-semibold text-[var(--text-3)] hover:text-brand-500 transition-colors"
           to={`/datasets/${data.dataset_id}`}
         >
-          <span aria-hidden>←</span> Back to dataset dashboard
+          <ArrowLeft className="h-4 w-4" /> Back to dataset dashboard
         </Link>
-        <div className="mt-3">
-          <PageHeader
-            eyebrow="Analysis result"
-            title={`Analysis #${data.id}`}
-            description={
-              <span className="text-[var(--text-2)]">
-                Audit-ready RCA artifact for the selected target. Use this report to confirm reliability,
-                review drivers, and decide on actions.
+        <PageHeader
+          eyebrow="Analysis Result"
+          title={`Analysis #${data.id}`}
+          description="Audit-ready RCA artifact. Use this report to confirm reliability, review drivers, and decide on actions."
+          meta={
+            <>
+              <StatusBadge tone={statusTone(data.status)} dot>
+                {running ? `${data.status}…` : data.status}
+              </StatusBadge>
+              {data.task_type && (
+                <StatusBadge tone="info">{data.task_type.replace('_', ' ')}</StatusBadge>
+              )}
+              <span className="inline-flex items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-2)] px-2.5 py-1 text-xs font-semibold text-[var(--text-2)]">
+                Target:
+                <code className="text-brand-600 dark:text-brand-400">
+                  {data.target}
+                </code>
               </span>
-            }
-            meta={
-              <>
-                <StatusBadge tone={statusTone(data.status)} dot>
-                  {running ? `${data.status}…` : data.status}
-                </StatusBadge>
-                {data.task_type && (
-                  <StatusBadge tone="info">{data.task_type.replace('_', ' ')}</StatusBadge>
-                )}
-                <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border-1)] bg-[var(--surface-2)] px-3 py-1 text-[11px] font-semibold text-[var(--text-2)]">
-                  Target
-                  <code className="rounded-md bg-[var(--surface-3)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-1)]">
-                    {data.target}
+              {data.value_column && (
+                <span className="inline-flex items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-2)] px-2.5 py-1 text-xs font-semibold text-[var(--text-2)]">
+                  Value:
+                  <code className="text-emerald-600 dark:text-emerald-400">
+                    {data.value_column}
                   </code>
                 </span>
-                {data.value_column && (
-                  <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border-1)] bg-[var(--surface-2)] px-3 py-1 text-[11px] font-semibold text-[var(--text-2)]">
-                    Value
-                    <code className="rounded-md bg-[var(--surface-3)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-1)]">
-                      {data.value_column}
-                    </code>
-                  </span>
-                )}
-                {data.datetime_column && (
-                  <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border-1)] bg-[var(--surface-2)] px-3 py-1 text-[11px] font-semibold text-[var(--text-2)]">
-                    Time order
-                    <code className="rounded-md bg-[var(--surface-3)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-1)]">
-                      {data.datetime_column}
-                    </code>
-                  </span>
-                )}
-              </>
-            }
-            actions={
-              <>
-                <select
-                  className="print:hidden rounded-lg border border-[var(--border-1)] bg-[var(--surface-2)] px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[var(--text-1)]"
-                  value={viewPreset}
-                  onChange={(e) => setPreset(e.target.value as ViewPreset)}
-                  aria-label="Dashboard preset"
-                >
-                  <option value="executive">Executive — summary KPIs & narrative</option>
-                  <option value="analyst">Analyst — balanced evidence</option>
-                  <option value="ops">Operations — KPIs & drivers (lighter plots)</option>
-                  <option value="ds">Data science — full diagnostics</option>
-                </select>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="print:hidden"
-                  to={`/datasets/${data.dataset_id}`}
-                >
-                  Compare runs
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  type="button"
-                  onClick={downloadCsvSummary}
-                  disabled={!finalOk || !data.report?.kpis}
-                >
-                  CSV summary
-                </Button>
-                <Button variant="secondary" size="sm" type="button" onClick={printExecutive} disabled={!finalOk}>
-                  Print / PDF
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  type="button"
-                  onClick={downloadJson}
-                  disabled={!finalOk}
-                >
-                  Download JSON
-                </Button>
-              </>
-            }
-          />
-        </div>
+              )}
+            </>
+          }
+          actions={
+            <>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="print:hidden bg-white dark:bg-[var(--surface-2)] shadow-sm"
+                to={`/datasets/${data.dataset_id}`}
+              >
+                Compare runs
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                type="button"
+                className="shadow-sm"
+                onClick={downloadCsvSummary}
+                disabled={!finalOk || !data.report?.kpis}
+              >
+                <Download className="mr-2 h-4 w-4" /> CSV
+              </Button>
+              <Button variant="secondary" size="sm" type="button" className="shadow-sm" onClick={() => window.print()} disabled={!finalOk}>
+                <Printer className="mr-2 h-4 w-4" /> Print / PDF
+              </Button>
+            </>
+          }
+        />
       </div>
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Run id" value={`#${data.id}`} hint="Persistent run identifier" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Stat label="Run id" value={`#${data.id}`} hint="Persistent identifier" />
         <Stat label="Status" value={<span className="capitalize">{data.status}</span>} tone={statusTone(data.status)} />
         <Stat label="Created" value={formatDateTime(data.created_at)} />
         <Stat label="Completed" value={formatDateTime(data.completed_at)} />
-      </section>
-
-      {data.error && (
-        <Card padding="md" tone="warning">
-          <p className="text-sm text-amber-950 dark:text-amber-100">{data.error}</p>
-        </Card>
-      )}
+      </div>
 
       {data.status === 'failed' && (
         <ErrorState
-          title="We couldn't finish this analysis"
-          message={
-            data.error ||
-            data.report?.user_message ||
-            'Something went wrong on our side. Please try again in a moment or pick a different target column.'
-          }
+          title="Analysis Failed"
+          message={data.error || data.report?.user_message || 'An error occurred during analysis.'}
           onRetry={() => void refetch()}
           retryLabel="Refresh status"
         />
       )}
 
-      {finalOk && data.report?.user_message && (
-        <Card padding="md" tone="info">
-          <CardEyebrow>Operator note</CardEyebrow>
-          <p className="mt-2 text-sm font-medium text-brand-950 dark:text-brand-100">
-            {data.report.user_message}
-          </p>
-          {data.report.fallbacks && data.report.fallbacks.length > 0 && (
-            <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-brand-900/90 dark:text-brand-200/90">
-              {data.report.fallbacks.map((line, i) => (
-                <li key={i}>{line}</li>
-              ))}
-            </ul>
-          )}
-        </Card>
-      )}
-
       {finalOk && kpis && (
         <>
-          <StickyExecutiveStrip detail={data} kpis={kpis} history={history} rawColumns={rawColumnNames} />
-          <section className="space-y-4 print:break-inside-avoid">
-            <SectionHeader
-              eyebrow="1. Business impact"
-              title="Top-line signals"
-              description="Target behavior, high-risk exposure, monetized impact, and confidence before diving into model artifacts."
-            />
-            {trendChart.length >= 2 && presetShowsTrendChart(viewPreset) ? (
-              <Card padding="md" tone="strong">
-                <CardEyebrow>Historical KPI trend (prior runs same dataset + target)</CardEyebrow>
-                <div className="mt-2 h-36 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={trendChart} margin={{ left: -8, right: 8, top: 4, bottom: 4 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" className="opacity-60" />
-                      <XAxis dataKey="label" tick={{ fontSize: 10, fill: 'var(--text-3)' }} />
-                      <YAxis yAxisId="l" domain={[0, 1]} tick={{ fontSize: 10, fill: 'var(--text-3)' }} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'var(--surface-2)',
-                          border: '1px solid var(--border-1)',
-                          borderRadius: 12,
-                          fontSize: 11,
-                        }}
-                      />
-                      <Line
-                        yAxisId="l"
-                        type="monotone"
-                        dataKey="churn"
-                        stroke="var(--chart-primary)"
-                        strokeWidth={2}
-                        dot
-                        name="Predicted / target rate"
-                      />
-                      <Line
-                        yAxisId="l"
-                        type="monotone"
-                        dataKey="highRisk"
-                        stroke="var(--chart-warning)"
-                        strokeWidth={2}
-                        dot
-                        name="High-risk share"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </Card>
-            ) : null}
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <KpiCard
-                tone={
-                  data.task_type === 'regression'
-                    ? 'brand'
-                    : predictedChurnTone(kpis.target_level.predicted_target_rate ?? kpis.target_level.target_rate)
-                }
-                label={
-                  <span className="inline-flex items-center gap-1">
-                    {data.task_type === 'regression' ? 'Target baseline' : (
-                      <>
-                        <HelpTooltip title="Observed or baseline positive rate in the scored cohort.">Churn / positive rate</HelpTooltip>
-                      </>
-                    )}
-                  </span>
-                }
-                value={metricValue(data, kpis)}
-                hint={data.target}
-                ciHint={
-                  data.task_type === 'regression'
-                    ? ciNum(kpis.target_level.target_mean_ci_low, kpis.target_level.target_mean_ci_high)
-                    : ciPct(kpis.target_level.target_rate_ci_low, kpis.target_level.target_rate_ci_high)
-                }
-              />
-              <KpiCard
-                tone={highRiskShareTone(kpis.target_level.high_risk_share)}
-                label={
-                  <span className="inline-flex items-center gap-1">
-                    <HelpTooltip title="Share of rows above the high-risk score threshold used in this run.">High-risk users</HelpTooltip>
-                  </span>
-                }
-                value={formatPct01(kpis.target_level.high_risk_share)}
-                hint={
-                  <>
-                    {`${kpis.target_level.high_risk_count.toLocaleString()} rows above threshold`}
-                    {deltaVsPriorLine(history, (x) => x.high_risk_share, (n) => formatPct01(n)) ? (
-                      <span className="mt-1 block text-[10px] font-bold text-[var(--text-3)]">
-                        {deltaVsPriorLine(history, (x) => x.high_risk_share, (n) => formatPct01(n))}
-                      </span>
-                    ) : null}
-                  </>
-                }
-                ciHint={ciPct(
-                  kpis.target_level.high_risk_share_ci_low,
-                  kpis.target_level.high_risk_share_ci_high,
-                )}
-              />
-              <KpiCard
-                tone={
-                  kpis.impact_revenue
-                    ? concentrationShareTone(kpis.concentration.headline.share_of_risk)
-                    : 'default'
-                }
-                label="Revenue at risk"
-                value={kpis.impact_revenue ? formatCompactMoney(kpis.impact_revenue.revenue_at_risk) : 'Not linked'}
-                hint={
-                  <>
-                    {kpis.impact_revenue
-                      ? `Value column: ${data.value_column ?? 'configured'}`
-                      : 'Add a numeric value column on the next run'}
-                    {kpis.impact_revenue && deltaVsPriorLine(history, (x) => x.revenue_at_risk ?? null, (n) => formatCompactMoney(n)) ? (
-                      <span className="mt-1 block text-[10px] font-bold text-[var(--text-3)]">
-                        {deltaVsPriorLine(history, (x) => x.revenue_at_risk ?? null, (n) => formatCompactMoney(n))}
-                      </span>
-                    ) : null}
-                  </>
-                }
-                ciHint={
-                  kpis.impact_revenue
-                    ? ciMoney(
-                        kpis.impact_revenue.revenue_at_risk_ci_low,
-                        kpis.impact_revenue.revenue_at_risk_ci_high,
-                      )
-                    : undefined
-                }
-              />
-              <KpiCard
-                tone={
-                  kpis.reliability.headline_metric === 'roc_auc'
-                    ? rocAucTone(kpis.reliability.headline_value)
-                    : kpis.reliability.tier === 'high'
-                      ? 'emerald'
-                      : kpis.reliability.tier === 'low'
-                        ? 'risk'
-                        : 'amber'
-                }
-                label={
-                  <span className="inline-flex items-center gap-1">
-                    <HelpTooltip title="Discrimination metric on the holdout fold; not the same as calibration.">
-                      Model performance ({kpis.reliability.headline_metric})
-                    </HelpTooltip>
-                  </span>
-                }
-                value={formatNumber(kpis.reliability.headline_value)}
-                hint={`${kpis.reliability.tier} tier · ${kpis.intervention_confidence?.tier ?? '?'} intervention`}
-              />
-            </div>
-            <div className="grid gap-4 lg:grid-cols-2">
-              <ConcentrationCallout kpis={kpis} />
-              <CounterfactualCallout
-                kpis={kpis}
-                regression={data.task_type === 'regression'}
-                trustCopy={data.report?.trust_copy}
-              />
-            </div>
-          </section>
+          {/* Tab Navigation */}
+          <div className="sticky top-[var(--app-header-height)] z-30 -mx-4 px-4 sm:mx-0 sm:px-0 bg-[var(--app-bg)]/80 backdrop-blur-xl border-b border-[var(--border-subtle)] print:hidden">
+            <nav className="flex items-center gap-1 overflow-x-auto py-3 custom-scrollbar">
+              <button
+                onClick={() => setActiveTab('impact')}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all whitespace-nowrap ${
+                  activeTab === 'impact' ? 'bg-brand-500 text-white shadow-md' : 'text-[var(--text-3)] hover:bg-[var(--surface-2)] hover:text-[var(--text-1)]'
+                }`}
+              >
+                <LayoutDashboard className="h-4 w-4" /> 1. Business Impact
+              </button>
+              <button
+                onClick={() => setActiveTab('drivers')}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all whitespace-nowrap ${
+                  activeTab === 'drivers' ? 'bg-brand-500 text-white shadow-md' : 'text-[var(--text-3)] hover:bg-[var(--surface-2)] hover:text-[var(--text-1)]'
+                }`}
+              >
+                <Target className="h-4 w-4" /> 2. Root Cause Drivers
+              </button>
+              <button
+                onClick={() => setActiveTab('diagnostics')}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all whitespace-nowrap ${
+                  activeTab === 'diagnostics' ? 'bg-brand-500 text-white shadow-md' : 'text-[var(--text-3)] hover:bg-[var(--surface-2)] hover:text-[var(--text-1)]'
+                }`}
+              >
+                <ShieldCheck className="h-4 w-4" /> 3. Diagnostics & Quality
+              </button>
+              <button
+                onClick={() => setActiveTab('lineage')}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-all whitespace-nowrap ${
+                  activeTab === 'lineage' ? 'bg-brand-500 text-white shadow-md' : 'text-[var(--text-3)] hover:bg-[var(--surface-2)] hover:text-[var(--text-1)]'
+                }`}
+              >
+                <FileJson className="h-4 w-4" /> 4. Lineage & Raw Output
+              </button>
+            </nav>
+          </div>
 
-          {data.report?.quality_signals && data.report.quality_signals.length > 0 && viewPreset !== 'executive' ? (
-            <section className="space-y-3">
-              <SectionHeader
-                eyebrow="Quality"
-                title="Data & training signals"
-                description="Structured checks from profiling, training, and fallbacks."
-              />
-              <div className="flex flex-wrap gap-2">
-                {data.report.quality_signals.map((s, i) => (
-                  <StatusBadge key={i} tone={s.severity === 'critical' ? 'risk' : s.severity === 'info' ? 'info' : 'warning'}>
-                    {s.scope}: {s.message}
-                  </StatusBadge>
-                ))}
-              </div>
-            </section>
-          ) : null}
-
-          <section className="space-y-4 print:break-inside-avoid">
-            <SectionHeader
-              eyebrow="2. Why it is happening"
-              title="Drivers, segments, and reliability"
-              description="Feature lift, segment concentration, and reliability signals for where to intervene first."
-            />
-            {(() => {
-              const pts = history?.points ?? []
-              let driftEl = null
-              if (pts.length >= 2) {
-                const prev = pts[pts.length - 2].kpis.segment_shares?.high
-                const cur = pts[pts.length - 1].kpis.segment_shares?.high
-                if (prev != null && cur != null && Number.isFinite(prev) && Number.isFinite(cur)) {
-                  const d = cur - prev
-                  driftEl = (
-                    <p className="text-xs font-semibold text-[var(--text-2)]">
-                      High-risk segment share {d >= 0 ? 'rose' : 'fell'} by {formatPct01(Math.abs(d))} vs prior completed
-                      analysis on this dataset (same target).
-                    </p>
-                  )
-                }
-              }
-              return driftEl
-            })()}
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
-              <RiskSegmentsChart kpis={kpis} hasValue={revenueReady} />
-              <ReliabilityBadge kpis={kpis} />
-            </div>
-            <DriverImpactCard
-              kpis={kpis}
-              directionByFeature={directionByFeature}
-              roiAssumptions={data.report?.trust_copy?.roi_assumptions}
-              rawColumns={rawColumnNames}
-            />
-            <GovernancePanel governance={data.report?.governance} />
-          </section>
-
-          {datasetMeta && presetShowsHeatmap(viewPreset) ? (
-            <section className="space-y-4">
-              <SectionHeader
-                eyebrow="Risk heatmap"
-                title="Concentration by categorical column"
-                description="Pick a column to compare average modeled risk and loss proxy across levels (current run)."
-              />
-              <Card padding="md" tone="strong">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-3)]">Breakdown column</label>
-                <select
-                  className="mt-2 w-full max-w-md rounded-xl border border-[var(--border-1)] bg-[var(--surface-2)] px-3 py-2 text-sm"
-                  value={heatmapColumn}
-                  onChange={(e) => setHeatmapColumn(e.target.value)}
-                >
-                  <option value="">Select column…</option>
-                  {datasetMeta.columns
-                    .filter((c) => c.name !== data.target)
-                    .map((c) => (
-                      <option key={c.name} value={c.name}>
-                        {c.name} ({c.dtype})
-                      </option>
-                    ))}
-                </select>
-                {heatmapData?.partial_alignment_warning ? (
-                  <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">
-                    Row alignment between training cohort and stored predictions may be partial — interpret as directional.
-                  </p>
-                ) : null}
-                {heatmapData?.groups?.length ? (
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {heatmapData.groups.map((g) => (
-                      <div
-                        key={g.value}
-                        className="rounded-lg border border-[var(--border-1)] bg-[var(--surface-1)] p-3 text-xs"
-                      >
-                        <p className="font-bold text-[var(--text-1)]">{g.value}</p>
-                        <p className="mt-1 text-[var(--text-2)]">
-                          n={g.count.toLocaleString()} · mean risk {g.mean_prediction.toFixed(3)} · loss proxy{' '}
-                          {g.mean_expected_loss.toFixed(3)}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                ) : heatmapColumn ? (
-                  <p className="mt-3 text-sm text-[var(--text-3)]">Loading or no groups…</p>
-                ) : null}
-              </Card>
-            </section>
-          ) : null}
-        </>
-      )}
-
-      {finalOk && data.model_metadata && Object.keys(data.model_metadata).length > 0 && presetShowsModelMetadata(viewPreset) && (
-        <section className="space-y-4">
-          <SectionHeader
-            eyebrow="Training"
-            title="Model metadata"
-            description="Hyperparameters, timing, and feature inventory from this run."
-          />
-          <Card padding="lg" tone="strong">
-            <pre className="max-h-96 overflow-auto whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-[var(--text-2)]">
-              {JSON.stringify(data.model_metadata, null, 2)}
-            </pre>
-          </Card>
-        </section>
-      )}
-
-      {finalOk && data.metrics && presetShowsTrendChart(viewPreset) && (
-        <section className="space-y-4">
-          <SectionHeader
-            eyebrow="Confidence"
-            title="Model metrics"
-            description="Performance signals to decide how much confidence to place in the report."
-          />
-          {data.report?.model_baselines ? (
-            <Card padding="md" tone="info">
-              <CardEyebrow>Baselines</CardEyebrow>
-              <p className="mt-2 text-xs text-[var(--text-2)]">
-                Random classifier ROC AUC ≈ {data.report.model_baselines.random_classifier_roc_auc?.toFixed(2) ?? '0.50'}
-                {data.report.model_baselines.logistic_regression_roc_auc != null
-                  ? ` · Logistic baseline ROC AUC ${data.report.model_baselines.logistic_regression_roc_auc.toFixed(3)}`
-                  : null}
-              </p>
-            </Card>
-          ) : null}
-          <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {Object.entries(data.metrics)
-              .filter(([k, v]) => k !== 'calibration_curve' && typeof v === 'number' && Number.isFinite(v))
-              .map(([k, v]) => (
-                <Stat
-                  key={k}
-                  label={
-                    <span className="inline-flex items-center gap-1">
-                      {k.toUpperCase()}
-                      {k === 'brier_score_loss' ? (
-                        <HelpTooltip title="Mean squared error of probabilities; lower is better-calibrated for risk.">
-                          ⓘ
-                        </HelpTooltip>
-                      ) : null}
-                    </span>
-                  }
-                  value={(v as number).toFixed(4)}
-                  tone="info"
+          <div className="mt-8 animate-fade-in-up print:block">
+            {activeTab === 'impact' && (
+              <div className="space-y-8 print:block">
+                <SectionHeader
+                  eyebrow="1. Business Impact"
+                  title="Top-line signals"
+                  description="Target behavior, high-risk exposure, monetized impact, and confidence."
                 />
-              ))}
-          </dl>
-          {Array.isArray(data.metrics.calibration_curve) && data.metrics.calibration_curve.length > 1 ? (
-            <Card padding="md" tone="strong">
-              <CardEyebrow>Calibration curve (holdout)</CardEyebrow>
-              <p className="mt-1 text-xs text-[var(--text-2)]">
-                <HelpTooltip title="Each point compares mean predicted probability to observed positive rate in a bin.">
-                  Reliability of predicted probabilities
-                </HelpTooltip>
-              </p>
-              <div className="mt-3 h-48 w-full max-w-lg">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={(data.metrics.calibration_curve as { mean_predicted: number; fraction_positive: number }[]).map(
-                      (p) => ({
-                        x: p.mean_predicted,
-                        y: p.fraction_positive,
-                      }),
-                    )}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" className="opacity-60" />
-                    <XAxis dataKey="x" tick={{ fontSize: 10 }} name="Pred" />
-                    <YAxis dataKey="y" tick={{ fontSize: 10 }} domain={[0, 1]} name="Observed" />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="y" stroke="var(--chart-primary)" dot />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
-          ) : null}
-        </section>
-      )}
-
-      {finalOk && chartData.length > 0 && presetShowsFeatureImportanceChart(viewPreset) && (
-        <section className="space-y-4">
-          <SectionHeader
-            eyebrow="Drivers"
-            title="Feature importance"
-            description="Mean absolute SHAP values rank the strongest explanatory drivers."
-          />
-          <Card padding="lg" tone="strong">
-            <div className="h-96 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} layout="vertical" margin={{ left: 8, right: 16 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" className="opacity-60" />
-                  <XAxis type="number" tick={{ fill: 'var(--text-3)', fontSize: 11 }} />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    width={140}
-                    tick={{ fontSize: 11, fill: 'var(--text-2)' }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'var(--surface-2)',
-                      border: '1px solid var(--border-1)',
-                      borderRadius: 12,
-                      fontSize: 12,
-                      color: 'var(--text-1)',
-                    }}
-                    formatter={(value) => [
-                      typeof value === 'number' ? value.toFixed(4) : String(value ?? ''),
-                      '|SHAP|',
-                    ]}
-                    labelFormatter={(_, payload) =>
-                      payload?.[0]?.payload?.full ? String(payload[0].payload.full) : ''
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <KpiCard
+                    tone={data.task_type === 'regression' ? 'brand' : predictedChurnTone(kpis.target_level.predicted_target_rate ?? kpis.target_level.target_rate)}
+                    label={<span className="inline-flex items-center gap-1 font-bold">Target baseline</span>}
+                    value={metricValue(data, kpis)}
+                    hint={data.target}
+                    ciHint={
+                      data.task_type === 'regression'
+                        ? ciNum(kpis.target_level.target_mean_ci_low, kpis.target_level.target_mean_ci_high)
+                        : ciPct(kpis.target_level.target_rate_ci_low, kpis.target_level.target_rate_ci_high)
                     }
                   />
-                  <Bar dataKey="importance" fill="var(--chart-primary)" radius={[0, 8, 8, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-        </section>
-      )}
+                  <KpiCard
+                    tone={highRiskShareTone(kpis.target_level.high_risk_share)}
+                    label={<span className="inline-flex items-center gap-1 font-bold">High-risk users</span>}
+                    value={formatPct01(kpis.target_level.high_risk_share)}
+                    hint={
+                      <>
+                        {`${kpis.target_level.high_risk_count.toLocaleString()} rows above threshold`}
+                        {deltaVsPriorLine(history, (x) => x.high_risk_share, formatPct01) ? (
+                          <span className="mt-1 block text-xs font-bold text-[var(--text-3)]">
+                            {deltaVsPriorLine(history, (x) => x.high_risk_share, formatPct01)}
+                          </span>
+                        ) : null}
+                      </>
+                    }
+                    ciHint={ciPct(kpis.target_level.high_risk_share_ci_low, kpis.target_level.high_risk_share_ci_high)}
+                  />
+                  <KpiCard
+                    tone={kpis.impact_revenue ? concentrationShareTone(kpis.concentration.headline.share_of_risk) : 'default'}
+                    label={<span className="font-bold">Revenue at risk</span>}
+                    value={kpis.impact_revenue ? formatCompactMoney(kpis.impact_revenue.revenue_at_risk) : 'Not linked'}
+                    hint={
+                      <>
+                        {kpis.impact_revenue ? `Value column: ${data.value_column}` : 'Add a numeric value column'}
+                        {kpis.impact_revenue && deltaVsPriorLine(history, (x) => x.revenue_at_risk ?? null, formatCompactMoney) ? (
+                          <span className="mt-1 block text-xs font-bold text-[var(--text-3)]">
+                            {deltaVsPriorLine(history, (x) => x.revenue_at_risk ?? null, formatCompactMoney)}
+                          </span>
+                        ) : null}
+                      </>
+                    }
+                    ciHint={kpis.impact_revenue ? ciMoney(kpis.impact_revenue.revenue_at_risk_ci_low, kpis.impact_revenue.revenue_at_risk_ci_high) : undefined}
+                  />
+                  <KpiCard
+                    tone={
+                      kpis.reliability.headline_metric === 'roc_auc'
+                        ? rocAucTone(kpis.reliability.headline_value)
+                        : kpis.reliability.tier === 'high' ? 'emerald' : kpis.reliability.tier === 'low' ? 'risk' : 'amber'
+                    }
+                    label={<span className="inline-flex items-center gap-1 font-bold">Model ({kpis.reliability.headline_metric})</span>}
+                    value={formatNumber(kpis.reliability.headline_value)}
+                    hint={`${kpis.reliability.tier} tier · ${kpis.intervention_confidence?.tier ?? '?'} intervention`}
+                  />
+                </div>
 
-      {finalOk && data.shap_summary_image_url && presetShowsShapPlots(viewPreset) && (
-        <section className="space-y-4">
-          <SectionHeader
-            eyebrow="Evidence"
-            title="SHAP summary plot"
-            description={
-              <>
-                Distribution view for feature impact and direction.{' '}
-                <HelpTooltip title="SHAP values attribute how much each feature pushes an individual prediction away from the baseline.">
-                  What is SHAP?
-                </HelpTooltip>
-              </>
-            }
-          />
-          <Card padding="lg" tone="strong">
-            <AuthenticatedApiImage
-              key={`shap-${data.id}-${data.shap_summary_image_url}`}
-              apiPath={data.shap_summary_image_url}
-              alt="SHAP summary"
-              lazy
-              className="max-w-full rounded-xl border border-[var(--border-soft)] bg-[var(--surface-1)]"
-            />
-          </Card>
-          {data.shap_beeswarm_image_url ? (
-            <Card padding="lg" tone="strong">
-              <CardEyebrow>SHAP beeswarm (top drivers)</CardEyebrow>
-              <AuthenticatedApiImage
-                key={`shap-bw-${data.id}-${data.shap_beeswarm_image_url}`}
-                apiPath={data.shap_beeswarm_image_url}
-                alt="SHAP beeswarm"
-                lazy
-                className="max-w-full rounded-xl border border-[var(--border-soft)] bg-[var(--surface-1)]"
-              />
-            </Card>
-          ) : null}
-        </section>
-      )}
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <ConcentrationCallout kpis={kpis} />
+                  <CounterfactualCallout
+                    kpis={kpis}
+                    regression={data.task_type === 'regression'}
+                    trustCopy={data.report?.trust_copy}
+                  />
+                </div>
 
-      {finalOk && data.insights && data.insights.length > 0 && (
-        <section className="space-y-4">
-          <SectionHeader
-            eyebrow="Narrative"
-            title="Root-cause insights"
-            description="Narratives that translate drivers into investigation hypotheses."
-          />
-          <ul className="grid gap-3 lg:grid-cols-2">
-            {data.insights.map((ins, i) => (
-              <li key={i}>
-                <Card
-                  padding="md"
-                  tone={
-                    ins.severity === 'critical' ? 'risk' : ins.severity === 'warning' ? 'strong' : 'strong'
-                  }
-                  className="h-full"
-                >
-                  <div className="flex flex-wrap items-center gap-2">
-                    <StatusBadge tone="info">{ins.kind}</StatusBadge>
-                    {ins.confidence && <StatusBadge tone="default">{ins.confidence}</StatusBadge>}
-                    {ins.severity ? (
-                      <StatusBadge
-                        tone={ins.severity === 'critical' ? 'risk' : ins.severity === 'warning' ? 'warning' : 'default'}
-                      >
-                        {ins.severity}
-                      </StatusBadge>
-                    ) : null}
+                {data.insights && data.insights.length > 0 && (
+                  <div className="space-y-4 pt-6 border-t border-[var(--border-subtle)]">
+                    <SectionHeader eyebrow="Narrative" title="Root-cause Insights" />
+                    <ul className="grid gap-4 lg:grid-cols-2">
+                      {data.insights.map((ins, i) => (
+                        <li key={i}>
+                          <Card padding="lg" tone={ins.severity === 'critical' ? 'risk' : 'strong'} elevated className="h-full border-t-[var(--border-subtle)] border-t-2">
+                            <div className="flex flex-wrap items-center gap-2 mb-3">
+                              <StatusBadge tone="info">{ins.kind}</StatusBadge>
+                              {ins.confidence && <StatusBadge tone="default">{ins.confidence}</StatusBadge>}
+                              {ins.severity && <StatusBadge tone={ins.severity === 'critical' ? 'risk' : 'warning'}>{ins.severity}</StatusBadge>}
+                            </div>
+                            <h3 className="text-base font-bold text-brand-600 dark:text-brand-400 mb-2">
+                              {ins.display_label ?? formatDriverLabel(ins.feature, rawColumnNames)}
+                            </h3>
+                            <p className="text-sm leading-relaxed text-[var(--text-1)]">{ins.summary}</p>
+                            {ins.investigation_questions?.length ? (
+                              <div className="mt-5 rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-1)] p-4">
+                                <p className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)] mb-2">Questions to investigate</p>
+                                <ul className="list-disc space-y-1.5 pl-4 text-sm text-[var(--text-2)]">
+                                  {ins.investigation_questions.map((q, qi) => (
+                                    <li key={qi}>{q}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                          </Card>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <p className="mt-3 text-sm font-bold text-brand-700 dark:text-brand-300">
-                    {ins.display_label ?? formatDriverLabel(ins.feature, rawColumnNames)}
-                  </p>
-                  <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[var(--text-2)]">
-                    {ins.summary}
-                  </p>
-                  {ins.investigation_questions?.length ? (
-                    <div className="mt-4 rounded-lg border border-[var(--border-1)] bg-[var(--surface-2)]/60 p-3 text-xs text-[var(--text-2)]">
-                      <p className="font-bold text-[var(--text-1)]">Questions to investigate</p>
-                      <ul className="mt-2 list-disc space-y-1 pl-4">
-                        {ins.investigation_questions.map((q, qi) => (
-                          <li key={qi}>{q}</li>
-                        ))}
-                      </ul>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'drivers' && (
+              <div className="space-y-8 print:block animate-fade-in-up">
+                <SectionHeader
+                  eyebrow="2. Why it is happening"
+                  title="Drivers, Segments, and Reliability"
+                  description="Feature lift, segment concentration, and reliability signals for where to intervene first."
+                />
+                
+                <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+                  <RiskSegmentsChart kpis={kpis} hasValue={revenueReady} />
+                  <ReliabilityBadge kpis={kpis} />
+                </div>
+                
+                <DriverImpactCard
+                  kpis={kpis}
+                  directionByFeature={directionByFeature}
+                  roiAssumptions={data.report?.trust_copy?.roi_assumptions}
+                  rawColumns={rawColumnNames}
+                />
+
+                {chartData.length > 0 && (
+                  <div className="pt-6 border-t border-[var(--border-subtle)]">
+                    <SectionHeader eyebrow="Drivers" title="Feature Importance" description="Mean absolute SHAP values rank the strongest explanatory drivers." />
+                    <Card padding="lg" tone="strong" elevated className="mt-4 border border-[var(--border-subtle)] bg-[var(--surface-1)]/50 backdrop-blur">
+                      <div className="h-96 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={chartData} layout="vertical" margin={{ left: 8, right: 16 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" className="opacity-40" />
+                            <XAxis type="number" tick={{ fill: 'var(--text-3)', fontSize: 11 }} />
+                            <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11, fill: 'var(--text-2)', fontWeight: 600 }} />
+                            <Tooltip
+                              contentStyle={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border-subtle)', borderRadius: 12, fontSize: 12, color: 'var(--text-1)' }}
+                              formatter={(value) => [typeof value === 'number' ? value.toFixed(4) : String(value ?? ''), '|SHAP|']}
+                              labelFormatter={(_, payload) => payload?.[0]?.payload?.full ? String(payload[0].payload.full) : ''}
+                            />
+                            <Bar dataKey="importance" fill="url(#brandGradient)" radius={[0, 8, 8, 0]} />
+                            <defs>
+                              <linearGradient id="brandGradient" x1="0" y1="0" x2="1" y2="0">
+                                <stop offset="0%" stopColor="var(--color-brand-400)" />
+                                <stop offset="100%" stopColor="var(--color-brand-600)" />
+                              </linearGradient>
+                            </defs>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </Card>
+                  </div>
+                )}
+
+                {data.shap_summary_image_url && (
+                  <div className="pt-6 border-t border-[var(--border-subtle)]">
+                    <SectionHeader eyebrow="Evidence" title="SHAP Plots" />
+                    <div className="mt-4 grid gap-6 lg:grid-cols-2">
+                      <Card padding="lg" tone="strong" elevated>
+                        <CardEyebrow>Summary Plot</CardEyebrow>
+                        <AuthenticatedApiImage
+                          apiPath={data.shap_summary_image_url}
+                          alt="SHAP summary"
+                          lazy
+                          className="mt-4 max-w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] mix-blend-luminosity hover:mix-blend-normal transition-all"
+                        />
+                      </Card>
+                      {data.shap_beeswarm_image_url && (
+                        <Card padding="lg" tone="strong" elevated>
+                          <CardEyebrow>Beeswarm (Top Drivers)</CardEyebrow>
+                          <AuthenticatedApiImage
+                            apiPath={data.shap_beeswarm_image_url}
+                            alt="SHAP beeswarm"
+                            lazy
+                            className="mt-4 max-w-full rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] mix-blend-luminosity hover:mix-blend-normal transition-all"
+                          />
+                        </Card>
+                      )}
                     </div>
-                  ) : null}
-                </Card>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+                  </div>
+                )}
+              </div>
+            )}
 
-      {finalOk && (
-        <section className="space-y-3 rounded-xl border border-[var(--border-1)] bg-[var(--surface-2)]/40 p-4 text-[11px] text-[var(--text-2)] print:break-inside-avoid">
-          <p className="font-bold uppercase tracking-[0.16em] text-[var(--text-3)]">Audit lineage</p>
-          <div className="flex flex-wrap gap-x-6 gap-y-1">
-            <span>
-              Pipeline <code className="text-[var(--text-1)]">{data.pipeline_version ?? '—'}</code>
-            </span>
-            <span>
-              Encoder <code className="text-[var(--text-1)]">{data.encoder_version ?? '—'}</code>
-            </span>
-            <span>
-              Dataset hash <code className="break-all text-[var(--text-1)]">{data.dataset_hash ?? '—'}</code>
-            </span>
-            <span>
-              Schema hash <code className="break-all text-[var(--text-1)]">{data.schema_hash ?? '—'}</code>
-            </span>
+            {activeTab === 'diagnostics' && (
+              <div className="space-y-8 print:block animate-fade-in-up">
+                <SectionHeader
+                  eyebrow="3. Diagnostics & Quality"
+                  title="Data & Training Signals"
+                  description="Structured checks from profiling, training, and fallbacks."
+                />
+
+                {data.report?.quality_signals && data.report.quality_signals.length > 0 && (
+                  <Card padding="lg" tone="strong" elevated>
+                    <CardEyebrow>Quality Alerts</CardEyebrow>
+                    <div className="mt-4 flex flex-col gap-3">
+                      {data.report.quality_signals.map((s, i) => (
+                        <div key={i} className={`flex items-start gap-3 rounded-lg border p-3 ${s.severity === 'critical' ? 'border-red-500/30 bg-red-500/10 text-red-600' : s.severity === 'info' ? 'border-blue-500/30 bg-blue-500/10 text-blue-600' : 'border-amber-500/30 bg-amber-500/10 text-amber-600'}`}>
+                          {s.severity === 'critical' ? <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" /> : <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" />}
+                          <div>
+                            <p className="font-bold uppercase tracking-wider text-[10px] opacity-80">{s.scope}</p>
+                            <p className="mt-1 text-sm font-medium">{s.message}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                )}
+
+                {data.metrics && (
+                  <div className="pt-6 border-t border-[var(--border-subtle)]">
+                    <SectionHeader eyebrow="Confidence" title="Model Metrics" description="Performance signals to decide how much confidence to place in the report." />
+                    <dl className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                      {Object.entries(data.metrics)
+                        .filter(([k, v]) => k !== 'calibration_curve' && typeof v === 'number' && Number.isFinite(v))
+                        .map(([k, v]) => (
+                          <Stat
+                            key={k}
+                            label={k.toUpperCase()}
+                            value={(v as number).toFixed(4)}
+                            tone="info"
+                          />
+                        ))}
+                    </dl>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'lineage' && (
+              <div className="space-y-8 print:block animate-fade-in-up">
+                <SectionHeader
+                  eyebrow="4. Lineage & Output"
+                  title="Audit Trail"
+                  description="System metadata and raw model configuration for reproducibility."
+                />
+                
+                <section className="rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-2)] p-6 text-sm text-[var(--text-2)] shadow-inner">
+                  <p className="font-bold uppercase tracking-widest text-brand-500 mb-4 text-xs">Run Lineage</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-[var(--text-3)] mb-1">Pipeline Version</p>
+                      <code className="text-[var(--text-1)] font-bold">{data.pipeline_version ?? '—'}</code>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-[var(--text-3)] mb-1">Encoder</p>
+                      <code className="text-[var(--text-1)] font-bold">{data.encoder_version ?? '—'}</code>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-[var(--text-3)] mb-1">Dataset Hash</p>
+                      <code className="text-[var(--text-1)] font-bold truncate block">{data.dataset_hash ?? '—'}</code>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-[var(--text-3)] mb-1">Schema Hash</p>
+                      <code className="text-[var(--text-1)] font-bold truncate block">{data.schema_hash ?? '—'}</code>
+                    </div>
+                  </div>
+                </section>
+
+                {data.model_metadata && Object.keys(data.model_metadata).length > 0 && (
+                  <Card padding="lg" tone="strong" elevated>
+                    <div className="flex justify-between items-center mb-4">
+                      <CardEyebrow>Model Metadata JSON</CardEyebrow>
+                      <Button size="sm" variant="secondary" onClick={downloadJson}>Download Full JSON</Button>
+                    </div>
+                    <pre className="max-h-96 overflow-auto rounded-lg bg-[var(--surface-3)]/50 p-4 whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-[var(--text-1)] shadow-inner">
+                      {JSON.stringify(data.model_metadata, null, 2)}
+                    </pre>
+                  </Card>
+                )}
+              </div>
+            )}
           </div>
-        </section>
-      )}
-
-      {finalOk && data.recommendations && data.recommendations.length > 0 && (
-        <section className="space-y-4">
-          <SectionHeader
-            eyebrow="Actions"
-            title="Recommendations"
-            description="Suggested next moves from the completed RCA run."
-          />
-          <Card padding="lg" tone="info">
-            <ol className="space-y-3 text-sm leading-6 text-[var(--text-1)]">
-              {data.recommendations.map((r, i) => (
-                <li key={i} className="flex gap-3">
-                  <span className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-500 font-mono text-[11px] font-black text-white">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                  <span className="flex-1">{r}</span>
-                </li>
-              ))}
-            </ol>
-          </Card>
-        </section>
+        </>
       )}
     </div>
   )

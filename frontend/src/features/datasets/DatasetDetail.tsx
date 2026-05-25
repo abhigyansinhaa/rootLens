@@ -21,6 +21,7 @@ import {
   THead,
   TR,
 } from '../../components/ui'
+import { PlayCircle, Trash2, ArrowLeft, Activity, Target, Settings2, Sparkles, CheckCircle2 } from 'lucide-react'
 import type { Analysis, ColumnSchema, Dataset } from '../../types'
 
 function fallbackColumnName(columns: ColumnSchema[]): string {
@@ -62,9 +63,9 @@ function formatStartError(err: unknown): string {
 }
 
 function inferTaskHint(col: { dtype: string; n_unique: number }) {
-  if (col.dtype === 'object' || col.dtype === 'bool' || col.dtype === 'category') return 'classification'
-  if (col.n_unique <= 20) return 'classification'
-  return 'regression'
+  if (col.dtype === 'object' || col.dtype === 'bool' || col.dtype === 'category') return 'Classification'
+  if (col.n_unique <= 20) return 'Classification'
+  return 'Regression'
 }
 
 function isNumericColumn(c: ColumnSchema) {
@@ -222,24 +223,22 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
       : 0
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8 animate-fade-in-up">
       <Link
-        className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-[0.18em] text-brand-600 hover:underline dark:text-brand-300"
+        className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--text-3)] hover:text-brand-500 transition-colors"
         to="/datasets"
       >
-        <span aria-hidden>←</span> Datasets
+        <ArrowLeft className="h-4 w-4" /> Back to Datasets
       </Link>
 
       <PageHeader
-        eyebrow="Dataset workbench"
+        eyebrow="Dataset Workbench"
         title={ds.name}
         description={`${ds.rows.toLocaleString()} rows · ${ds.cols} columns · ${ds.file_format.toUpperCase()}`}
         meta={
           <>
-            <StatusBadge tone="info" dot>
-              Step 2 of 3 · Configure
-            </StatusBadge>
-            {taskHint && <StatusBadge tone="success">{taskHint} task</StatusBadge>}
+            <StatusBadge tone="info" dot>Step 2 of 3 · Configure</StatusBadge>
+            {taskHint && <StatusBadge tone="success">{taskHint}</StatusBadge>}
             <StatusBadge tone={avgNullRatio < 0.05 ? 'success' : avgNullRatio < 0.2 ? 'warning' : 'risk'}>
               Null avg {(avgNullRatio * 100).toFixed(1)}%
             </StatusBadge>
@@ -250,16 +249,17 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
             variant="danger"
             size="sm"
             type="button"
+            className="shadow-sm"
             onClick={() => {
               if (confirm('Delete this dataset and all analyses?')) delMutation.mutate()
             }}
           >
-            Delete dataset
+            <Trash2 className="mr-2 h-4 w-4" /> Delete dataset
           </Button>
         }
       />
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Rows" value={ds.rows.toLocaleString()} hint="Records under coverage" />
         <Stat label="Columns" value={ds.cols.toLocaleString()} hint="Including target" />
         <Stat
@@ -270,185 +270,213 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
         <Stat label="Format" value={ds.file_format.toUpperCase()} hint="Native parser" />
       </section>
 
-      <Card padding="lg" tone="info" elevated>
-        <CardEyebrow>Run controls</CardEyebrow>
-        <h2 className="mt-2 text-xl font-black tracking-tight text-[var(--text-1)]">
-          Run root-cause analysis
-        </h2>
-        <p className="mt-2 text-sm leading-6 text-[var(--text-2)]">
-          Select the target variable. We infer classification vs regression from the column. Optionally bind a
-          revenue or value column to get monetized impact.
-        </p>
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
-          <Select
-            label="Target column"
-            id="target-col"
-            value={effectiveTarget}
-            onChange={(e) => {
-              setTarget(e.target.value)
-              setValuePick('__auto__')
-              setDatetimePick('__none__')
-            }}
-          >
-            {ds.columns.map((c) => (
-              <option key={c.name} value={c.name}>
-                {c.name}
-              </option>
-            ))}
-          </Select>
-          <Select
-            label="Value column (optional)"
-            id="value-col"
-            disabled={numericSelectable.length === 0}
-            value={valuePick}
-            onChange={(e) => setValuePick(e.target.value)}
-            hint={
-              numericSelectable.length === 0
-                ? 'No numeric columns available for monetization overlay.'
-                : 'Bind a numeric column for revenue-linked KPIs.'
-            }
-          >
-            <option value="__auto__">Auto ({suggestedValue || 'detect numeric column'})</option>
-            <option value="__none__">Skip revenue/value KPI overlay</option>
-            {numericSelectable.map((c) => (
-              <option key={c.name} value={c.name}>
-                {c.name}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className="mt-4 max-w-xl">
-          <Select
-            label="Time column (optional)"
-            id="datetime-col"
-            value={datetimePick}
-            onChange={(e) => setDatetimePick(e.target.value)}
-            hint="Sort rows chronologically and use walk-forward CV on the training window. Leave unset for standard randomized splits."
-          >
-            <option value="__none__">None — standard randomized CV</option>
-            {datetimeSelectable.map((c) => (
-              <option key={c.name} value={c.name}>
-                {c.name} ({c.dtype})
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          {taskHint && <StatusBadge tone="success">Inferred {taskHint}</StatusBadge>}
-          {numericSelectable.length === 0 ? (
-            <StatusBadge tone="warning">No value overlay available</StatusBadge>
-          ) : (
-            <StatusBadge tone="info">{numericSelectable.length} numeric columns available</StatusBadge>
-          )}
-        </div>
-        {runMutation.isError && (
-          <p
-            className="mt-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200"
-            role="alert"
-          >
-            {formatStartError(runMutation.error)}
+      {/* Glassmorphism Config Panel */}
+      <Card padding="none" elevated className="glass overflow-hidden border-t-brand-500 border-t-2 relative">
+        <div className="absolute top-0 right-0 -mt-16 -mr-16 h-64 w-64 rounded-full bg-brand-500/10 blur-3xl pointer-events-none" />
+        <div className="p-6 sm:p-8">
+          <div className="flex items-center gap-2 mb-2">
+            <Settings2 className="h-5 w-5 text-brand-500" />
+            <CardEyebrow>Run controls</CardEyebrow>
+          </div>
+          <h2 className="text-xl font-black tracking-tight text-[var(--text-1)]">
+            Run Root-Cause Analysis
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-[var(--text-2)] max-w-2xl">
+            Select the target variable to explain. We'll train a robust model and use SHAP to extract global drivers and segment risks. Bind a value column to monetize the impact.
           </p>
-        )}
-        <div className="mt-6 flex flex-wrap items-center gap-3">
-          <Button
-            type="button"
-            disabled={runMutation.isPending || !effectiveTarget}
-            onClick={() => runMutation.mutate()}
-          >
-            {runMutation.isPending ? 'Starting…' : 'Run root-cause analysis'}
-          </Button>
-          <span className="text-xs text-[var(--text-3)]">
-            Test split: <span className="tabular-nums font-semibold text-[var(--text-2)]">20%</span>
-          </span>
+
+          <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_1fr_auto]">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-bold text-[var(--text-1)]">
+                <Target className="h-4 w-4 text-brand-500" /> Target Variable
+              </div>
+              <Select
+                id="target-col"
+                value={effectiveTarget}
+                className="bg-[var(--surface-1)] transition-colors focus:ring-brand-500 w-full"
+                onChange={(e) => {
+                  setTarget(e.target.value)
+                  setValuePick('__auto__')
+                  setDatetimePick('__none__')
+                }}
+              >
+                {ds.columns.map((c) => (
+                  <option key={c.name} value={c.name}>{c.name}</option>
+                ))}
+              </Select>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-bold text-[var(--text-1)]">
+                <Sparkles className="h-4 w-4 text-amber-500" /> Value Column (Optional)
+              </div>
+              <Select
+                id="value-col"
+                disabled={numericSelectable.length === 0}
+                value={valuePick}
+                className="bg-[var(--surface-1)] transition-colors focus:ring-amber-500 w-full"
+                onChange={(e) => setValuePick(e.target.value)}
+              >
+                <option value="__auto__">Auto ({suggestedValue || 'detect numeric column'})</option>
+                <option value="__none__">Skip revenue/value overlay</option>
+                {numericSelectable.map((c) => (
+                  <option key={c.name} value={c.name}>{c.name}</option>
+                ))}
+              </Select>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm font-bold text-[var(--text-1)]">
+                <Activity className="h-4 w-4 text-indigo-500" /> Time Split (Optional)
+              </div>
+              <Select
+                id="datetime-col"
+                value={datetimePick}
+                className="bg-[var(--surface-1)] transition-colors focus:ring-indigo-500 w-full"
+                onChange={(e) => setDatetimePick(e.target.value)}
+              >
+                <option value="__none__">Standard randomized CV</option>
+                {datetimeSelectable.map((c) => (
+                  <option key={c.name} value={c.name}>{c.name} ({c.dtype})</option>
+                ))}
+              </Select>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            {taskHint && <StatusBadge tone="success" dot className="bg-emerald-500/10">Inferred {taskHint}</StatusBadge>}
+            {numericSelectable.length === 0 ? (
+              <StatusBadge tone="warning">No value overlay available</StatusBadge>
+            ) : (
+              <StatusBadge tone="info" className="bg-blue-500/10">{numericSelectable.length} numeric columns</StatusBadge>
+            )}
+          </div>
+
+          {runMutation.isError && (
+            <div className="mt-6 flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400">
+              <span className="font-bold">Error:</span> {formatStartError(runMutation.error)}
+            </div>
+          )}
+
+          <div className="mt-8 pt-6 border-t border-[var(--border-subtle)] flex flex-wrap items-center justify-between gap-4">
+            <Button
+              type="button"
+              className="bg-brand-500 text-white shadow-lg shadow-brand-500/20 hover:bg-brand-400 px-8 h-12 text-base font-bold transition-all"
+              disabled={runMutation.isPending || !effectiveTarget}
+              onClick={() => runMutation.mutate()}
+            >
+              {runMutation.isPending ? (
+                <>
+                  <span className="h-5 w-5 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Starting Analysis…
+                </>
+              ) : (
+                <>
+                  <PlayCircle className="h-5 w-5 mr-2" /> Start Analysis
+                </>
+              )}
+            </Button>
+            <div className="flex items-center gap-2 text-sm text-[var(--text-3)] font-medium">
+              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+              Test split: <span className="font-bold text-[var(--text-1)]">20%</span>
+            </div>
+          </div>
         </div>
       </Card>
 
-      <section className="space-y-4">
-        <SectionHeader
-          eyebrow="Profile"
-          title="Schema readiness"
-          description="Review column types, null rates, and cardinality before choosing the target."
-        />
-        <DataTable>
-          <THead>
-            <tr>
-              <TH>Column</TH>
-              <TH>Type</TH>
-              <TH align="right">Null %</TH>
-              <TH align="right">Unique</TH>
-              <TH align="right">Health</TH>
-            </tr>
-          </THead>
-          <TBody>
-            {ds.columns.map((c) => (
-              <TR key={c.name}>
-                <TD mono>{c.name}</TD>
-                <TD>
-                  <span className="font-mono text-xs uppercase tracking-wider text-[var(--text-2)]">
-                    {c.dtype}
-                  </span>
-                </TD>
-                <TD align="right" numeric>
-                  {(c.null_ratio * 100).toFixed(1)}%
-                </TD>
-                <TD align="right" numeric>
-                  {c.n_unique.toLocaleString()}
-                </TD>
-                <TD align="right">
-                  <StatusBadge tone={nullTone(c.null_ratio)} dot>
-                    {nullTone(c.null_ratio) === 'success'
-                      ? 'OK'
-                      : nullTone(c.null_ratio) === 'warning'
-                        ? 'Watch'
-                        : 'Risk'}
-                  </StatusBadge>
-                </TD>
-              </TR>
-            ))}
-          </TBody>
-        </DataTable>
-      </section>
-
-      {preview && preview.rows.length > 0 && (
+      <div className="grid gap-8 lg:grid-cols-[1fr_2fr]">
         <section className="space-y-4">
           <SectionHeader
-            eyebrow="Preview"
-            title="Data preview"
-            description="Spot check the first rows before running the RCA model."
+            eyebrow="Profile"
+            title="Schema Readiness"
+            description="Review columns and quality before running."
           />
-          <Card padding="none" tone="strong">
-            <div className="max-h-80 overflow-auto">
-              <table className="min-w-full text-left text-xs">
-                <thead className="sticky top-0 z-10 border-b border-[var(--border-1)] bg-[var(--surface-3)] text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-3)]">
-                  <tr>
-                    {preview.columns.map((col) => (
-                      <th key={col} className="whitespace-nowrap px-3 py-2.5 font-bold">
-                        {col}
-                      </th>
-                    ))}
+          <Card padding="none" className="overflow-hidden">
+            <div className="max-h-[500px] overflow-auto custom-scrollbar">
+              <DataTable>
+                <THead>
+                  <tr className="sticky top-0 z-10 bg-[var(--surface-2)] shadow-sm">
+                    <TH>Column</TH>
+                    <TH>Type</TH>
+                    <TH align="right">Null %</TH>
+                    <TH align="right">Health</TH>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--border-1)]">
-                  {preview.rows.map((row, i) => (
-                    <tr key={i} className="hover:bg-[var(--surface-3)]/50">
-                      {preview.columns.map((col) => (
-                        <td
-                          key={col}
-                          className="max-w-xs truncate px-3 py-1.5 font-mono text-[11px] text-[var(--text-2)]"
-                        >
-                          {row[col] ?? ''}
-                        </td>
-                      ))}
-                    </tr>
+                </THead>
+                <TBody>
+                  {ds.columns.map((c) => (
+                    <TR key={c.name}>
+                      <TD mono className={c.name === effectiveTarget ? 'text-brand-600 font-bold dark:text-brand-400' : ''}>
+                        {c.name}
+                      </TD>
+                      <TD>
+                        <span className="font-mono text-xs uppercase tracking-wider text-[var(--text-2)] bg-[var(--surface-3)] px-1.5 py-0.5 rounded">
+                          {c.dtype}
+                        </span>
+                      </TD>
+                      <TD align="right" numeric className="tabular-nums">
+                        {(c.null_ratio * 100).toFixed(1)}%
+                      </TD>
+                      <TD align="right">
+                        <StatusBadge tone={nullTone(c.null_ratio)} dot className="scale-90 origin-right">
+                          {nullTone(c.null_ratio) === 'success' ? 'OK' : nullTone(c.null_ratio) === 'warning' ? 'Watch' : 'Risk'}
+                        </StatusBadge>
+                      </TD>
+                    </TR>
                   ))}
-                </tbody>
-              </table>
+                </TBody>
+              </DataTable>
             </div>
           </Card>
         </section>
-      )}
 
-      <DatasetKpiDashboard datasetId={datasetId} datasetName={ds.name} />
+        {preview && preview.rows.length > 0 && (
+          <section className="space-y-4 min-w-0">
+            <SectionHeader
+              eyebrow="Preview"
+              title="Data Preview"
+              description="First rows of the dataset."
+            />
+            <Card padding="none" tone="strong" className="overflow-hidden border border-[var(--border-subtle)]">
+              <div className="max-h-[500px] overflow-auto custom-scrollbar">
+                <table className="min-w-full text-left text-xs border-collapse">
+                  <thead className="sticky top-0 z-10 bg-[var(--surface-3)]/90 backdrop-blur-sm shadow-sm text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-3)]">
+                    <tr>
+                      {preview.columns.map((col) => (
+                        <th key={col} className={`whitespace-nowrap px-4 py-3 font-bold border-b border-[var(--border-subtle)] ${col === effectiveTarget ? 'text-brand-600 bg-brand-500/5 dark:text-brand-400' : ''}`}>
+                          {col}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border-subtle)]">
+                    {preview.rows.map((row, i) => (
+                      <tr key={i} className="hover:bg-[var(--surface-2)] transition-colors group">
+                        {preview.columns.map((col) => (
+                          <td
+                            key={col}
+                            className={`max-w-[200px] truncate px-4 py-2 font-mono text-[11px] tabular-nums ${
+                              col === effectiveTarget 
+                                ? 'text-brand-700 bg-brand-500/5 dark:text-brand-300 font-medium group-hover:bg-brand-500/10' 
+                                : 'text-[var(--text-2)]'
+                            }`}
+                            title={row[col] ?? ''}
+                          >
+                            {row[col] ?? ''}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </section>
+        )}
+      </div>
+
+      <div className="pt-8 mt-8 border-t border-[var(--border-subtle)]">
+        <DatasetKpiDashboard datasetId={datasetId} datasetName={ds.name} />
+      </div>
     </div>
   )
 }

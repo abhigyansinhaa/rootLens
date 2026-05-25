@@ -11,6 +11,7 @@ import {
 import type { AnalysisKpis } from '../../types'
 import { Card, CardEyebrow, CardTitle, StatusBadge } from '../ui'
 import { formatCompactMoney, formatPct01 } from './format'
+import { Target, TrendingUp, AlertTriangle } from 'lucide-react'
 
 const BUCKET_LABEL: Record<AnalysisKpis['risk_segments'][0]['bucket'], string> = {
   low: 'Stable customers',
@@ -38,29 +39,44 @@ export function RiskSegmentsChart({ kpis, hasValue }: { kpis: AnalysisKpis; hasV
   }))
 
   return (
-    <Card padding="lg" tone="strong">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <Card padding="xl" tone="strong" elevated className="border-t-[var(--border-subtle)] border-t-2 glass overflow-hidden relative">
+      <div className="absolute top-0 right-0 -mt-24 -mr-24 h-64 w-64 rounded-full bg-brand-500/10 blur-3xl pointer-events-none" />
+      
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <CardEyebrow>Segmentation</CardEyebrow>
-          <CardTitle className="mt-2 text-lg">Risk segments by population and value</CardTitle>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--text-2)]">
-            Compare where users sit versus where modeled monetary exposure concentrates.
+          <CardEyebrow>Segmentation Strategy</CardEyebrow>
+          <CardTitle className="mt-2 text-2xl font-black tracking-tight text-[var(--text-1)]">Risk by Population and Value</CardTitle>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--text-2)]">
+            Compare where your users sit versus where modeled monetary exposure concentrates. This helps prioritize interventions based on ROI.
           </p>
         </div>
-        <StatusBadge tone={hasValue ? 'warning' : 'default'} dot>
+        <StatusBadge tone={hasValue ? 'warning' : 'default'} dot className="px-3 py-1 text-xs">
           {hasValue ? 'Value linked' : 'Users only'}
         </StatusBadge>
       </div>
-      <div className="mt-6 h-64 w-full">
+
+      <div className="mt-10 h-72 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chart} margin={{ bottom: 8, left: -10 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" className="opacity-60" />
-            <Legend wrapperStyle={{ fontSize: 12, color: 'var(--text-2)' }} />
-            <XAxis dataKey="bucket" tick={{ fontSize: 11, fill: 'var(--text-3)' }} />
+            <defs>
+              <linearGradient id="usersGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--chart-neutral)" stopOpacity={1} />
+                <stop offset="100%" stopColor="var(--chart-neutral)" stopOpacity={0.6} />
+              </linearGradient>
+              <linearGradient id="valueGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="var(--color-amber-500)" stopOpacity={1} />
+                <stop offset="100%" stopColor="var(--color-amber-600)" stopOpacity={0.8} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-subtle)" className="opacity-40" />
+            <Legend wrapperStyle={{ fontSize: 12, color: 'var(--text-2)', paddingTop: '16px' }} iconType="circle" />
+            <XAxis dataKey="bucket" tick={{ fontSize: 12, fill: 'var(--text-3)', fontWeight: 500 }} axisLine={false} tickLine={false} />
             <YAxis
               domain={[0, 1]}
               tickFormatter={(v) => `${(Number(v) * 100).toFixed(0)}%`}
               tick={{ fontSize: 11, fill: 'var(--text-3)' }}
+              axisLine={false}
+              tickLine={false}
             />
             <Tooltip
               formatter={(value, key) =>
@@ -70,20 +86,23 @@ export function RiskSegmentsChart({ kpis, hasValue }: { kpis: AnalysisKpis; hasV
               }
               contentStyle={{
                 backgroundColor: 'var(--surface-2)',
-                border: '1px solid var(--border-1)',
+                border: '1px solid var(--border-subtle)',
                 borderRadius: 12,
                 fontSize: 12,
                 color: 'var(--text-1)',
+                boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)'
               }}
+              cursor={{ fill: 'var(--surface-3)', opacity: 0.4 }}
             />
-            <Bar dataKey="users_share" name="Users" fill="var(--chart-neutral)" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="users_share" name="Users" fill="url(#usersGradient)" radius={[6, 6, 0, 0]} barSize={40} />
             {hasValue ? (
-              <Bar dataKey="value_share" name="Value" fill="var(--chart-warning)" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="value_share" name="Value" fill="url(#valueGradient)" radius={[6, 6, 0, 0]} barSize={40} />
             ) : null}
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+
+      <div className="mt-10 grid gap-6 sm:grid-cols-3">
         {kpis.risk_segments.map((segment) => (
           <SegmentTile key={segment.bucket} segment={segment} hasValue={hasValue} />
         ))}
@@ -107,28 +126,29 @@ function SegmentTile({
       ? segment.value / segment.count
       : null
 
+  const Icon = segment.bucket === 'high' ? AlertTriangle : segment.bucket === 'medium' ? Target : TrendingUp
+
   return (
-    <div className="rounded-xl border border-[var(--border-1)] bg-[var(--surface-1)] p-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <StatusBadge tone={tone} dot>
+    <div className={`rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-5 shadow-sm transition-all hover:shadow-md ${tone === 'risk' ? 'border-red-500/20 bg-red-500/5' : tone === 'warning' ? 'border-amber-500/20 bg-amber-500/5' : 'border-emerald-500/20 bg-emerald-500/5'}`}>
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <Icon className={`h-4 w-4 ${tone === 'risk' ? 'text-red-500' : tone === 'warning' ? 'text-amber-500' : 'text-emerald-500'}`} />
+        <span className={`text-sm font-bold ${tone === 'risk' ? 'text-red-700 dark:text-red-400' : tone === 'warning' ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
           {label}
-        </StatusBadge>
-        <StatusBadge tone="default" className="text-[10px] uppercase">
-          {segment.bucket}
-        </StatusBadge>
-        {segment.easiest_to_fix ? <StatusBadge tone="success">Highest tractability</StatusBadge> : null}
+        </span>
+        {segment.easiest_to_fix ? <StatusBadge tone="success" className="ml-auto scale-90 origin-right">Highest tractability</StatusBadge> : null}
       </div>
-      <dl className="mt-4 space-y-2 text-xs text-[var(--text-2)]">
-        <div className="flex justify-between gap-2">
+
+      <dl className="space-y-3 text-sm text-[var(--text-2)] mb-5">
+        <div className="flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-2">
           <dt>Rows</dt>
           <dd className="font-bold tabular-nums text-[var(--text-1)]">{segment.count.toLocaleString()}</dd>
         </div>
-        <div className="flex justify-between gap-2">
+        <div className="flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-2">
           <dt>Population share</dt>
           <dd className="font-bold tabular-nums text-[var(--text-1)]">{formatPct01(segment.share)}</dd>
         </div>
         {hasValue ? (
-          <div className="flex justify-between gap-2">
+          <div className="flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-2">
             <dt>Value share</dt>
             <dd className="font-bold tabular-nums text-[var(--text-1)]">
               {formatPct01(segment.value_share ?? 0)}
@@ -136,21 +156,22 @@ function SegmentTile({
           </div>
         ) : null}
         {evPerUser != null ? (
-          <div className="flex justify-between gap-2">
-            <dt>Expected value / user</dt>
+          <div className="flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-2">
+            <dt>Exp. value / user</dt>
             <dd className="font-bold tabular-nums text-[var(--text-1)]">{formatCompactMoney(evPerUser)}</dd>
           </div>
         ) : null}
-        <div className="flex justify-between gap-2">
+        <div className="flex items-center justify-between gap-2">
           <dt>Avg model score</dt>
           <dd className="font-bold tabular-nums text-[var(--text-1)]">
             {segment.avg_proba?.toFixed(3) ?? '-'}
           </dd>
         </div>
       </dl>
-      <div className="mt-3 space-y-1 text-[11px] leading-5 text-[var(--text-3)]">
-        <p className="font-semibold text-[var(--text-2)]">Recommendations</p>
-        <ul className="list-disc space-y-1 pl-4">
+
+      <div className="rounded-lg bg-[var(--surface-2)] p-3">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mb-2">Recommendations</p>
+        <ul className="list-disc space-y-1.5 pl-4 text-xs text-[var(--text-1)]">
           {playbook.map((line, i) => (
             <li key={i}>{line}</li>
           ))}
