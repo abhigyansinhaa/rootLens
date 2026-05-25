@@ -1,22 +1,23 @@
 @import "tailwindcss";
+@import "./styles/animations.css";
 
 /* Design tokens - Tailwind v4 finance cockpit */
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  /* Restrained institutional teal accent */
-  --color-brand-50: oklch(0.97 0.025 178);
-  --color-brand-100: oklch(0.93 0.05 178);
-  --color-brand-200: oklch(0.85 0.09 178);
-  --color-brand-300: oklch(0.74 0.13 178);
-  --color-brand-400: oklch(0.66 0.14 178);
-  --color-brand-500: oklch(0.57 0.14 178);
-  --color-brand-600: oklch(0.48 0.13 178);
-  --color-brand-700: oklch(0.4 0.11 178);
-  --color-brand-800: oklch(0.32 0.09 178);
-  --color-brand-900: oklch(0.25 0.07 178);
-  --color-brand-950: oklch(0.18 0.05 178);
+  /* Intensified premium teal accent */
+  --color-brand-50: oklch(0.97 0.03 178);
+  --color-brand-100: oklch(0.93 0.07 178);
+  --color-brand-200: oklch(0.85 0.12 178);
+  --color-brand-300: oklch(0.74 0.18 178);
+  --color-brand-400: oklch(0.66 0.2 178);
+  --color-brand-500: oklch(0.57 0.22 178);
+  --color-brand-600: oklch(0.48 0.19 178);
+  --color-brand-700: oklch(0.4 0.15 178);
+  --color-brand-800: oklch(0.32 0.11 178);
+  --color-brand-900: oklch(0.25 0.08 178);
+  --color-brand-950: oklch(0.18 0.06 178);
 
   --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.18), 0 12px 32px oklch(0 0 0 / 0.16);
   --shadow-elevated: 0 30px 70px oklch(0 0 0 / 0.34), 0 1px 0 oklch(1 0 0 / 0.04) inset;
@@ -59,6 +60,8 @@
   --chart-positive: oklch(0.62 0.17 152);
   --chart-neutral: oklch(0.62 0.04 264);
   --chart-grid: oklch(0.88 0.006 264);
+
+  --surface-glass: oklch(1 0 0 / 0.7);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -79,6 +82,8 @@
     --chart-positive: oklch(0.76 0.16 152);
     --chart-neutral: oklch(0.72 0.03 268);
     --chart-grid: oklch(0.32 0.012 268);
+
+    --surface-glass: oklch(0.18 0.012 268 / 0.6);
   }
 }
 
@@ -141,6 +146,19 @@ table,
 /* Hairline divider helper */
 .hairline {
   background: linear-gradient(90deg, transparent, var(--border-1), transparent);
+}
+
+@layer utilities {
+  .glass {
+    background-color: var(--surface-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-soft);
+  }
+
+  .glow-brand {
+    box-shadow: 0 0 20px oklch(0.57 0.22 178 / 0.4);
+  }
 }
 
 /* Analysis result — print-friendly executive export */

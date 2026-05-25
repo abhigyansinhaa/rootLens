@@ -11,12 +11,20 @@ type Props = {
   className?: string
 }
 
+const toneBg: Record<Tone, string> = {
+  default: 'bg-[var(--surface-1)]',
+  info: 'bg-brand-500/5',
+  success: 'bg-emerald-500/5',
+  warning: 'bg-amber-500/5',
+  risk: 'bg-red-500/5',
+}
+
 const toneRing: Record<Tone, string> = {
-  default: 'ring-[var(--border-1)]',
-  info: 'ring-brand-300/60 dark:ring-brand-800/70',
-  success: 'ring-emerald-300/60 dark:ring-emerald-800/60',
-  warning: 'ring-amber-300/60 dark:ring-amber-800/60',
-  risk: 'ring-red-300/60 dark:ring-red-800/60',
+  default: 'ring-1 ring-[var(--border-subtle)]',
+  info: 'ring-2 ring-brand-500/40',
+  success: 'ring-2 ring-emerald-500/40',
+  warning: 'ring-2 ring-amber-500/40',
+  risk: 'ring-2 ring-red-500/40',
 }
 
 const toneAccent: Record<Tone, string> = {
@@ -28,21 +36,20 @@ const toneAccent: Record<Tone, string> = {
 }
 
 export function Stat({ label, value, hint, delta, tone = 'default', className = '' }: Props) {
-  const ringClass = tone === 'default' ? 'ring-0' : `ring-1 ${toneRing[tone]}`
   return (
     <div
-      className={`relative overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-[var(--card-gap)] ${ringClass} before:absolute before:left-0 before:top-0 before:h-full before:w-1 ${toneAccent[tone]} ${className}`.trim()}
+      className={`relative overflow-hidden rounded-2xl glass backdrop-blur-md p-5 shadow-sm transition-all hover:shadow-md ${toneBg[tone]} ${toneRing[tone]} before:absolute before:left-0 before:top-0 before:h-full before:w-1.5 ${toneAccent[tone]} ${className}`.trim()}
     >
-      <p className="text-[length:var(--font-label-xs)] font-black uppercase tracking-[0.18em] leading-none text-[var(--text-3)]">
+      <p className="text-[11px] font-black uppercase tracking-[0.2em] leading-none text-[var(--text-3)] mb-3">
         {label}
       </p>
-      <p className="mt-3 text-[length:var(--font-kpi-xl)] font-black leading-none tracking-tight tabular-nums text-[var(--text-1)]">
+      <p className="text-3xl font-black leading-none tracking-tight tabular-nums text-[var(--text-1)]">
         {value}
       </p>
       {(hint || delta) && (
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
-          {hint && <span className="text-[var(--text-2)]">{hint}</span>}
-          {delta && <span className="font-semibold tabular-nums">{delta}</span>}
+        <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] flex flex-col gap-1.5 text-xs">
+          {hint && <div className="text-[var(--text-2)]">{hint}</div>}
+          {delta && <div className="font-bold tabular-nums text-[var(--text-1)]">{delta}</div>}
         </div>
       )}
     </div>
