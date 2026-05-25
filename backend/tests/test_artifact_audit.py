@@ -56,6 +56,6 @@ def test_audit_logger_appends_one_line_per_event(tmp_path, monkeypatch):
     assert len(files) == 1, files
     lines = [json.loads(line) for line in files[0].read_text(encoding="utf-8").splitlines() if line.strip()]
     assert len(lines) == 2
-    assert {l["event"] for l in lines} == {"analysis.started", "analysis.completed"}
+    assert {entry["event"] for entry in lines} == {"analysis.started", "analysis.completed"}
     assert lines[0]["analysis_id"] == 1
     assert "ts" in lines[1]

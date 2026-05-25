@@ -1,7 +1,7 @@
 /** Presentation labels for encoded model features (mirrors backend driver_labels.py). */
 
 function normalizeKey(value: string): string {
-  const s = value.replace(/([a-z0-9])([A-Z])/g, '$1_$2').replace(/[\s\-\.]+/g, '_')
+  const s = value.replace(/([a-z0-9])([A-Z])/g, '$1_$2').replace(/[\s.-]+/g, '_')
   return s.toLowerCase().replace(/^_+|_+$/g, '')
 }
 

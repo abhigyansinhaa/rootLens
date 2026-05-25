@@ -131,7 +131,7 @@ export function DriverImpactCard({
                 <TR key={r.feature}>
                   <TD>{formatDriverLabel(r.feature, rawColumns)}</TD>
                   <TD className="whitespace-nowrap text-[11px] text-[var(--text-2)]">
-                    {categoryForDriver(stem)}
+                    {categoryForDriver(r.feature)}
                   </TD>
                   <TD>
                     <StatusBadge tone={ctrl === 'controllable' ? 'success' : ctrl === 'observational' ? 'default' : 'warning'}>
