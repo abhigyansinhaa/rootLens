@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 import pandas as pd
@@ -64,14 +63,6 @@ def test_categorical_narrative_grammar():
 def test_economic_frame_preserves_direction():
     df = pd.DataFrame({"monthly_charges": [50, 80, 120], "churned": [0, 1, 1]})
     meta = [{"name": "monthly_charges", "dtype": "float64", "null_ratio": 0.0}]
-    rows = [
-        {
-            "feature": "monthly_charges",
-            "mean_abs_shap": 0.4,
-            "mean_signed_shap": 0.3,
-            "direction": "increases",
-        },
-    ]
     rows3 = [
         {"feature": "contract_type_one year", "mean_abs_shap": 0.9, "mean_signed_shap": 0.1, "direction": "increases"},
         {"feature": "tenure_months", "mean_abs_shap": 0.8, "mean_signed_shap": -0.1, "direction": "decreases"},

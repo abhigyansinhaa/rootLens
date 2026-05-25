@@ -29,7 +29,7 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 from xgboost import XGBClassifier, XGBRegressor
 
 from app.pipelines.common import TaskType, detect_task_type, positive_class_index_for_model
-from app.pipelines.encoders import HIGH_CARD_MAX, HIGH_CARD_MIN, FrequencyEncoder, OOFTargetEncoder
+from app.pipelines.encoders import HIGH_CARD_MAX, FrequencyEncoder, OOFTargetEncoder
 
 ModelKind = Literal["xgboost", "random_forest", "logistic_regression", "elastic_net"]
 
