@@ -66,7 +66,7 @@ export function Upload() {
       <PageHeader
         eyebrow="Step 1 - Ingest"
         title="Upload dataset"
-        description="Start the RCA flow with a CSV or Parquet file. After upload we profile columns and guide target selection."
+        description="Start the rootLens flow with a CSV or Parquet file. After upload we profile columns and guide target selection."
         meta={
           <>
             <StatusBadge tone="info">CSV</StatusBadge>

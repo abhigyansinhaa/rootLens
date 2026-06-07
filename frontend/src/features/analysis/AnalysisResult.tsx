@@ -290,7 +290,7 @@ export function AnalysisResult() {
         <PageHeader
           eyebrow="Analysis Result"
           title={`Analysis #${data.id}`}
-          description="Audit-ready RCA artifact. Use this report to confirm reliability, review drivers, and decide on actions."
+          description="Audit-ready rootLens artifact. Use this report to confirm reliability, review drivers, and decide on actions."
           meta={
             <>
               <StatusBadge tone={statusTone(data.status)} dot>

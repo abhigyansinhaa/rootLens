@@ -182,7 +182,7 @@ export function Dashboard() {
   if (!datasetCount && !analyses.length) {
     return (
       <EmptyState
-        title="Start your RCA workspace"
+        title="Start your rootLens workspace"
         description="Upload a CSV or Parquet dataset, select a target, and turn model output into business decisions."
         action={<Button to="/upload">Upload dataset</Button>}
       />

@@ -99,7 +99,7 @@ export function Login() {
           <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-brand-400 via-brand-600 to-slate-900 shadow-2xl shadow-brand-500/30 ring-1 ring-white/20 animate-pulse-glow">
             <span className="font-mono text-5xl font-black text-white">R</span>
           </div>
-          <h1 className="mt-8 text-4xl font-black tracking-tight text-white">RCA Cockpit</h1>
+          <h1 className="mt-8 text-4xl font-black tracking-tight text-white">rootLens Cockpit</h1>
           <p className="mt-4 max-w-md text-lg leading-relaxed text-slate-300">
             Decision-ready root-cause insights and actionable KPIs for operators.
           </p>
@@ -115,7 +115,7 @@ export function Login() {
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 via-brand-600 to-slate-900 shadow-md ring-1 ring-white/20">
               <span className="font-mono text-xl font-black text-white">R</span>
             </div>
-            <h2 className="mt-4 text-2xl font-black text-[var(--text-1)]">RCA Cockpit</h2>
+            <h2 className="mt-4 text-2xl font-black text-[var(--text-1)]">rootLens Cockpit</h2>
           </div>
 
           <Card padding="xl" tone="default" elevated className="glass border-t-brand-500 border-t-2 animate-fade-in-up">

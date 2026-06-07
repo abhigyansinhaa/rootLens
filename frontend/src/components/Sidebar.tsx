@@ -29,7 +29,7 @@ export function Sidebar({ collapsed, onToggle, userEmail, onLogout }: SidebarPro
           </div>
           {!collapsed && (
             <span className="whitespace-nowrap font-sans">
-              <span className="font-black text-[var(--text-1)]">RCA</span>
+              <span className="font-black text-[var(--text-1)]">rootLens</span>
               <span className="ml-1 text-xs font-medium uppercase tracking-[0.18em] text-[var(--text-3)]">Cockpit</span>
             </span>
           )}

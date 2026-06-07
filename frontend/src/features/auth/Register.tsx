@@ -144,7 +144,7 @@ export function Register() {
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 via-brand-600 to-slate-900 shadow-md ring-1 ring-white/20">
               <span className="font-mono text-xl font-black text-white">R</span>
             </div>
-            <h2 className="mt-4 text-2xl font-black text-[var(--text-1)]">RCA Cockpit</h2>
+            <h2 className="mt-4 text-2xl font-black text-[var(--text-1)]">rootLens Cockpit</h2>
           </div>
 
           <Card padding="xl" tone="default" elevated className="glass border-t-brand-500 border-t-2 animate-fade-in-up">

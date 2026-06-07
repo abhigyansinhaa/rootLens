@@ -31,7 +31,7 @@ export function Layout() {
                 <span className="font-mono text-sm font-black">R</span>
               </span>
               <span className="flex items-baseline gap-1.5">
-                <span className="font-black">RCA</span>
+                <span className="font-black">rootLens</span>
                 <span className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--text-3)]">Cockpit</span>
               </span>
             </Link>
