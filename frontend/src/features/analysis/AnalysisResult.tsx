@@ -5,8 +5,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -18,11 +16,9 @@ import {
   ConcentrationCallout,
   CounterfactualCallout,
   DriverImpactCard,
-  GovernancePanel,
   KpiCard,
   ReliabilityBadge,
   RiskSegmentsChart,
-  StickyExecutiveStrip,
 } from '../../components/kpi'
 import {
   concentrationShareTone,
@@ -36,7 +32,6 @@ import {
   Card,
   CardEyebrow,
   ErrorState,
-  HelpTooltip,
   LoadingState,
   PageHeader,
   SectionHeader,
@@ -45,9 +40,7 @@ import {
 } from '../../components/ui'
 import { formatDriverLabel } from '../../lib/driverLabels'
 import type { Analysis, Dataset, KpiHistoryResponse } from '../../types'
-import { ArrowLeft, Download, Printer, Settings2, BarChart3, Target, LayoutDashboard, ShieldCheck, FileJson, CheckCircle2, AlertCircle } from 'lucide-react'
-
-type ViewPreset = 'executive' | 'analyst' | 'ops' | 'ds'
+import { ArrowLeft, Download, Printer, Target, LayoutDashboard, ShieldCheck, FileJson, CheckCircle2, AlertCircle } from 'lucide-react'
 
 const TERMINAL_OK_STATUSES = new Set(['completed', 'completed_with_warnings'])
 const IN_FLIGHT_STATUSES = new Set([
@@ -201,8 +194,8 @@ export function AnalysisResult() {
       })
   }, [data?.feature_importance, rawColumnNames])
 
-  const [heatmapColumn, setHeatmapColumn] = useState('')
-  const { data: heatmapData } = useQuery({
+  const [heatmapColumn] = useState('')
+  useQuery({
     queryKey: ['risk-heatmap', analysisId, heatmapColumn],
     queryFn: async () => {
       const { data: h } = await api.get<{

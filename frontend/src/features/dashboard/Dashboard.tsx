@@ -6,8 +6,6 @@ import { formatPct01 } from '../../components/kpi/format'
 import {
   Button,
   Card,
-  CardEyebrow,
-  CardTitle,
   EmptyState,
   ErrorState,
   LoadingState,
@@ -16,17 +14,7 @@ import {
 import { ArrowRight, CheckCircle2, Clock, PlayCircle, PlusCircle, AlertCircle, Sparkles } from 'lucide-react'
 import type { AnalysisListItem, Dataset } from '../../types'
 
-function formatDate(iso: string) {
-  try {
-    return new Date(iso).toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-  } catch {
-    return iso
-  }
-}
+
 
 function timeAgo(iso: string) {
   try {
@@ -143,7 +131,6 @@ export function Dashboard() {
   const datasetCount = datasets.length
   const totalRows = datasets.reduce((s, d) => s + d.rows, 0)
   const completedAnalyses = analyses.filter((a) => DASHBOARD_TERMINAL_OK.has(a.status)).length
-  const failedAnalyses = analyses.filter((a) => a.status === 'failed').length
   
   const recent = useMemo(
     () => [...datasets].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 6),
