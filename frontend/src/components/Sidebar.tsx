@@ -6,6 +6,8 @@ type SidebarProps = {
   onToggle: () => void
   userEmail: string
   onLogout: () => void
+  isOpenOnMobile?: boolean
+  onCloseMobile?: () => void
 }
 
 const navItems = [
@@ -14,13 +16,23 @@ const navItems = [
   { to: '/upload', label: 'Upload', icon: Upload, end: false },
 ]
 
-export function Sidebar({ collapsed, onToggle, userEmail, onLogout }: SidebarProps) {
+export function Sidebar({ collapsed, onToggle, userEmail, onLogout, isOpenOnMobile, onCloseMobile }: SidebarProps) {
   return (
-    <aside
-      className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-[var(--border-subtle)] bg-[var(--surface-1)] transition-all duration-300 ${
-        collapsed ? 'w-[72px]' : 'w-64'
-      }`}
-    >
+    <>
+      {/* Mobile Backdrop */}
+      {isOpenOnMobile && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity md:hidden"
+          onClick={onCloseMobile}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-[var(--border-subtle)] bg-[var(--surface-1)] transition-all duration-300 ${
+          collapsed ? 'w-[72px]' : 'w-64'
+        } ${isOpenOnMobile ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+      >
       {/* Brand Header */}
       <div className="flex h-[var(--app-header-height)] shrink-0 items-center justify-between border-b border-[var(--border-subtle)] px-4">
         <div className={`flex items-center gap-3 overflow-hidden ${collapsed ? 'w-8 justify-center' : ''}`}>
@@ -74,10 +86,10 @@ export function Sidebar({ collapsed, onToggle, userEmail, onLogout }: SidebarPro
 
       {/* Footer / User Profile */}
       <div className="border-t border-[var(--border-subtle)] p-3">
-        {/* Toggle Button */}
+        {/* Toggle Button (Hidden on Mobile) */}
         <button
           onClick={onToggle}
-          className="mb-2 flex w-full items-center justify-center rounded-lg p-2 text-[var(--text-3)] hover:bg-[var(--surface-2)] hover:text-[var(--text-1)] transition-colors"
+          className="mb-2 hidden w-full items-center justify-center rounded-lg p-2 text-[var(--text-3)] hover:bg-[var(--surface-2)] hover:text-[var(--text-1)] transition-colors md:flex"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
@@ -110,5 +122,6 @@ export function Sidebar({ collapsed, onToggle, userEmail, onLogout }: SidebarPro
         </div>
       </div>
     </aside>
+    </>
   )
 }

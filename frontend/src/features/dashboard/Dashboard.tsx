@@ -192,19 +192,19 @@ export function Dashboard() {
   return (
     <div className="space-y-8 animate-fade-in-up">
       {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-2xl border border-brand-500/20 bg-gradient-to-r from-brand-950 via-brand-900 to-indigo-950 p-6 sm:p-8">
-        <div className="absolute right-0 top-0 -mt-16 -mr-16 h-64 w-64 rounded-full bg-brand-500/20 blur-3xl" />
+      <div className="relative overflow-hidden rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] p-6 sm:p-8">
+        <div className="absolute right-0 top-0 -mt-16 -mr-16 h-64 w-64 rounded-full bg-[var(--chart-primary)]/5 blur-3xl" />
         <div className="relative z-10 flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-2xl font-black text-white sm:text-3xl">
+            <h1 className="text-2xl font-sans font-bold text-[var(--text-1)] sm:text-3xl">
               {getGreeting()}, Operator.
             </h1>
-            <p className="mt-2 max-w-xl text-brand-100/80">
+            <p className="mt-2 max-w-xl text-[var(--text-2)]">
               Workspace is healthy. You have {priorityQueue.length} datasets requiring attention and {completedAnalyses} completed analyses ready for review.
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-3">
-            <Button to="/upload" className="bg-brand-500 hover:bg-brand-400 text-white shadow-lg shadow-brand-500/20">
+            <Button to="/upload" className="bg-white hover:bg-gray-200 text-black shadow-sm ring-1 ring-inset ring-black/10">
               <PlusCircle className="mr-2 h-4 w-4" />
               New Dataset
             </Button>
@@ -220,12 +220,12 @@ export function Dashboard() {
           { label: 'Completion Rate', value: formatPct01(analyses.length ? completedAnalyses / analyses.length : 0, 0), hint: 'Across all runs', color: 'oklch(0.62 0.17 152)', spark: [90, 85, 95, 92, 98, 100] },
           { label: 'Awaiting Decision', value: priorityQueue.length, hint: 'Action items pending', color: priorityQueue.length ? 'oklch(0.78 0.17 80)' : 'oklch(0.62 0.04 264)', spark: [5, 4, 6, 2, 3, priorityQueue.length] }
         ].map((kpi, i) => (
-          <div key={kpi.label} className={`relative overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-5 transition-all hover:-translate-y-1 hover:shadow-lg animate-fade-in-up delay-${(i+1)*100}`}>
+            <div key={kpi.label} className={`relative overflow-hidden rounded-md border border-[var(--border-subtle)] bg-[var(--surface-1)] p-5 transition-all hover:border-[var(--border-strong)] animate-fade-in-up delay-${(i+1)*100}`}>
             <div className="absolute left-0 top-0 h-full w-1" style={{ backgroundColor: kpi.color }} />
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-[var(--text-3)]">{kpi.label}</p>
-                <p className="mt-2 text-3xl font-black tabular-nums text-[var(--text-1)]">
+                <p className="text-[11px] font-mono uppercase tracking-widest text-[var(--text-3)]">{kpi.label}</p>
+                <p className="mt-2 text-3xl font-mono tabular-nums text-[var(--text-1)] tracking-tight">
                   <AnimatedCounter value={kpi.value} />
                 </p>
                 <p className="mt-1 text-xs text-[var(--text-2)]">{kpi.hint}</p>
@@ -240,29 +240,29 @@ export function Dashboard() {
         {/* Main Content Area */}
         <div className="space-y-6">
           {/* Action Items Timeline */}
-          <Card padding="lg" elevated className="glass border-t-brand-500 border-t-2">
-            <div className="flex items-center justify-between mb-6">
+          <Card padding="lg" className="rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)]">
+            <div className="flex items-center justify-between mb-6 border-b border-[var(--border-subtle)] pb-4">
               <div>
-                <h2 className="text-lg font-black text-[var(--text-1)]">Action Items</h2>
+                <h2 className="text-base font-semibold text-[var(--text-1)]">Action Items</h2>
                 <p className="text-sm text-[var(--text-2)]">Priority queue requiring operator attention.</p>
               </div>
-              <Sparkles className="h-5 w-5 text-brand-500" />
+              <Sparkles className="h-4 w-4 text-[var(--text-3)]" />
             </div>
 
             {priorityQueue.length ? (
               <div className="relative pl-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-px before:bg-[var(--border-subtle)] space-y-6">
                 {priorityQueue.map(({ dataset, reason, tone, icon: Icon }, i) => (
                   <div key={dataset.id} className={`relative animate-slide-in-left delay-${(i+1)*100}`}>
-                    <div className={`absolute -left-[29px] top-1 h-5 w-5 rounded-full border-4 border-[var(--surface-1)] bg-${tone === 'risk' ? 'red' : tone === 'warning' ? 'amber' : 'brand'}-500`} />
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-2)]/50 p-4 transition-colors hover:bg-[var(--surface-3)]/80">
-                      <div>
+                    <div className={`absolute -left-[29px] top-1.5 h-4 w-4 rounded-full border-[3px] border-[var(--surface-1)] bg-${tone === 'risk' ? 'red' : tone === 'warning' ? 'amber' : 'brand'}-500`} />
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4 transition-colors hover:border-[var(--border-strong)]">
+                      <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <Icon className={`h-4 w-4 text-${tone === 'risk' ? 'red' : tone === 'warning' ? 'amber' : 'brand'}-500`} />
-                          <h3 className="font-bold text-[var(--text-1)]">{dataset.name}</h3>
+                          <Icon className={`h-4 w-4 shrink-0 text-${tone === 'risk' ? 'red' : tone === 'warning' ? 'amber' : 'brand'}-500`} />
+                          <h3 className="text-sm font-semibold text-[var(--text-1)] truncate">{dataset.name}</h3>
                         </div>
-                        <p className="mt-1 text-sm text-[var(--text-2)]">{reason}</p>
+                        <p className="mt-1 text-sm text-[var(--text-2)] truncate">{reason}</p>
                       </div>
-                      <Button size="sm" variant={tone === 'risk' ? 'danger' : 'primary'} to={`/datasets/${dataset.id}`}>
+                      <Button size="sm" variant={tone === 'risk' ? 'danger' : 'secondary'} to={`/datasets/${dataset.id}`} className="shrink-0">
                         Resolve
                         <ArrowRight className="ml-2 h-3 w-3" />
                       </Button>
@@ -271,8 +271,8 @@ export function Dashboard() {
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border-subtle)] bg-[var(--surface-2)]/30 py-12 text-center">
-                <CheckCircle2 className="mb-3 h-8 w-8 text-emerald-500 opacity-80" />
+              <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-[var(--border-subtle)] bg-[var(--surface-2)]/30 py-12 text-center">
+                <CheckCircle2 className="mb-3 h-8 w-8 text-[var(--chart-positive)] opacity-80" />
                 <p className="text-sm font-medium text-[var(--text-1)]">Inbox Zero</p>
                 <p className="mt-1 text-xs text-[var(--text-2)]">All datasets have recent successful analyses.</p>
               </div>
@@ -280,13 +280,13 @@ export function Dashboard() {
           </Card>
 
           {/* Dataset Grid */}
-          <Card padding="lg">
-            <div className="flex items-center justify-between mb-6">
+          <Card padding="lg" className="rounded-md bg-[var(--surface-1)] border border-[var(--border-subtle)]">
+            <div className="flex items-center justify-between mb-6 border-b border-[var(--border-subtle)] pb-4">
               <div>
-                <h2 className="text-lg font-black text-[var(--text-1)]">Recent Datasets</h2>
+                <h2 className="text-base font-semibold text-[var(--text-1)]">Recent Datasets</h2>
                 <p className="text-sm text-[var(--text-2)]">Inventory of uploaded data tables.</p>
               </div>
-              <Link to="/datasets" className="text-sm font-semibold text-brand-600 hover:text-brand-500">
+              <Link to="/datasets" className="text-sm font-medium text-[var(--text-1)] hover:text-white">
                 View all →
               </Link>
             </div>
@@ -300,11 +300,11 @@ export function Dashboard() {
                   <Link
                     key={dataset.id}
                     to={`/datasets/${dataset.id}`}
-                    className={`group relative overflow-hidden rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-4 transition-all hover:border-[var(--border-strong)] hover:shadow-md animate-fade-in-up delay-${(i+2)*100}`}
+                    className={`group relative overflow-hidden rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4 transition-all hover:border-[var(--border-strong)] animate-fade-in-up delay-${(i+2)*100}`}
                   >
                     <div className={`absolute top-0 left-0 h-1 w-full bg-${tone === 'success' ? 'emerald' : tone === 'risk' ? 'red' : tone === 'warning' ? 'amber' : 'slate'}-500 transition-transform origin-left scale-x-0 group-hover:scale-x-100`} />
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-bold text-[var(--text-1)] truncate pr-2">{dataset.name}</h3>
+                    <div className="flex justify-between items-start mb-2 gap-2">
+                      <h3 className="text-sm font-semibold text-[var(--text-1)] truncate min-w-0">{dataset.name}</h3>
                       {latest && (
                         <StatusBadge tone={tone} className="shrink-0 scale-90 origin-top-right">
                           {latest.status}
