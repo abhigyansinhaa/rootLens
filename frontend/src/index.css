@@ -1,143 +1,396 @@
 @import "tailwindcss";
 @import "./styles/animations.css";
 
-/* Design tokens - Tailwind v4 Minimal Premium Dark (GitHub-inspired) */
+/* ─────────────────────────────────────────────────────────────────────────────
+   TAILWIND v4 THEME — RootLens Signal Intelligence Platform
+   ───────────────────────────────────────────────────────────────────────────── */
 @theme {
-  --font-sans: "Inter Tight", "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --font-serif: "Newsreader", ui-serif, Georgia, serif;
+  /* Typography */
+  --font-sans: "Inter", "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  --font-serif: "Inter", ui-serif, Georgia, serif;
 
-  /* Premium sleek accent (Soft cool white/blue) */
-  --color-brand-50: #ffffff;
-  --color-brand-100: #f0f6fc;
-  --color-brand-200: #c9d1d9;
-  --color-brand-300: #b1bac4;
-  --color-brand-400: #8b949e;
-  --color-brand-500: #6e7681;
-  --color-brand-600: #484f58;
-  --color-brand-700: #30363d;
-  --color-brand-800: #21262d;
-  --color-brand-900: #161b22;
-  --color-brand-950: #0d1117;
+  /* Brand — Electric Blue (HSL anchored) */
+  --color-brand-50:  hsl(214 100% 97%);
+  --color-brand-100: hsl(214 100% 93%);
+  --color-brand-200: hsl(214 100% 86%);
+  --color-brand-300: hsl(214 100% 76%);
+  --color-brand-400: hsl(214 100% 66%);
+  --color-brand-500: hsl(214 100% 59%);
+  --color-brand-600: hsl(214 100% 50%);
+  --color-brand-700: hsl(214 100% 42%);
+  --color-brand-800: hsl(214 100% 34%);
+  --color-brand-900: hsl(214 100% 26%);
+  --color-brand-950: hsl(214 100% 16%);
 
-  --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-  --shadow-elevated: 0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -2px rgba(0, 0, 0, 0.5);
+  /* Semantic palette aliases */
+  --color-success-400: hsl(158 64% 52%);
+  --color-success-500: hsl(158 64% 40%);
+  --color-warning-400: hsl(38 92% 60%);
+  --color-warning-500: hsl(38 92% 50%);
+  --color-danger-400:  hsl(0 84% 65%);
+  --color-danger-500:  hsl(0 84% 55%);
+  --color-info-400:    hsl(199 89% 60%);
+  --color-info-500:    hsl(199 89% 50%);
+  --color-purple-400:  hsl(258 80% 70%);
+  --color-purple-500:  hsl(258 80% 58%);
+
+  /* Elevation shadows */
+  --shadow-xs:   0 1px 2px rgba(0,0,0,0.4);
+  --shadow-sm:   0 2px 6px rgba(0,0,0,0.35), 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md:   0 4px 16px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.3);
+  --shadow-lg:   0 8px 30px rgba(0,0,0,0.45), 0 4px 12px rgba(0,0,0,0.3);
+  --shadow-xl:   0 16px 48px rgba(0,0,0,0.5), 0 8px 20px rgba(0,0,0,0.35);
+  --shadow-2xl:  0 24px 64px rgba(0,0,0,0.6), 0 12px 28px rgba(0,0,0,0.4);
+  --shadow-glow: 0 0 0 1px hsl(214 100% 59% / 0.3), 0 0 20px hsl(214 100% 59% / 0.2);
+  --shadow-glow-lg: 0 0 0 1px hsl(214 100% 59% / 0.4), 0 0 40px hsl(214 100% 59% / 0.25);
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   CSS CUSTOM PROPERTIES — Design Tokens
+   ───────────────────────────────────────────────────────────────────────────── */
 :root {
-  /* Force dark mode */
   color-scheme: dark;
 
-  /* Shared UI tokens — typography */
-  --font-kpi-xl: 3.5rem;
-  --font-section-lg: 1.75rem;
-  --font-body-md: 0.9375rem;
-  --font-label-xs: 0.75rem;
+  /* ── Surfaces (5-level luminance stack) ── */
+  --app-bg:     #080c14;     /* L: 4%  — absolute base */
+  --surface-0:  #080c14;     /* alias for base */
+  --surface-1:  #0d1220;     /* L: 7%  — cards */
+  --surface-2:  #131a2e;     /* L: 10% — elevated cards */
+  --surface-3:  #1a2340;     /* L: 14% — inputs, rows */
+  --surface-4:  #212d50;     /* L: 18% — active/selected */
+  --surface-5:  #2a3a63;     /* L: 24% — hover highlights */
 
-  /* Shared UI tokens — spacing */
-  --page-gap: 1.5rem;
-  --card-gap: 1.25rem;
-  --stack-gap: 2.5rem;
+  /* ── Borders ── */
+  --border-subtle:  rgba(255,255,255,0.06);
+  --border-default: rgba(255,255,255,0.10);
+  --border-strong:  rgba(255,255,255,0.18);
+  --border-brand:   hsl(214 100% 59% / 0.4);
+  --border-focus:   hsl(214 100% 59% / 0.8);
 
-  --app-header-height: 64px;
+  /* ── Text ── */
+  --text-1: #f1f5f9;   /* primary */
+  --text-2: #94a3b8;   /* secondary */
+  --text-3: #4e637a;   /* tertiary/placeholder */
+  --text-4: #2d3f54;   /* disabled */
 
-  /* GitHub-inspired minimal dark palette */
-  --app-bg: #0d1117;
-  --surface-1: #161b22;
-  --surface-2: #21262d;
-  --surface-3: #30363d;
-  --border-1: #30363d;
-  --border-2: #484f58;
-  --border-soft: rgba(48, 54, 61, 0.5);
-  
-  --text-1: #c9d1d9;
-  --text-2: #8b949e;
-  --text-3: #6e7681;
+  /* ── Brand shortcuts ── */
+  --brand:          hsl(214 100% 59%);
+  --brand-dim:      hsl(214 100% 59% / 0.15);
+  --brand-dimmer:   hsl(214 100% 59% / 0.08);
 
-  --chart-primary: #58a6ff;
-  --chart-risk: #f85149;
-  --chart-warning: #d29922;
-  --chart-positive: #3fb950;
-  --chart-neutral: #8b949e;
-  --chart-grid: #21262d;
+  /* ── Semantic colors ── */
+  --c-success:      hsl(158 64% 40%);
+  --c-success-bg:   hsl(158 64% 40% / 0.12);
+  --c-success-border: hsl(158 64% 40% / 0.3);
+  --c-warning:      hsl(38 92% 50%);
+  --c-warning-bg:   hsl(38 92% 50% / 0.12);
+  --c-warning-border: hsl(38 92% 50% / 0.3);
+  --c-danger:       hsl(0 84% 60%);
+  --c-danger-bg:    hsl(0 84% 60% / 0.12);
+  --c-danger-border: hsl(0 84% 60% / 0.3);
+  --c-info:         hsl(199 89% 55%);
+  --c-info-bg:      hsl(199 89% 55% / 0.12);
+  --c-info-border:  hsl(199 89% 55% / 0.3);
 
-  --surface-glass: rgba(22, 27, 34, 0.75);
+  /* ── Chart colors ── */
+  --chart-primary:  hsl(214 100% 59%);
+  --chart-success:  hsl(158 64% 46%);
+  --chart-warning:  hsl(38 92% 55%);
+  --chart-danger:   hsl(0 84% 60%);
+  --chart-purple:   hsl(258 80% 68%);
+  --chart-cyan:     hsl(190 100% 55%);
+  --chart-grid:     rgba(255,255,255,0.05);
+
+  /* ── Glass surfaces ── */
+  --glass-1: rgba(13, 18, 32, 0.55);
+  --glass-2: rgba(19, 26, 46, 0.70);
+  --glass-3: rgba(26, 35, 64, 0.80);
+
+  /* ── Layout ── */
+  --app-header-height: 60px;
+  --sidebar-width: 256px;
+  --sidebar-collapsed-width: 68px;
+  --page-max-width: 1320px;
+  --page-padding: clamp(1rem, 3vw, 2rem);
+
+  /* ── Typography scale ── */
+  --text-xs:   0.6875rem;   /* 11px */
+  --text-sm:   0.8125rem;   /* 13px */
+  --text-base: 0.9375rem;   /* 15px */
+  --text-lg:   1.0625rem;   /* 17px */
+  --text-xl:   1.25rem;     /* 20px */
+  --text-2xl:  1.5rem;      /* 24px */
+  --text-3xl:  1.875rem;    /* 30px */
+  --text-4xl:  2.25rem;     /* 36px */
+  --text-5xl:  3rem;        /* 48px */
+
+  /* ── Radius ── */
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --radius-xl:  20px;
+  --radius-2xl: 28px;
+  --radius-full: 9999px;
+
+  /* ── Transition ── */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out:    cubic-bezier(0, 0, 0.2, 1);
+  --ease-in:     cubic-bezier(0.4, 0, 1, 1);
+  --duration-fast:   120ms;
+  --duration-normal: 220ms;
+  --duration-slow:   380ms;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   GLOBAL RESET & BASE STYLES
+   ───────────────────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  tab-size: 2;
 }
 
 body {
-  @apply m-0 min-h-screen font-sans antialiased;
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+  font-variation-settings: "opsz" 16;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   color: var(--text-1);
   background-color: var(--app-bg);
-  /* Minimal texture: very faint radial glow to prevent complete flatness */
+
+  /* Multi-layer mesh gradient background */
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(88, 166, 255, 0.03), transparent 50%);
+    radial-gradient(ellipse 80% 50% at 20% -5%, hsl(214 100% 59% / 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 85% 15%, hsl(258 80% 58% / 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 100% 60% at 50% 110%, hsl(214 100% 42% / 0.06) 0%, transparent 50%),
+    linear-gradient(180deg, #080c14 0%, #0a0f1e 100%);
   background-attachment: fixed;
-  font-feature-settings: "ss01", "cv11", "tnum";
-  letter-spacing: -0.01em;
 }
 
+/* ── Focus Styles ── */
 :focus-visible {
-  outline: 2px solid var(--chart-primary);
-  outline-offset: 2px;
-  border-radius: 6px;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--border-focus), var(--shadow-glow);
+  border-radius: var(--radius-sm);
 }
 
-/* Minimal scrollbars */
+/* ── Selection ── */
+::selection {
+  background: hsl(214 100% 59% / 0.3);
+  color: #fff;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SCROLLBARS
+   ───────────────────────────────────────────────────────────────────────────── */
 * {
-  scrollbar-color: var(--border-2) transparent;
+  scrollbar-color: var(--surface-4) transparent;
+  scrollbar-width: thin;
 }
 
 *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 *::-webkit-scrollbar-thumb {
-  background: var(--border-1);
-  border-radius: 4px;
+  background: var(--surface-4);
+  border-radius: var(--radius-full);
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: var(--border-2);
+  background: var(--surface-5);
 }
 
-/* Tabular numerics for tables and KPIs */
+/* ─────────────────────────────────────────────────────────────────────────────
+   TYPOGRAPHY
+   ───────────────────────────────────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+  line-height: 1.2;
+}
+
+code, kbd, pre, .mono {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+
+/* Tabular numerics for all data displays */
 .tabular,
 table,
-[data-numeric] {
+[data-numeric],
+.font-mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
-/* Hairline divider helper */
+/* ─────────────────────────────────────────────────────────────────────────────
+   UTILITY CLASSES
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Glass variants ── */
+.glass {
+  background: var(--glass-1);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid var(--border-subtle);
+}
+
+.glass-2 {
+  background: var(--glass-2);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border: 1px solid var(--border-default);
+}
+
+.glass-strong {
+  background: var(--glass-3);
+  backdrop-filter: blur(32px) saturate(1.6);
+  -webkit-backdrop-filter: blur(32px) saturate(1.6);
+  border: 1px solid var(--border-strong);
+}
+
+/* ── Gradient text ── */
+.text-gradient-brand {
+  background: linear-gradient(135deg, var(--brand) 0%, hsl(258 80% 68%) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-cool {
+  background: linear-gradient(135deg, hsl(190 100% 55%) 0%, hsl(214 100% 59%) 50%, hsl(258 80% 68%) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Glow effects ── */
+.glow-brand {
+  box-shadow: 0 0 0 1px var(--border-brand), 0 0 24px hsl(214 100% 59% / 0.2);
+}
+
+.glow-sm {
+  box-shadow: 0 0 12px hsl(214 100% 59% / 0.2);
+}
+
+.glow-lg {
+  box-shadow: 0 0 40px hsl(214 100% 59% / 0.3);
+}
+
+/* ── Hover card lift ── */
+.card-hover {
+  transition: transform var(--duration-normal) var(--ease-spring),
+              box-shadow var(--duration-normal) var(--ease-spring),
+              border-color var(--duration-normal) var(--ease-out);
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg), 0 0 30px hsl(214 100% 59% / 0.08);
+  border-color: var(--border-brand) !important;
+}
+
+/* ── Divider ── */
 .hairline {
-  background: var(--border-1);
   height: 1px;
-  width: 100%;
+  background: var(--border-subtle);
 }
 
-@layer utilities {
-  .glass {
-    background-color: var(--surface-glass);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--border-soft);
-  }
-
-  .glow-brand {
-    box-shadow: 0 0 20px rgba(88, 166, 255, 0.15);
-  }
+/* ── Gradient border ── */
+.border-gradient-brand {
+  position: relative;
+}
+.border-gradient-brand::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--brand), hsl(258 80% 68%));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
-/* Print-friendly export */
+/* ── Shimmer skeleton ── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 25%,
+    var(--surface-3) 50%,
+    var(--surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite linear;
+  border-radius: var(--radius-md);
+}
+
+/* ── Status dot ── */
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot-live {
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+/* ── Noise texture overlay ── */
+.noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   FORM ELEMENTS (native reset)
+   ───────────────────────────────────────────────────────────────────────────── */
+input, textarea, select, button {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PRINT STYLES
+   ───────────────────────────────────────────────────────────────────────────── */
 @media print {
   body {
     background: white !important;
     background-image: none !important;
     color: black !important;
   }
-  [data-analysis-result] .print\:hidden {
-    display: none !important;
+
+  .print\:hidden { display: none !important; }
+  .sidebar, header { display: none !important; }
+
+  [data-analysis-result] {
+    padding: 0 !important;
+    max-width: none !important;
   }
 }

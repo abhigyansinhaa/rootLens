@@ -4,8 +4,6 @@ import { api } from '../../api/client'
 import {
   Button,
   Card,
-  CardDescription,
-  CardTitle,
   LoadingState,
   SectionHeader,
   Select,
@@ -105,13 +103,13 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
           title={datasetName ? `Runs for ${datasetName}` : 'Analysis dashboard'}
           description="Start a root-cause analysis above. When a run finishes, open the dedicated result page for KPIs, drivers, metrics, and recommendations."
         />
-        <Card padding="xl" className="border-dashed border-2 bg-[var(--surface-2)]/30 text-center">
+        <Card padding="xl" className="border-dashed border-2 border-[var(--border-subtle)] bg-[var(--surface-2)]/30 text-center">
           <BarChart3 className="mx-auto mb-4 h-12 w-12 text-[var(--text-3)]" />
-          <CardTitle className="text-xl">No analyses yet</CardTitle>
-          <CardDescription className="mt-2 max-w-md mx-auto">
+          <h2 className="text-xl font-bold text-[var(--text-1)]">No analyses yet</h2>
+          <p className="mt-2 max-w-md mx-auto text-sm text-[var(--text-2)]">
             Pick a target column and run an analysis. You’ll be taken to the result page while the job runs; return
             here anytime to switch runs or check status.
-          </CardDescription>
+          </p>
         </Card>
       </section>
     )
@@ -176,12 +174,12 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
                 <CheckCircle2 className="h-5 w-5" />
               </div>
               <div>
-                <CardTitle className="text-xl">
+                <h2 className="text-xl font-bold text-[var(--text-1)]">
                   {detail.status === 'completed_with_warnings'
                     ? 'Analysis complete (with warnings)'
                     : 'Analysis complete'}
-                </CardTitle>
-                <CardDescription className="mt-2 text-[var(--text-2)] max-w-2xl">
+                </h2>
+                <p className="mt-2 text-sm text-[var(--text-2)] max-w-2xl">
                   Target <code className="rounded bg-[var(--surface-2)] border border-[var(--border-subtle)] px-1.5 py-0.5 font-mono text-xs font-bold text-[var(--text-1)]">{detail.target}</code>
                   {detail.task_type && (
                     <>
@@ -191,7 +189,7 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
                   )}
                   . Full KPIs, segment charts, feature drivers, model metrics, SHAP plots, insights, and recommendations
                   are available on the result page.
-                </CardDescription>
+                </p>
               </div>
             </div>
             <Button className="shrink-0 bg-[var(--text-1)] text-[var(--app-bg)] hover:bg-[var(--text-2)] shadow-lg" to={`/analyses/${detail.id}`}>
@@ -207,14 +205,14 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
                 {detail?.status === 'failed' ? <AlertCircle className="h-5 w-5" /> : <PlayCircle className="h-5 w-5 animate-pulse" />}
               </div>
               <div>
-                <CardTitle className="text-xl">
+                <h2 className="text-xl font-bold text-[var(--text-1)]">
                   {detail?.status === 'failed' ? 'Analysis needs attention' : 'Analysis is preparing results'}
-                </CardTitle>
-                <CardDescription className="mt-1 text-[var(--text-2)] max-w-xl">
+                </h2>
+                <p className="mt-1 text-sm text-[var(--text-2)] max-w-xl">
                   {detail?.error ||
                     detail?.report?.user_message ||
                     'When this job finishes, open the result page for the full report. You can safely navigate away.'}
-                </CardDescription>
+                </p>
               </div>
             </div>
             {detail && <StatusBadge tone={statusTone(detail.status)} className="shrink-0">{detail.status}</StatusBadge>}

@@ -1,82 +1,107 @@
-import type { HTMLAttributes, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
-type Props = HTMLAttributes<HTMLDivElement> & {
+type CardTone = 'default' | 'strong' | 'risk' | 'success' | 'warning' | 'info'
+type CardVariant = 'default' | 'glass' | 'solid' | 'flat'
+type CardPadding = 'none' | 'sm' | 'md' | 'lg' | 'xl'
+
+type CardProps = {
   children: ReactNode
-  padding?: 'none' | 'sm' | 'md' | 'lg' | 'xl'
-  elevated?: boolean
-  tone?: 'default' | 'strong' | 'risk' | 'warning' | 'success' | 'info' | 'flat'
-  radius?: 'md' | 'lg' | 'xl'
+  tone?:       CardTone
+  variant?:    CardVariant
+  padding?:    CardPadding
+  elevated?:   boolean
+  hover?:      boolean
+  accentColor?: string
+  accentTop?:  boolean
+  className?:  string
 }
 
-const paddingMap = {
+const toneStyles: Record<CardTone, string> = {
+  default: 'bg-[var(--surface-1)] border-[var(--border-subtle)]',
+  strong:  'bg-[var(--surface-2)] border-[var(--border-default)]',
+  risk:    'bg-[var(--c-danger-bg)] border-[var(--c-danger-border)]',
+  success: 'bg-[var(--c-success-bg)] border-[var(--c-success-border)]',
+  warning: 'bg-[var(--c-warning-bg)] border-[var(--c-warning-border)]',
+  info:    'bg-[var(--c-info-bg)] border-[var(--c-info-border)]',
+}
+
+const variantStyles: Record<CardVariant, string> = {
+  default: 'border',
+  glass:   'border backdrop-blur-[20px]',
+  solid:   'border-0',
+  flat:    'border-0 bg-transparent',
+}
+
+const paddingStyles: Record<CardPadding, string> = {
   none: '',
-  sm: 'p-4',
-  md: 'p-5 sm:p-6',
-  lg: 'p-6 sm:p-8',
-  xl: 'p-8 sm:p-10',
-}
-
-const radiusMap = {
-  md: 'rounded-xl',
-  lg: 'rounded-2xl',
-  xl: 'rounded-3xl',
+  sm:   'p-3',
+  md:   'p-4',
+  lg:   'p-5 sm:p-6',
+  xl:   'p-6 sm:p-8',
 }
 
 export function Card({
   children,
-  className = '',
-  padding = 'md',
+  tone     = 'default',
+  variant  = 'default',
+  padding  = 'md',
   elevated = false,
-  tone = 'default',
-  radius = 'lg',
-  ...rest
-}: Props) {
-  const shadow = elevated ? 'shadow-md hover:shadow-lg transition-shadow duration-300' : 'shadow-sm'
-  const tones: Record<NonNullable<Props['tone']>, string> = {
-    default:
-      'border-[var(--border-subtle)] bg-[var(--surface-1)] backdrop-blur-xl glass',
-    strong:
-      'border-[var(--border-subtle)] bg-[var(--surface-2)]/90 backdrop-blur-xl',
-    flat:
-      'border-[var(--border-subtle)] bg-[var(--surface-1)]',
-    risk:
-      'border-red-200/50 bg-red-50/50 dark:border-red-900/30 dark:bg-red-950/20 backdrop-blur-md',
-    warning:
-      'border-amber-200/50 bg-amber-50/50 dark:border-amber-900/30 dark:bg-amber-950/20 backdrop-blur-md',
-    success:
-      'border-emerald-200/50 bg-emerald-50/50 dark:border-emerald-900/30 dark:bg-emerald-950/20 backdrop-blur-md',
-    info:
-      'border-brand-200/50 bg-brand-50/50 dark:border-brand-900/30 dark:bg-brand-950/20 backdrop-blur-md',
-  }
+  hover    = false,
+  accentColor,
+  accentTop = true,
+  className = '',
+}: CardProps) {
+  const elevShadow = elevated
+    ? 'shadow-[var(--shadow-md)]'
+    : ''
+
+  const hoverCls = hover
+    ? 'transition-all duration-[var(--duration-normal)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-lg),0_0_30px_hsl(214_100%_59%/0.08)] hover:border-[var(--border-brand)]'
+    : ''
+
+  const glassBase = variant === 'glass'
+    ? 'bg-[var(--glass-1)] backdrop-blur-[20px]'
+    : ''
+
   return (
     <div
-      className={`${radiusMap[radius]} border ${tones[tone]} ${shadow} ${paddingMap[padding]} ${className}`.trim()}
-      {...rest}
+      className={[
+        'relative overflow-hidden rounded-[var(--radius-lg)]',
+        variant !== 'glass' ? toneStyles[tone] : `border ${toneStyles[tone].split(' ').find(c => c.startsWith('border-[')) ?? ''}`,
+        variant === 'glass' ? glassBase : '',
+        variantStyles[variant],
+        paddingStyles[padding],
+        elevShadow,
+        hoverCls,
+        className,
+      ].filter(Boolean).join(' ')}
     >
+      {/* Top accent stripe */}
+      {accentColor && accentTop && (
+        <div
+          aria-hidden
+          className="absolute top-0 left-0 right-0 h-[2px]"
+          style={{ background: accentColor }}
+        />
+      )}
+
+      {/* Ambient glow layer for elevated glass cards */}
+      {elevated && variant === 'glass' && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-24 -right-24 h-48 w-48 rounded-full opacity-20"
+          style={{ background: 'radial-gradient(circle, var(--brand) 0%, transparent 70%)' }}
+        />
+      )}
+
       {children}
     </div>
   )
 }
 
-export function CardTitle({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return (
-    <h3 className={`text-base font-bold tracking-tight text-[var(--text-1)] ${className}`.trim()}>
-      {children}
-    </h3>
-  )
-}
-
-export function CardDescription({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return (
-    <p className={`mt-1.5 text-sm leading-relaxed text-[var(--text-2)] ${className}`.trim()}>{children}</p>
-  )
-}
-
 export function CardEyebrow({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <p
-      className={`text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-3)] mb-2 ${className}`.trim()}
-    >
+    <p className={`text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-3)] ${className}`}>
       {children}
     </p>
   )

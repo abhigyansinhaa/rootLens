@@ -1,57 +1,98 @@
+import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 
-type Tone = 'default' | 'risk' | 'warning' | 'success' | 'info'
+type StatTone = 'default' | 'success' | 'warning' | 'risk' | 'info'
 
-type Props = {
-  label: ReactNode
-  value: ReactNode
-  hint?: ReactNode
-  delta?: ReactNode
-  tone?: Tone
-  className?: string
+type StatProps = {
+  label:       ReactNode
+  value:       ReactNode
+  hint?:       ReactNode
+  tone?:       StatTone
+  trend?:      'up' | 'down' | 'flat'
+  trendValue?: string
+  numeric?:    boolean
+  className?:  string
 }
 
-const toneBg: Record<Tone, string> = {
-  default: 'bg-[var(--surface-1)]',
-  info: 'bg-brand-500/5',
-  success: 'bg-emerald-500/5',
-  warning: 'bg-amber-500/5',
-  risk: 'bg-red-500/5',
+const toneAccent: Record<StatTone, string> = {
+  default: 'bg-[var(--brand)]',
+  success: 'bg-[var(--c-success)]',
+  warning: 'bg-[var(--c-warning)]',
+  risk:    'bg-[var(--c-danger)]',
+  info:    'bg-[var(--c-info)]',
 }
 
-const toneRing: Record<Tone, string> = {
-  default: 'ring-1 ring-[var(--border-subtle)]',
-  info: 'ring-2 ring-brand-500/40',
-  success: 'ring-2 ring-emerald-500/40',
-  warning: 'ring-2 ring-amber-500/40',
-  risk: 'ring-2 ring-red-500/40',
+const trendIconMap = {
+  up:   TrendingUp,
+  down: TrendingDown,
+  flat: Minus,
 }
 
-const toneAccent: Record<Tone, string> = {
-  default: 'before:bg-[var(--border-2)]',
-  info: 'before:bg-brand-500',
-  success: 'before:bg-emerald-500',
-  warning: 'before:bg-amber-500',
-  risk: 'before:bg-red-500',
+const trendColorMap = {
+  up:   'text-[var(--c-success)]',
+  down: 'text-[var(--c-danger)]',
+  flat: 'text-[var(--text-3)]',
 }
 
-export function Stat({ label, value, hint, delta, tone = 'default', className = '' }: Props) {
+/** Rolls numbers from 0 → target on mount. Strings skip animation. */
+function AnimatedValue({ value }: { value: ReactNode }) {
+  const [display, setDisplay] = useState<ReactNode>('')
+  const rafRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (typeof value !== 'number') { setDisplay(value); return }
+    const end = value
+    const duration = 900
+    const start = performance.now()
+
+    const tick = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setDisplay(Math.round(eased * end).toLocaleString())
+      if (progress < 1) rafRef.current = requestAnimationFrame(tick)
+    }
+
+    rafRef.current = requestAnimationFrame(tick)
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }
+  }, [value])
+
+  return <span>{display}</span>
+}
+
+export function Stat({ label, value, hint, tone = 'default', trend, trendValue, className = '' }: StatProps) {
+  const TrendIcon = trend ? trendIconMap[trend] : null
+
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl glass backdrop-blur-md p-5 shadow-sm transition-all hover:shadow-md ${toneBg[tone]} ${toneRing[tone]} before:absolute before:left-0 before:top-0 before:h-full before:w-1.5 ${toneAccent[tone]} ${className}`.trim()}
+      className={[
+        'relative overflow-hidden rounded-[var(--radius-lg)]',
+        'border border-[var(--border-subtle)] bg-[var(--surface-1)]',
+        'p-5 transition-all duration-[var(--duration-normal)]',
+        'hover:border-[var(--border-default)] hover:bg-[var(--surface-2)]',
+        className,
+      ].join(' ')}
     >
-      <p className="text-[11px] font-black uppercase tracking-[0.2em] leading-none text-[var(--text-3)] mb-3">
+      {/* Tone accent bar */}
+      <div className={`absolute left-0 top-0 bottom-0 w-[3px] rounded-r-full ${toneAccent[tone]}`} />
+
+      <p className="pl-3 text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--text-3)]">
         {label}
       </p>
-      <p className="text-3xl font-black leading-none tracking-tight tabular-nums text-[var(--text-1)]">
-        {value}
+
+      <p className="pl-3 mt-2 text-3xl font-bold tracking-tight text-[var(--text-1)] font-[var(--font-mono)] tabular-nums leading-none">
+        <AnimatedValue value={value} />
       </p>
-      {(hint || delta) && (
-        <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] flex flex-col gap-1.5 text-xs">
-          {hint && <div className="text-[var(--text-2)]">{hint}</div>}
-          {delta && <div className="font-bold tabular-nums text-[var(--text-1)]">{delta}</div>}
-        </div>
-      )}
+
+      <div className="pl-3 mt-2 flex items-center gap-2">
+        {hint && <p className="text-xs text-[var(--text-2)]">{hint}</p>}
+        {TrendIcon && trendValue && (
+          <span className={`flex items-center gap-1 text-xs font-semibold ${trendColorMap[trend!]}`}>
+            <TrendIcon className="h-3 w-3" />
+            {trendValue}
+          </span>
+        )}
+      </div>
     </div>
   )
 }

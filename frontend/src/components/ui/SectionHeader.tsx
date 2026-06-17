@@ -1,31 +1,28 @@
 import type { ReactNode } from 'react'
 
-type Props = {
-  eyebrow?: string
-  title: string
-  description?: ReactNode
-  actions?: ReactNode
+type SectionHeaderProps = {
+  eyebrow?:     string
+  title:        string
+  description?: string
+  actions?:     ReactNode
+  className?:   string
 }
 
-export function SectionHeader({ eyebrow, title, description, actions }: Props) {
+export function SectionHeader({ eyebrow, title, description, actions, className = '' }: SectionHeaderProps) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div className={`flex items-start justify-between gap-4 ${className}`}>
       <div>
         {eyebrow && (
-          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-brand-600 dark:text-brand-300">
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--brand)]">
             {eyebrow}
           </p>
         )}
-        <h2 className="mt-1 text-[length:var(--font-section-lg)] font-black leading-tight tracking-tight text-[var(--text-1)]">
-          {title}
-        </h2>
+        <h2 className="text-lg font-bold tracking-tight text-[var(--text-1)]">{title}</h2>
         {description && (
-          <div className="mt-2 max-w-3xl text-[length:var(--font-body-md)] leading-6 text-[var(--text-2)]">
-            {description}
-          </div>
+          <p className="mt-1 max-w-xl text-sm text-[var(--text-2)]">{description}</p>
         )}
       </div>
-      {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
+      {actions && <div className="shrink-0">{actions}</div>}
     </div>
   )
 }

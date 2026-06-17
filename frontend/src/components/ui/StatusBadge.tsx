@@ -1,54 +1,89 @@
 import type { ReactNode } from 'react'
 
-type Tone = 'default' | 'info' | 'success' | 'warning' | 'risk' | 'neutral'
+type Tone = 'default' | 'success' | 'warning' | 'risk' | 'info' | 'neutral' | 'purple' | 'cyan'
 
-type Props = {
-  children: ReactNode
-  tone?: Tone
-  dot?: boolean
+type StatusBadgeProps = {
+  tone?:      Tone
+  dot?:       boolean
+  pulse?:     boolean
+  children:   ReactNode
   className?: string
 }
 
-const tones: Record<Tone, { wrap: string; dot: string }> = {
+const toneMap: Record<Tone, { bg: string; border: string; text: string; dot: string }> = {
   default: {
-    wrap:
-      'bg-[var(--surface-3)] text-[var(--text-2)] ring-[var(--border-1)]',
-    dot: 'bg-[var(--text-3)]',
+    bg:     'bg-[var(--surface-3)]',
+    border: 'border-[var(--border-default)]',
+    text:   'text-[var(--text-2)]',
+    dot:    'bg-[var(--text-3)]',
   },
   neutral: {
-    wrap:
-      'bg-slate-100 text-slate-700 ring-slate-200 dark:bg-slate-800/80 dark:text-slate-300 dark:ring-slate-700',
-    dot: 'bg-slate-400 dark:bg-slate-500',
-  },
-  info: {
-    wrap:
-      'bg-brand-50/80 text-brand-800 ring-brand-200/80 dark:bg-brand-950/60 dark:text-brand-200 dark:ring-brand-800/70',
-    dot: 'bg-brand-500',
+    bg:     'bg-[var(--surface-3)]',
+    border: 'border-[var(--border-default)]',
+    text:   'text-[var(--text-2)]',
+    dot:    'bg-[var(--text-3)]',
   },
   success: {
-    wrap:
-      'bg-emerald-50/80 text-emerald-900 ring-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-200 dark:ring-emerald-800/60',
-    dot: 'bg-emerald-500',
+    bg:     'bg-[var(--c-success-bg)]',
+    border: 'border-[var(--c-success-border)]',
+    text:   'text-[var(--c-success)]',
+    dot:    'bg-[var(--c-success)]',
   },
   warning: {
-    wrap:
-      'bg-amber-50/80 text-amber-900 ring-amber-200/80 dark:bg-amber-950/50 dark:text-amber-100 dark:ring-amber-800/60',
-    dot: 'bg-amber-500',
+    bg:     'bg-[var(--c-warning-bg)]',
+    border: 'border-[var(--c-warning-border)]',
+    text:   'text-[var(--c-warning)]',
+    dot:    'bg-[var(--c-warning)]',
   },
   risk: {
-    wrap:
-      'bg-red-50/80 text-red-900 ring-red-200/80 dark:bg-red-950/50 dark:text-red-200 dark:ring-red-800/60',
-    dot: 'bg-red-500',
+    bg:     'bg-[var(--c-danger-bg)]',
+    border: 'border-[var(--c-danger-border)]',
+    text:   'text-[var(--c-danger)]',
+    dot:    'bg-[var(--c-danger)]',
+  },
+  info: {
+    bg:     'bg-[var(--c-info-bg)]',
+    border: 'border-[var(--c-info-border)]',
+    text:   'text-[var(--c-info)]',
+    dot:    'bg-[var(--c-info)]',
+  },
+  purple: {
+    bg:     'bg-[hsl(258_80%_58%/0.12)]',
+    border: 'border-[hsl(258_80%_58%/0.3)]',
+    text:   'text-[var(--color-purple-400)]',
+    dot:    'bg-[var(--color-purple-400)]',
+  },
+  cyan: {
+    bg:     'bg-[hsl(190_100%_55%/0.12)]',
+    border: 'border-[hsl(190_100%_55%/0.3)]',
+    text:   'text-[var(--chart-cyan)]',
+    dot:    'bg-[var(--chart-cyan)]',
   },
 }
 
-export function StatusBadge({ children, tone = 'default', dot = false, className = '' }: Props) {
-  const t = tones[tone]
+export function StatusBadge({ tone = 'default', dot, pulse, children, className = '' }: StatusBadgeProps) {
+  const t = toneMap[tone]
+
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] ring-1 ${t.wrap} ${className}`.trim()}
+      className={[
+        'inline-flex items-center gap-1.5',
+        'rounded-full border px-2.5 py-0.5',
+        'text-[11px] font-semibold uppercase tracking-[0.08em] whitespace-nowrap',
+        t.bg, t.border, t.text,
+        className,
+      ].join(' ')}
     >
-      {dot && <span className={`h-1.5 w-1.5 rounded-full ${t.dot}`} aria-hidden />}
+      {dot && (
+        <span
+          aria-hidden
+          className={[
+            'h-1.5 w-1.5 rounded-full shrink-0',
+            t.dot,
+            pulse ? 'animate-[dotPulse_2s_ease-in-out_infinite]' : '',
+          ].join(' ')}
+        />
+      )}
       {children}
     </span>
   )

@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './features/auth/AuthContext'
 import { Layout } from './components/Layout'
 import { ProtectedRoute } from './features/auth/ProtectedRoute'
+import { AnalysesList } from './features/analysis/AnalysesList'
 import { AnalysisResult } from './features/analysis/AnalysisResult'
 import { Dashboard } from './features/dashboard/Dashboard'
 import { Datasets } from './features/datasets/DatasetsList'
@@ -51,6 +52,14 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <DatasetDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/analyses"
+                element={
+                  <ProtectedRoute>
+                    <AnalysesList />
                   </ProtectedRoute>
                 }
               />

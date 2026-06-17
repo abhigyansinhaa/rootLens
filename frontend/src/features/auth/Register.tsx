@@ -2,38 +2,62 @@ import { type FormEvent, useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { useAuth } from './AuthContext'
-import { Button, Card, Input } from '../../components/ui'
-import { Database, MousePointerClick, TrendingUp } from 'lucide-react'
+import { Button, Input } from '../../components/ui'
+import { Database, MousePointerClick, TrendingUp, Eye, EyeOff } from 'lucide-react'
 
-function FloatingStep({ 
-  step, 
-  title, 
-  icon: Icon, 
-  delay,
-  top,
-  left,
-  right
-}: { 
-  step: string;
-  title: string; 
-  icon: React.ElementType; 
-  delay: string;
-  top?: string;
-  left?: string;
-  right?: string;
-}) {
+type FloatingStepProps = {
+  step:  string
+  title: string
+  icon:  React.ElementType
+  style: React.CSSProperties
+}
+
+function FloatingStep({ step, title, icon: Icon, style }: FloatingStepProps) {
   return (
-    <div 
-      className={`absolute hidden lg:flex glass rounded-xl p-4 gap-4 items-center shadow-2xl ${delay} animate-fade-in-up`}
-      style={{ top, left, right, animationDelay: delay }}
+    <div
+      className="absolute hidden lg:flex glass-2 rounded-[var(--radius-lg)] px-4 py-3 gap-3 items-center shadow-[var(--shadow-xl)] border border-[var(--border-default)] animate-float"
+      style={style}
     >
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/20 text-indigo-300 ring-1 ring-indigo-500/30">
-        <Icon className="h-5 w-5" />
+      <div className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] bg-[hsl(258_80%_58%/0.15)] border border-[hsl(258_80%_58%/0.3)] text-[var(--color-purple-400)]">
+        <Icon className="h-4 w-4" />
       </div>
       <div>
-        <p className="text-xs font-black uppercase tracking-wider text-indigo-400">Step {step}</p>
-        <p className="text-sm font-bold text-white">{title}</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-purple-400)]">Step {step}</p>
+        <p className="text-sm font-semibold text-[var(--text-1)]">{title}</p>
       </div>
+    </div>
+  )
+}
+
+function StrengthBar({ password }: { password: string }) {
+  const score = (() => {
+    if (!password) return 0
+    let s = 0
+    if (password.length >= 8)  s += 40
+    if (password.length >= 12) s += 20
+    if (/[A-Z]/.test(password)) s += 15
+    if (/[0-9]/.test(password)) s += 15
+    if (/[^A-Za-z0-9]/.test(password)) s += 10
+    return Math.min(100, s)
+  })()
+
+  const color =
+    score < 40 ? 'bg-[var(--c-danger)]' :
+    score < 80 ? 'bg-[var(--c-warning)]' :
+                 'bg-[var(--c-success)]'
+  const label =
+    score < 40 ? 'Weak' :
+    score < 80 ? 'Fair' :
+                 'Strong'
+
+  if (!password) return null
+
+  return (
+    <div className="mt-2 space-y-1">
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--surface-4)]">
+        <div className={`h-full transition-all duration-500 rounded-full ${color}`} style={{ width: `${score}%` }} />
+      </div>
+      <p className="text-[10px] font-semibold text-[var(--text-3)]">Password strength: {label}</p>
     </div>
   )
 }
@@ -42,45 +66,26 @@ export function Register() {
   const { register } = useAuth()
   const navigate = useNavigate()
 
-  const [email, setEmail] = useState('')
+  const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
-  const [err, setErr] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const [showPw,   setShowPw]   = useState(false)
+  const [err,      setErr]      = useState<string | null>(null)
+  const [busy,     setBusy]     = useState(false)
+  const [mouse,    setMouse]    = useState({ x: 0, y: 0 })
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({
-        x: (e.clientX / window.innerWidth - 0.5) * 20,
-        y: (e.clientY / window.innerHeight - 0.5) * 20,
-      })
-    }
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
+    const move = (e: MouseEvent) => setMouse({
+      x: (e.clientX / window.innerWidth  - 0.5) * 18,
+      y: (e.clientY / window.innerHeight - 0.5) * 18,
+    })
+    window.addEventListener('mousemove', move)
+    return () => window.removeEventListener('mousemove', move)
   }, [])
-
-  // Calculate password strength (0-100)
-  const getPasswordStrength = () => {
-    if (!password) return 0
-    let strength = 0
-    if (password.length >= 8) strength += 40
-    if (password.length >= 12) strength += 20
-    if (/[A-Z]/.test(password)) strength += 15
-    if (/[0-9]/.test(password)) strength += 15
-    if (/[^A-Za-z0-9]/.test(password)) strength += 10
-    return Math.min(100, strength)
-  }
-  
-  const strength = getPasswordStrength()
-  const strengthColor = strength < 40 ? 'bg-red-500' : strength < 80 ? 'bg-amber-500' : 'bg-emerald-500'
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
     setErr(null)
-    if (password.length < 8) {
-      setErr('Password must be at least 8 characters.')
-      return
-    }
+    if (password.length < 8) { setErr('Password must be at least 8 characters.'); return }
     setBusy(true)
     try {
       await register(email, password)
@@ -88,15 +93,11 @@ export function Register() {
     } catch (error) {
       if (error instanceof AxiosError) {
         const detail = error.response?.data?.detail
-        if (typeof detail === 'string' && detail.length > 0) {
-          setErr(detail)
-        } else if (!error.response) {
-          setErr('Cannot reach backend. Make sure the API server is running.')
-        } else {
-          setErr('Could not register. Please try again.')
-        }
+        if (typeof detail === 'string' && detail.length > 0) setErr(detail)
+        else if (!error.response) setErr('Cannot reach backend. Make sure the API server is running.')
+        else setErr('Could not create account. Please try again.')
       } else {
-        setErr('Could not register. Please try again.')
+        setErr('Could not create account. Please try again.')
       }
     } finally {
       setBusy(false)
@@ -105,118 +106,127 @@ export function Register() {
 
   return (
     <div className="flex min-h-screen">
-      {/* Left Panel - Brand Showcase */}
-      <div className="relative hidden w-1/2 overflow-hidden bg-slate-950 lg:flex lg:flex-col lg:items-center lg:justify-center">
-        {/* Animated Background Mesh */}
-        <div className="absolute inset-0 z-0 opacity-40">
-          <div className="absolute -left-[10%] top-[-10%] h-[50%] w-[50%] rounded-full bg-brand-600/30 blur-[120px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] h-[50%] w-[50%] rounded-full bg-indigo-600/30 blur-[120px]" />
+      {/* ── Left Panel ── */}
+      <div className="relative hidden w-1/2 overflow-hidden bg-[var(--surface-1)] lg:flex lg:flex-col lg:items-center lg:justify-center border-r border-[var(--border-subtle)]">
+        {/* Mesh */}
+        <div className="absolute inset-0 z-0" aria-hidden>
+          <div className="absolute left-[-10%] top-[-10%] h-[50%] w-[50%] rounded-full bg-purple-600 opacity-[0.08] blur-[100px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] h-[50%] w-[50%] rounded-full bg-[var(--brand)] opacity-[0.06] blur-[100px]" />
         </div>
 
-        {/* Floating Cards (Parallax) */}
-        <div 
-          className="absolute inset-0 z-10 transition-transform duration-700 ease-out"
-          style={{ transform: `translate(${mousePos.x}px, ${mousePos.y}px)` }}
+        {/* Grid */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.04]" aria-hidden>
+          <defs>
+            <pattern id="grid2" width="48" height="48" patternUnits="userSpaceOnUse">
+              <path d="M 48 0 L 0 0 0 48" fill="none" stroke="white" strokeWidth="0.5" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid2)" />
+        </svg>
+
+        {/* Floating steps */}
+        <div
+          className="absolute inset-0 z-10"
+          style={{ transform: `translate(${mouse.x}px, ${mouse.y}px)`, transition: 'transform 0.7s ease-out' }}
         >
-          <FloatingStep step="1" title="Upload Dataset" icon={Database} delay="200ms" top="25%" left="15%" />
-          <FloatingStep step="2" title="Select Target" icon={MousePointerClick} delay="400ms" top="45%" right="15%" />
-          <FloatingStep step="3" title="Get Insights" icon={TrendingUp} delay="600ms" top="65%" left="20%" />
+          <FloatingStep step="1" title="Upload Dataset"  icon={Database}          style={{ top: '24%', left: '12%', animationDelay: '0s' }} />
+          <FloatingStep step="2" title="Select Target"   icon={MousePointerClick} style={{ top: '48%', right: '10%', animationDelay: '0.9s' }} />
+          <FloatingStep step="3" title="Get Insights"    icon={TrendingUp}        style={{ top: '68%', left: '14%', animationDelay: '1.8s' }} />
         </div>
 
-        {/* Central Brand */}
-        <div className="relative z-20 flex flex-col items-center text-center animate-fade-in-scale">
-          <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-brand-400 via-brand-600 to-slate-900 shadow-2xl shadow-brand-500/30 ring-1 ring-white/20 animate-pulse-glow">
-            <span className="font-mono text-5xl font-black text-white">R</span>
+        {/* Brand lockup */}
+        <div className="relative z-20 flex flex-col items-center text-center animate-spring-in">
+          <div className="glass-2 rounded-[var(--radius-2xl)] p-10 shadow-[var(--shadow-2xl)] border border-[var(--border-default)]">
+            <div className="mb-6 flex justify-center">
+              <div className="rounded-[var(--radius-xl)] bg-white p-5 shadow-[var(--shadow-lg)]">
+                <img src="/logo.png" alt="RootLens" className="h-16 w-auto object-contain" />
+              </div>
+            </div>
+            <h1 className="text-2xl font-bold text-[var(--text-1)] tracking-tight">Create your workspace</h1>
+            <p className="mt-3 max-w-[260px] text-sm leading-relaxed text-[var(--text-2)]">
+              ML-powered root-cause analysis. No data science required.
+            </p>
           </div>
-          <h1 className="mt-8 text-4xl font-black tracking-tight text-white">Spin up a workspace</h1>
-          <p className="mt-4 max-w-md text-lg leading-relaxed text-slate-300">
-            Automated ML, SHAP-driven explainability, and actionable KPIs in minutes.
-          </p>
         </div>
       </div>
 
-      {/* Right Panel - Auth Form */}
-      <div className="flex w-full flex-col justify-center px-4 sm:px-6 lg:w-1/2 lg:px-20 xl:px-32 relative">
-        <div className="absolute inset-0 z-0 bg-[var(--app-bg)] opacity-90 lg:hidden" />
-        
-        <div className="relative z-10 w-full max-w-sm mx-auto">
-          <div className="mb-10 text-center lg:hidden">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 via-brand-600 to-slate-900 shadow-md ring-1 ring-white/20">
-              <span className="font-mono text-xl font-black text-white">R</span>
-            </div>
-            <h2 className="mt-4 text-2xl font-black text-[var(--text-1)]">rootLens Cockpit</h2>
+      {/* ── Right Panel ── */}
+      <div className="flex w-full flex-col items-center justify-center px-4 sm:px-8 lg:w-1/2 lg:px-16 xl:px-24">
+        {/* Mobile logo */}
+        <div className="mb-8 lg:hidden">
+          <img src="/logo.png" alt="RootLens" className="h-10 w-auto object-contain" />
+        </div>
+
+        <div className="w-full max-w-sm animate-spring-up">
+          <div className="mb-8 text-center">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-purple-400)]">Get started free</p>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-[var(--text-1)]">Create workspace</h2>
+            <p className="mt-1.5 text-sm text-[var(--text-3)]">Takes less than 60 seconds</p>
           </div>
 
-          <Card padding="xl" tone="default" elevated className="glass border-t-brand-500 border-t-2 animate-fade-in-up">
-            <div className="mb-8">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-brand-500 mb-2">New Account</p>
-              <h2 className="text-2xl font-black tracking-tight text-[var(--text-1)]">Create Workspace</h2>
-            </div>
-
-            <form onSubmit={onSubmit} className="space-y-5">
-              <div className="animate-slide-in-left delay-100">
+          <div className="rounded-[var(--radius-xl)] border border-[var(--border-default)] bg-[var(--surface-1)] p-6 shadow-[var(--shadow-xl)]">
+            <form onSubmit={onSubmit} className="space-y-4">
+              <div className="animate-slide-in-left delay-50">
                 <Input
-                  label="Email Address"
+                  label="Email address"
                   type="email"
                   required
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-[var(--surface-1)] transition-colors focus:bg-[var(--surface-2)]"
+                  placeholder="you@company.com"
                 />
               </div>
-              
-              <div className="animate-slide-in-left delay-200">
+
+              <div className="animate-slide-in-left delay-100">
                 <Input
                   label="Password"
-                  type="password"
+                  type={showPw ? 'text' : 'password'}
                   required
                   minLength={8}
                   autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-[var(--surface-1)] transition-colors focus:bg-[var(--surface-2)]"
+                  placeholder="Min. 8 characters"
+                  rightIcon={
+                    <button
+                      type="button"
+                      onClick={() => setShowPw(!showPw)}
+                      className="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
+                      aria-label={showPw ? 'Hide password' : 'Show password'}
+                    >
+                      {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  }
                 />
-                {password.length > 0 && (
-                  <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--border-1)]">
-                    <div 
-                      className={`h-full transition-all duration-300 ${strengthColor}`} 
-                      style={{ width: `${strength}%` }}
-                    />
-                  </div>
-                )}
-                {password.length > 0 && password.length < 8 && (
-                  <p className="mt-1 text-xs text-red-500">Minimum 8 characters required</p>
-                )}
+                <StrengthBar password={password} />
               </div>
 
               {err && (
-                <div className="animate-fade-in-up rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-600 dark:text-red-400">
+                <div className="rounded-[var(--radius-md)] border border-[var(--c-danger-border)] bg-[var(--c-danger-bg)] px-4 py-3 text-sm font-medium text-[var(--c-danger)] animate-spring-in">
                   {err}
                 </div>
               )}
 
-              <div className="pt-2 animate-slide-in-left delay-300">
-                <Button type="submit" disabled={busy || (password.length > 0 && password.length < 8)} className="w-full h-12 text-base shadow-lg shadow-brand-500/20">
-                  {busy ? (
-                    <span className="flex items-center gap-2">
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Creating…
-                    </span>
-                  ) : (
-                    'Create Workspace'
-                  )}
+              <div className="pt-1 animate-slide-in-left delay-150">
+                <Button
+                  type="submit"
+                  loading={busy}
+                  disabled={password.length > 0 && password.length < 8}
+                  className="w-full h-11 text-sm"
+                >
+                  Create workspace
                 </Button>
               </div>
             </form>
+          </div>
 
-            <p className="mt-8 text-center text-sm text-[var(--text-3)] animate-fade-in-up delay-400">
-              Already have a workspace?{' '}
-              <Link className="font-bold text-brand-600 transition-colors hover:text-brand-500 dark:text-brand-400" to="/login">
-                Sign in
-              </Link>
-            </p>
-          </Card>
+          <p className="mt-6 text-center text-sm text-[var(--text-3)] animate-fade-in delay-300">
+            Already have a workspace?{' '}
+            <Link className="font-semibold text-[var(--brand)] transition-colors hover:brightness-110" to="/login">
+              Sign in
+            </Link>
+          </p>
         </div>
       </div>
     </div>

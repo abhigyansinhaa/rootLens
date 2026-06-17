@@ -1,35 +1,51 @@
 import type { ReactNode } from 'react'
 
-type Props = {
-  title: string
-  description?: ReactNode
-  actions?: ReactNode
-  eyebrow?: string
-  meta?: ReactNode
+type PageHeaderProps = {
+  eyebrow?:   string
+  title:      string
+  description?: string
+  meta?:      ReactNode
+  actions?:   ReactNode
+  gradient?:  boolean
 }
 
-export function PageHeader({ title, description, actions, eyebrow, meta }: Props) {
+export function PageHeader({ eyebrow, title, description, meta, actions, gradient = false }: PageHeaderProps) {
   return (
-    <div className="flex flex-col gap-5 border-b border-[var(--border-1)] pb-6 sm:flex-row sm:items-end sm:justify-between">
-      <div className="min-w-0">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between animate-fade-in-up">
+      <div className="min-w-0 flex-1">
         {eyebrow && (
-          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-brand-600 dark:text-brand-300">
+          <p className="mb-1.5 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--brand)]">
+            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[var(--brand)]" />
             {eyebrow}
           </p>
         )}
         <h1
-          className={`text-3xl font-black tracking-tight text-[var(--text-1)] sm:text-4xl ${
-            eyebrow ? 'mt-3' : ''
-          }`}
+          className={[
+            'text-2xl sm:text-3xl font-bold tracking-tight leading-tight',
+            gradient
+              ? 'text-gradient-brand'
+              : 'text-[var(--text-1)]',
+          ].join(' ')}
         >
           {title}
         </h1>
-        {description != null && description !== '' && (
-          <div className="mt-3 max-w-3xl text-sm leading-7 text-[var(--text-2)]">{description}</div>
+        {description && (
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--text-2)]">
+            {description}
+          </p>
         )}
-        {meta && <div className="mt-4 flex flex-wrap items-center gap-2">{meta}</div>}
+        {meta && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {meta}
+          </div>
+        )}
       </div>
-      {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
+
+      {actions && (
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {actions}
+        </div>
+      )}
     </div>
   )
 }

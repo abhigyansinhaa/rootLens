@@ -8,6 +8,7 @@ import {
   Button,
   Card,
   CardEyebrow,
+  ConfirmModal,
   DataTable,
   LoadingState,
   PageHeader,
@@ -20,6 +21,7 @@ import {
   TH,
   THead,
   TR,
+  useToast,
 } from '../../components/ui'
 import { PlayCircle, Trash2, ArrowLeft, Activity, Target, Settings2, Sparkles, CheckCircle2 } from 'lucide-react'
 import type { Analysis, ColumnSchema, Dataset } from '../../types'
@@ -114,9 +116,11 @@ function nullTone(ratio: number): 'success' | 'warning' | 'risk' {
 function DatasetDetailInner({ datasetId }: { datasetId: number }) {
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const { success: toastSuccess, error: toastError } = useToast()
   const [target, setTarget] = useState('')
   const [valuePick, setValuePick] = useState<string>('__auto__')
   const [datetimePick, setDatetimePick] = useState<string>('__none__')
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
   const { data: ds, isLoading } = useQuery({
     queryKey: ['dataset', datasetId],
@@ -171,7 +175,11 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
       void qc.invalidateQueries({ queryKey: ['analysis', a.id] })
       void qc.invalidateQueries({ queryKey: ['analyses'] })
       void qc.invalidateQueries({ queryKey: ['datasetAnalyses', datasetId] })
+      toastSuccess('Analysis started successfully.', 'Running')
       navigate(`/analyses/${a.id}`)
+    },
+    onError: (err) => {
+      toastError(formatStartError(err), 'Analysis failed to start')
     },
   })
 
@@ -181,7 +189,11 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['datasets'] })
+      toastSuccess('Dataset and all analyses deleted.', 'Deleted')
       navigate('/datasets')
+    },
+    onError: () => {
+      toastError('Could not delete the dataset. Please try again.', 'Delete failed')
     },
   })
 
@@ -245,17 +257,26 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
           </>
         }
         actions={
-          <Button
-            variant="danger"
-            size="sm"
-            type="button"
-            className="shadow-sm"
-            onClick={() => {
-              if (confirm('Delete this dataset and all analyses?')) delMutation.mutate()
-            }}
-          >
-            <Trash2 className="mr-2 h-4 w-4" /> Delete dataset
-          </Button>
+          <>
+            <Button
+              variant="danger"
+              size="sm"
+              type="button"
+              className="shadow-sm"
+              onClick={() => setConfirmDeleteOpen(true)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" /> Delete dataset
+            </Button>
+            <ConfirmModal
+              open={confirmDeleteOpen}
+              title="Delete this dataset?"
+              message="This will permanently delete the dataset and all associated analyses. This action cannot be undone."
+              confirmLabel="Yes, delete"
+              variant="danger"
+              onConfirm={() => { setConfirmDeleteOpen(false); delMutation.mutate() }}
+              onCancel={() => setConfirmDeleteOpen(false)}
+            />
+          </>
         }
       />
 

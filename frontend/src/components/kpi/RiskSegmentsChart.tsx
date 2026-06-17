@@ -9,7 +9,7 @@ import {
   YAxis,
 } from 'recharts'
 import type { AnalysisKpis } from '../../types'
-import { Card, CardEyebrow, CardTitle, StatusBadge } from '../ui'
+import { Card, CardEyebrow, StatusBadge } from '../ui'
 import { formatCompactMoney, formatPct01 } from './format'
 import { Target, TrendingUp, AlertTriangle } from 'lucide-react'
 
@@ -45,7 +45,7 @@ export function RiskSegmentsChart({ kpis, hasValue }: { kpis: AnalysisKpis; hasV
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <CardEyebrow>Segmentation Strategy</CardEyebrow>
-          <CardTitle className="mt-2 text-2xl font-black tracking-tight text-[var(--text-1)]">Risk by Population and Value</CardTitle>
+          <h2 className="mt-2 text-2xl font-black tracking-tight text-[var(--text-1)]">Risk by Population and Value</h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--text-2)]">
             Compare where your users sit versus where modeled monetary exposure concentrates. This helps prioritize interventions based on ROI.
           </p>

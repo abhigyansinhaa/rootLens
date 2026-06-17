@@ -1,32 +1,83 @@
-import type { InputHTMLAttributes } from 'react'
+import { forwardRef, useId } from 'react'
 
-type Props = InputHTMLAttributes<HTMLInputElement> & {
-  label?: string
-  hint?: string
-  error?: string | null
+type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
+  label?:     string
+  hint?:      string
+  error?:     string
+  leftIcon?:  React.ReactNode
+  rightIcon?: React.ReactNode
 }
 
-export function Input({ label, hint, error, id, className = '', ...rest }: Props) {
-  const inputId = id ?? rest.name
-  return (
-    <div className="w-full">
-      {label && (
-        <label
-          htmlFor={inputId}
-          className="block text-xs font-bold uppercase tracking-[0.18em] text-[var(--text-2)]"
-        >
-          {label}
-        </label>
-      )}
-      <input
-        id={inputId}
-        className={`mt-2 w-full rounded-xl border bg-[var(--surface-2)] px-4 py-3 text-[var(--text-1)] shadow-sm transition-colors placeholder:text-[var(--text-3)] focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 ${
-          error ? 'border-red-300 dark:border-red-800/70' : 'border-[var(--border-1)]'
-        } ${label ? '' : 'mt-0'} ${className}`.trim()}
-        {...rest}
-      />
-      {hint && !error && <p className="mt-1.5 text-xs text-[var(--text-3)]">{hint}</p>}
-      {error && <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{error}</p>}
-    </div>
-  )
-}
+export const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ label, hint, error, leftIcon, rightIcon, className = '', id: propId, ...props }, ref) => {
+    const autoId = useId()
+    const id = propId ?? autoId
+
+    return (
+      <div className="w-full">
+        {label && (
+          <label
+            htmlFor={id}
+            className="mb-1.5 block text-xs font-semibold text-[var(--text-2)] tracking-wide"
+          >
+            {label}
+          </label>
+        )}
+
+        <div className="relative">
+          {leftIcon && (
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-3)]">
+              {leftIcon}
+            </span>
+          )}
+
+          <input
+            ref={ref}
+            id={id}
+            className={[
+              'w-full rounded-[var(--radius-md)]',
+              'border border-[var(--border-default)]',
+              'bg-[var(--surface-2)]',
+              'text-sm text-[var(--text-1)]',
+              'placeholder:text-[var(--text-3)]',
+              'transition-all duration-[var(--duration-normal)]',
+              'focus:outline-none focus:border-[var(--border-focus)] focus:bg-[var(--surface-3)]',
+              'focus:shadow-[0_0_0_3px_hsl(214_100%_59%/0.15)]',
+              'disabled:cursor-not-allowed disabled:opacity-50',
+              error
+                ? 'border-[var(--c-danger)] focus:border-[var(--c-danger)] focus:shadow-[0_0_0_3px_hsl(0_84%_60%/0.15)]'
+                : '',
+              leftIcon  ? 'pl-9'  : 'px-3',
+              rightIcon ? 'pr-9'  : '',
+              'py-2.5',
+              className,
+            ].filter(Boolean).join(' ')}
+            aria-invalid={!!error}
+            aria-describedby={hint ? `${id}-hint` : error ? `${id}-error` : undefined}
+            {...props}
+          />
+
+          {rightIcon && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)]">
+              {rightIcon}
+            </span>
+          )}
+        </div>
+
+        {error && (
+          <p id={`${id}-error`} className="mt-1.5 text-xs font-medium text-[var(--c-danger)]">
+            {error}
+          </p>
+        )}
+
+        {hint && !error && (
+          <p id={`${id}-hint`} className="mt-1.5 text-xs text-[var(--text-3)]">
+            {hint}
+          </p>
+        )}
+      </div>
+    )
+  }
+)
+
+Input.displayName = 'Input'

@@ -1,37 +1,28 @@
 import { type FormEvent, useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from './AuthContext'
-import { Button, Card, Input } from '../../components/ui'
-import { Activity, ShieldCheck, Zap } from 'lucide-react'
+import { Button, Input } from '../../components/ui'
+import { Activity, ShieldCheck, Zap, Eye, EyeOff } from 'lucide-react'
 
-function FloatingCard({ 
-  title, 
-  value, 
-  icon: Icon, 
-  delay,
-  top,
-  left,
-  right
-}: { 
-  title: string; 
-  value: string; 
-  icon: React.ElementType; 
-  delay: string;
-  top?: string;
-  left?: string;
-  right?: string;
-}) {
+type FloatingStatProps = {
+  title: string
+  value: string
+  icon:  React.ElementType
+  style: React.CSSProperties
+}
+
+function FloatingStat({ title, value, icon: Icon, style }: FloatingStatProps) {
   return (
-    <div 
-      className={`absolute hidden lg:flex glass rounded-xl p-4 gap-4 items-center shadow-2xl ${delay} animate-fade-in-up`}
-      style={{ top, left, right, animationDelay: delay }}
+    <div
+      className="absolute hidden lg:flex glass-2 rounded-[var(--radius-lg)] px-4 py-3 gap-3 items-center shadow-[var(--shadow-xl)] border border-[var(--border-default)] animate-float"
+      style={style}
     >
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-500/20 text-brand-300 ring-1 ring-brand-500/30">
-        <Icon className="h-5 w-5" />
+      <div className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] bg-[var(--brand-dim)] border border-[var(--border-brand)] text-[var(--brand)]">
+        <Icon className="h-4 w-4" />
       </div>
       <div>
-        <p className="text-xs font-medium uppercase tracking-wider text-slate-300">{title}</p>
-        <p className="text-xl font-bold tabular-nums text-white">{value}</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-3)]">{title}</p>
+        <p className="text-base font-bold text-[var(--text-1)] font-[var(--font-mono)] tabular-nums">{value}</p>
       </div>
     </div>
   )
@@ -39,25 +30,24 @@ function FloatingCard({
 
 export function Login() {
   const { login } = useAuth()
-  const navigate = useNavigate()
-  const location = useLocation()
+  const navigate  = useNavigate()
+  const location  = useLocation()
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/'
 
-  const [email, setEmail] = useState('')
+  const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
-  const [err, setErr] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const [showPw,   setShowPw]   = useState(false)
+  const [err,      setErr]      = useState<string | null>(null)
+  const [busy,     setBusy]     = useState(false)
+  const [mouse,    setMouse]    = useState({ x: 0, y: 0 })
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({
-        x: (e.clientX / window.innerWidth - 0.5) * 20,
-        y: (e.clientY / window.innerHeight - 0.5) * 20,
-      })
-    }
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
+    const move = (e: MouseEvent) => setMouse({
+      x: (e.clientX / window.innerWidth  - 0.5) * 18,
+      y: (e.clientY / window.innerHeight - 0.5) * 18,
+    })
+    window.addEventListener('mousemove', move)
+    return () => window.removeEventListener('mousemove', move)
   }, [])
 
   async function onSubmit(e: FormEvent) {
@@ -76,106 +66,139 @@ export function Login() {
 
   return (
     <div className="flex min-h-screen">
-      {/* Left Panel - Brand Showcase */}
-      <div className="relative hidden w-1/2 overflow-hidden bg-slate-950 lg:flex lg:flex-col lg:items-center lg:justify-center">
-        {/* Animated Background Mesh */}
-        <div className="absolute inset-0 z-0 opacity-40">
-          <div className="absolute -left-[10%] top-[-10%] h-[50%] w-[50%] rounded-full bg-brand-600/30 blur-[120px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] h-[50%] w-[50%] rounded-full bg-indigo-600/30 blur-[120px]" />
+      {/* ── Left Panel — Brand ── */}
+      <div className="relative hidden w-1/2 overflow-hidden bg-[var(--surface-1)] lg:flex lg:flex-col lg:items-center lg:justify-center border-r border-[var(--border-subtle)]">
+        {/* Mesh gradient */}
+        <div className="absolute inset-0 z-0" aria-hidden>
+          <div className="absolute -left-[15%] top-[-15%] h-[55%] w-[55%] rounded-full bg-[var(--brand)] opacity-[0.08] blur-[100px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] h-[50%] w-[50%] rounded-full bg-purple-600 opacity-[0.07] blur-[100px]" />
+          <div className="absolute left-[30%] top-[60%] h-[35%] w-[35%] rounded-full bg-cyan-500 opacity-[0.05] blur-[80px]" />
         </div>
 
-        {/* Floating Cards (Parallax) */}
-        <div 
-          className="absolute inset-0 z-10 transition-transform duration-700 ease-out"
-          style={{ transform: `translate(${mousePos.x}px, ${mousePos.y}px)` }}
+        {/* Grid lines */}
+        <svg className="absolute inset-0 w-full h-full opacity-[0.04]" aria-hidden>
+          <defs>
+            <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+              <path d="M 48 0 L 0 0 0 48" fill="none" stroke="white" strokeWidth="0.5" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid)" />
+        </svg>
+
+        {/* Floating stat cards (parallax) */}
+        <div
+          className="absolute inset-0 z-10"
+          style={{ transform: `translate(${mouse.x}px, ${mouse.y}px)`, transition: 'transform 0.7s ease-out' }}
         >
-          <FloatingCard title="Churn Detected" value="12.4%" icon={Activity} delay="200ms" top="25%" left="15%" />
-          <FloatingCard title="Key Drivers" value="3 Identified" icon={Zap} delay="400ms" top="65%" right="15%" />
-          <FloatingCard title="Model Health" value="Stable" icon={ShieldCheck} delay="600ms" top="45%" left="10%" />
+          <FloatingStat title="Churn Detected"  value="12.4%"         icon={Activity}    style={{ top: '22%', left: '12%', animationDelay: '0s' }} />
+          <FloatingStat title="Key Drivers"     value="3 Found"       icon={Zap}         style={{ top: '62%', right: '10%', animationDelay: '0.8s' }} />
+          <FloatingStat title="Model Integrity" value="98.2% AUC"     icon={ShieldCheck} style={{ top: '42%', left: '8%', animationDelay: '1.6s' }} />
         </div>
 
-        {/* Central Brand */}
-        <div className="relative z-20 flex flex-col items-center text-center animate-fade-in-scale">
-          <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-brand-400 via-brand-600 to-slate-900 shadow-2xl shadow-brand-500/30 ring-1 ring-white/20 animate-pulse-glow">
-            <span className="font-mono text-5xl font-black text-white">R</span>
+        {/* Center brand lockup */}
+        <div className="relative z-20 flex flex-col items-center text-center animate-spring-in">
+          <div className="glass-2 rounded-[var(--radius-2xl)] p-10 shadow-[var(--shadow-2xl)] border border-[var(--border-default)]">
+            <div className="mb-6 flex justify-center">
+              <div className="rounded-[var(--radius-xl)] bg-white p-5 shadow-[var(--shadow-lg)]">
+                <img src="/logo.png" alt="RootLens" className="h-16 w-auto object-contain" />
+              </div>
+            </div>
+            <h1 className="text-2xl font-bold text-[var(--text-1)] tracking-tight">
+              Root-Cause Intelligence
+            </h1>
+            <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-[var(--text-2)]">
+              Upload your data. Identify root causes. Quantify risk and act with confidence.
+            </p>
+
+            {/* Animated separator */}
+            <div className="mt-6 flex items-center gap-3">
+              <div className="h-px flex-1 bg-[var(--border-subtle)]" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-4)]">Powered by SHAP</span>
+              <div className="h-px flex-1 bg-[var(--border-subtle)]" />
+            </div>
           </div>
-          <h1 className="mt-8 text-4xl font-black tracking-tight text-white">rootLens Cockpit</h1>
-          <p className="mt-4 max-w-md text-lg leading-relaxed text-slate-300">
-            Decision-ready root-cause insights and actionable KPIs for operators.
-          </p>
         </div>
       </div>
 
-      {/* Right Panel - Auth Form */}
-      <div className="flex w-full flex-col justify-center px-4 sm:px-6 lg:w-1/2 lg:px-20 xl:px-32 relative">
-        <div className="absolute inset-0 z-0 bg-[var(--app-bg)] opacity-90 lg:hidden" />
-        
-        <div className="relative z-10 w-full max-w-sm mx-auto">
-          <div className="mb-10 text-center lg:hidden">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-400 via-brand-600 to-slate-900 shadow-md ring-1 ring-white/20">
-              <span className="font-mono text-xl font-black text-white">R</span>
-            </div>
-            <h2 className="mt-4 text-2xl font-black text-[var(--text-1)]">rootLens Cockpit</h2>
+      {/* ── Right Panel — Auth Form ── */}
+      <div className="flex w-full flex-col items-center justify-center px-4 sm:px-8 lg:w-1/2 lg:px-16 xl:px-24">
+        {/* Mobile logo */}
+        <div className="mb-8 lg:hidden">
+          <img src="/logo.png" alt="RootLens" className="h-10 w-auto object-contain" />
+        </div>
+
+        <div className="w-full max-w-sm animate-spring-up">
+          {/* Header */}
+          <div className="mb-8 text-center">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--brand)]">Welcome back</p>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-[var(--text-1)]">Sign in to workspace</h2>
+            <p className="mt-1.5 text-sm text-[var(--text-3)]">Enter your credentials to continue</p>
           </div>
 
-          <Card padding="xl" tone="default" elevated className="glass border-t-brand-500 border-t-2 animate-fade-in-up">
-            <div className="mb-8">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-brand-500 mb-2">Welcome Back</p>
-              <h2 className="text-2xl font-black tracking-tight text-[var(--text-1)]">Operator Login</h2>
-            </div>
-
-            <form onSubmit={onSubmit} className="space-y-5">
-              <div className="animate-slide-in-left delay-100">
+          {/* Form card */}
+          <div className="rounded-[var(--radius-xl)] border border-[var(--border-default)] bg-[var(--surface-1)] p-6 shadow-[var(--shadow-xl)]">
+            <form onSubmit={onSubmit} className="space-y-4">
+              <div className="animate-slide-in-left delay-50">
                 <Input
-                  label="Email Address"
+                  label="Email address"
                   type="email"
                   required
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-[var(--surface-1)] transition-colors focus:bg-[var(--surface-2)]"
+                  placeholder="you@company.com"
                 />
               </div>
-              
-              <div className="animate-slide-in-left delay-200">
+
+              <div className="animate-slide-in-left delay-100">
                 <Input
                   label="Password"
-                  type="password"
+                  type={showPw ? 'text' : 'password'}
                   required
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-[var(--surface-1)] transition-colors focus:bg-[var(--surface-2)]"
+                  placeholder="••••••••"
+                  rightIcon={
+                    <button
+                      type="button"
+                      onClick={() => setShowPw(!showPw)}
+                      className="flex items-center text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
+                      aria-label={showPw ? 'Hide password' : 'Show password'}
+                    >
+                      {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  }
                 />
               </div>
 
               {err && (
-                <div className="animate-fade-in-up rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-600 dark:text-red-400">
+                <div className="rounded-[var(--radius-md)] border border-[var(--c-danger-border)] bg-[var(--c-danger-bg)] px-4 py-3 text-sm font-medium text-[var(--c-danger)] animate-spring-in">
                   {err}
                 </div>
               )}
 
-              <div className="pt-2 animate-slide-in-left delay-300">
-                <Button type="submit" disabled={busy} className="w-full h-12 text-base shadow-lg shadow-brand-500/20">
-                  {busy ? (
-                    <span className="flex items-center gap-2">
-                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Signing in…
-                    </span>
-                  ) : (
-                    'Sign in to Workspace'
-                  )}
+              <div className="pt-1 animate-slide-in-left delay-150">
+                <Button
+                  type="submit"
+                  loading={busy}
+                  className="w-full h-11 text-sm"
+                >
+                  Sign in to workspace
                 </Button>
               </div>
             </form>
+          </div>
 
-            <p className="mt-8 text-center text-sm text-[var(--text-3)] animate-fade-in-up delay-400">
-              Need to create a workspace?{' '}
-              <Link className="font-bold text-brand-600 transition-colors hover:text-brand-500 dark:text-brand-400" to="/register">
-                Sign up
-              </Link>
-            </p>
-          </Card>
+          <p className="mt-6 text-center text-sm text-[var(--text-3)] animate-fade-in delay-300">
+            No workspace yet?{' '}
+            <Link
+              className="font-semibold text-[var(--brand)] transition-colors hover:brightness-110"
+              to="/register"
+            >
+              Create account
+            </Link>
+          </p>
         </div>
       </div>
     </div>

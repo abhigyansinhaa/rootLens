@@ -1,58 +1,117 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { forwardRef } from 'react'
 import { Link } from 'react-router-dom'
+import type { LinkProps } from 'react-router-dom'
 
-const variants = {
-  primary:
-    'bg-brand-500 text-white shadow-[0_2px_10px_-2px_rgba(var(--color-brand-500),0.5)] ring-1 ring-brand-400/40 hover:bg-brand-400 hover:shadow-[0_4px_14px_-2px_rgba(var(--color-brand-500),0.6)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-md transition-all',
-  secondary:
-    'border border-[var(--border-subtle)] bg-[var(--surface-1)] text-[var(--text-1)] shadow-sm hover:border-[var(--border-2)] hover:bg-[var(--surface-2)] active:bg-[var(--surface-3)] transition-all',
-  danger:
-    'border border-red-300/70 bg-red-50 text-red-700 shadow-sm hover:bg-red-100 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40 transition-all',
-  ghost:
-    'text-[var(--text-2)] hover:bg-[var(--surface-2)] hover:text-[var(--text-1)] active:bg-[var(--surface-3)] transition-all',
-} as const
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
+type ButtonSize    = 'xs' | 'sm' | 'md' | 'lg'
 
-const sizes = {
-  sm: 'px-3 py-1.5 text-xs font-bold rounded-lg',
-  md: 'px-4 py-2.5 text-sm font-bold rounded-xl',
-  lg: 'px-6 py-3.5 text-base font-bold rounded-xl',
-} as const
-
-type Variant = keyof typeof variants
-type Size = keyof typeof sizes
-
-type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: Variant
-  size?: Size
-  children: ReactNode
-  to?: string
+type ButtonBaseProps = {
+  variant?:  ButtonVariant
+  size?:     ButtonSize
+  loading?:  boolean
+  disabled?: boolean
+  className?: string
+  children:  React.ReactNode
 }
 
-export function Button({
-  variant = 'primary',
-  size = 'md',
-  className = '',
-  disabled,
-  type = 'button',
-  to,
-  children,
-  ...rest
-}: Props) {
-  const base =
-    'inline-flex items-center justify-center gap-2 transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-bg)]'
-  const cls = `${base} ${variants[variant]} ${sizes[size]} ${className}`.trim()
+type ButtonProps =
+  | (ButtonBaseProps & React.ButtonHTMLAttributes<HTMLButtonElement> & { to?: undefined })
+  | (ButtonBaseProps & Omit<LinkProps, 'children'> & { to: string })
 
-  if (to) {
+const variantClasses: Record<ButtonVariant, string> = {
+  primary: [
+    'bg-[var(--brand)] text-white font-semibold',
+    'hover:brightness-110 hover:shadow-[0_0_24px_hsl(214_100%_59%/0.4)]',
+    'active:brightness-95',
+    'shadow-[0_0_0_1px_hsl(214_100%_59%/0.5),0_2px_8px_hsl(214_100%_59%/0.3)]',
+    'disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:brightness-100',
+  ].join(' '),
+
+  secondary: [
+    'bg-[var(--surface-2)] text-[var(--text-1)] font-medium',
+    'border border-[var(--border-default)]',
+    'hover:bg-[var(--surface-3)] hover:border-[var(--border-strong)]',
+    'active:bg-[var(--surface-4)]',
+    'disabled:opacity-40 disabled:cursor-not-allowed',
+  ].join(' '),
+
+  ghost: [
+    'bg-transparent text-[var(--text-2)] font-medium',
+    'hover:bg-[var(--surface-2)] hover:text-[var(--text-1)]',
+    'active:bg-[var(--surface-3)]',
+    'disabled:opacity-40 disabled:cursor-not-allowed',
+  ].join(' '),
+
+  danger: [
+    'bg-[var(--c-danger-bg)] text-[var(--c-danger)] font-semibold',
+    'border border-[var(--c-danger-border)]',
+    'hover:bg-[var(--c-danger)] hover:text-white hover:border-transparent',
+    'hover:shadow-[0_0_20px_hsl(0_84%_60%/0.3)]',
+    'active:brightness-90',
+    'disabled:opacity-40 disabled:cursor-not-allowed',
+  ].join(' '),
+}
+
+const sizeClasses: Record<ButtonSize, string> = {
+  xs: 'h-7  px-2.5 text-[11px] rounded-[var(--radius-sm)] gap-1.5',
+  sm: 'h-8  px-3.5 text-xs    rounded-[var(--radius-md)] gap-2',
+  md: 'h-10 px-5   text-sm    rounded-[var(--radius-md)] gap-2',
+  lg: 'h-12 px-7   text-base  rounded-[var(--radius-lg)] gap-2.5',
+}
+
+const base = [
+  'relative inline-flex items-center justify-center',
+  'overflow-hidden select-none whitespace-nowrap',
+  'transition-all duration-[var(--duration-normal)]',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--border-focus)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--app-bg)]',
+].join(' ')
+
+export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(
+  (props, ref) => {
+    const {
+      variant  = 'primary',
+      size     = 'md',
+      loading  = false,
+      disabled = false,
+      className = '',
+      children,
+      ...rest
+    } = props
+
+    const classes = [base, variantClasses[variant], sizeClasses[size], className].join(' ')
+
+    const content = loading ? (
+      <>
+        <span className="h-4 w-4 rounded-full border-2 border-current border-t-transparent animate-spin" aria-hidden />
+        <span className="opacity-70">Loading…</span>
+      </>
+    ) : children
+
+    if ('to' in rest && rest.to !== undefined) {
+      const { to, ...linkRest } = rest as { to: string } & Record<string, unknown>
+      return (
+        <Link
+          to={to}
+          className={classes}
+          ref={ref as React.Ref<HTMLAnchorElement>}
+          {...(linkRest as Omit<LinkProps, 'to' | 'children'>)}
+        >
+          {content}
+        </Link>
+      )
+    }
+
     return (
-      <Link to={to} className={cls} aria-disabled={disabled ?? undefined}>
-        {children}
-      </Link>
+      <button
+        ref={ref as React.Ref<HTMLButtonElement>}
+        className={classes}
+        disabled={disabled || loading}
+        {...(rest as React.ButtonHTMLAttributes<HTMLButtonElement>)}
+      >
+        {content}
+      </button>
     )
   }
+)
 
-  return (
-    <button type={type} disabled={disabled} className={cls} {...rest}>
-      {children}
-    </button>
-  )
-}
+Button.displayName = 'Button'

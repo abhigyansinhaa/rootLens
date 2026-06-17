@@ -1,5 +1,5 @@
 import type { AnalysisKpis } from '../../types'
-import { Card, CardEyebrow, CardTitle, StatusBadge } from '../ui'
+import { Card, CardEyebrow, StatusBadge } from '../ui'
 import { formatNumber } from './format'
 
 export function ReliabilityBadge({ kpis }: { kpis: AnalysisKpis }) {
@@ -12,7 +12,7 @@ export function ReliabilityBadge({ kpis }: { kpis: AnalysisKpis }) {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">
         <div className="min-w-[180px] flex-1">
           <CardEyebrow>Model reliability</CardEyebrow>
-          <CardTitle className="mt-2 text-lg">Separation &amp; stability</CardTitle>
+          <h2 className="mt-2 text-lg font-bold text-[var(--text-1)]">Separation &amp; stability</h2>
           <div className="mt-3">
             <StatusBadge tone={tone} dot className="text-xs">
               {r.tier}
@@ -21,7 +21,7 @@ export function ReliabilityBadge({ kpis }: { kpis: AnalysisKpis }) {
         </div>
         <div className="min-w-[180px] flex-1 lg:border-l lg:border-[var(--border-soft)] lg:pl-10">
           <CardEyebrow>Intervention confidence</CardEyebrow>
-          <CardTitle className="mt-2 text-lg">Action readiness</CardTitle>
+          <h2 className="mt-2 text-lg font-bold text-[var(--text-1)]">Action readiness</h2>
           <div className="mt-3">
             <StatusBadge
               tone={

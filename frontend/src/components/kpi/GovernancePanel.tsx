@@ -1,13 +1,13 @@
 import type { ReactNode } from 'react'
-import { Card, CardDescription, CardEyebrow, CardTitle } from '../ui'
+import { Card, CardEyebrow } from '../ui'
 
 function row(key: string, value: ReactNode) {
   return (
-    <div className="flex flex-wrap justify-between gap-2 border-b border-[var(--border-soft)] py-2 last:border-b-0">
-      <dt className="text-[length:var(--font-label-xs)] font-bold uppercase tracking-wider text-[var(--text-3)]">
+    <div className="flex flex-wrap justify-between gap-2 border-b border-[var(--border-subtle)] py-2.5 last:border-b-0">
+      <dt className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--text-3)]">
         {key}
       </dt>
-      <dd className="max-w-[70%] text-right text-[length:var(--font-body-md)] text-[var(--text-1)]">{value}</dd>
+      <dd className="max-w-[70%] text-right text-sm text-[var(--text-1)] font-medium">{value}</dd>
     </div>
   )
 }
@@ -17,25 +17,24 @@ export function GovernancePanel({ governance }: { governance: Record<string, unk
 
   if (!entries.length) {
     return (
-      <Card padding="md" tone="flat" className="border-[var(--border-soft)]">
-        <CardEyebrow>Governance</CardEyebrow>
-        <CardTitle className="mt-2 text-base">No governance metadata</CardTitle>
-        <CardDescription className="mt-2">
-          This run did not attach policy tags, approvals, or lineage objects. When the API supplies a governance
-          payload, it will render here for audit reviews.
-        </CardDescription>
-      </Card>
+      <div className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--surface-1)] p-5">
+        <CardEyebrow className="mb-2">Governance</CardEyebrow>
+        <p className="text-base font-bold text-[var(--text-1)]">No governance metadata</p>
+        <p className="mt-1.5 text-sm text-[var(--text-2)]">
+          This run did not attach policy tags, approvals, or lineage objects.
+        </p>
+      </div>
     )
   }
 
   return (
-    <Card padding="lg" tone="strong" className="border-[var(--border-subtle)]">
-      <CardEyebrow>Governance</CardEyebrow>
-      <CardTitle className="mt-2 text-base">Run governance snapshot</CardTitle>
-      <CardDescription className="mt-2">
-        Structured fields supplied by the pipeline for enterprise controls (exact schema may evolve).
-      </CardDescription>
-      <dl className="mt-4">
+    <Card padding="lg" tone="strong">
+      <CardEyebrow className="mb-2">Governance</CardEyebrow>
+      <p className="text-base font-bold text-[var(--text-1)]">Run governance snapshot</p>
+      <p className="mt-1 text-sm text-[var(--text-2)] mb-4">
+        Structured fields supplied by the pipeline for enterprise controls.
+      </p>
+      <dl>
         {entries.map(([k, v]) =>
           row(
             k.replace(/_/g, ' '),

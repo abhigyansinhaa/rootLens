@@ -1,30 +1,50 @@
 import type { ReactNode } from 'react'
-import { Card } from './Card'
+import { PackageOpen } from 'lucide-react'
 
-type Props = {
-  title: string
+type EmptyStateProps = {
+  title:        string
   description?: string
-  icon?: ReactNode
-  action?: ReactNode
+  icon?:        ReactNode
+  action?:      ReactNode
+  className?:   string
 }
 
-export function EmptyState({ title, description, icon, action }: Props) {
+export function EmptyState({ title, description, icon, action, className = '' }: EmptyStateProps) {
   return (
-    <Card padding="lg" tone="strong" className="border-dashed">
-      <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:gap-6 sm:text-left">
-        {icon && (
-          <div className="mb-4 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-100 text-brand-700 ring-1 ring-brand-200 dark:bg-brand-950/50 dark:text-brand-300 dark:ring-brand-900/60 sm:mb-0">
-            {icon}
-          </div>
-        )}
-        <div className="flex-1">
-          <h2 className="text-lg font-black tracking-tight text-[var(--text-1)]">{title}</h2>
-          {description && <p className="mt-2 text-sm leading-6 text-[var(--text-2)]">{description}</p>}
-          {action && (
-            <div className="mt-4 flex flex-wrap justify-center gap-2 sm:justify-start">{action}</div>
-          )}
-        </div>
+    <div
+      className={[
+        'relative flex flex-col items-center justify-center',
+        'rounded-[var(--radius-xl)] border border-dashed border-[var(--border-default)]',
+        'bg-[var(--surface-1)] px-8 py-16 text-center',
+        'animate-fade-in',
+        className,
+      ].join(' ')}
+    >
+      {/* Ambient glow */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-[var(--radius-xl)]"
+        style={{
+          background: 'radial-gradient(ellipse 60% 40% at 50% 0%, hsl(214 100% 59% / 0.06) 0%, transparent 70%)',
+        }}
+      />
+
+      {/* Icon */}
+      <div className="relative z-10 mb-5 flex h-16 w-16 items-center justify-center rounded-[var(--radius-xl)] border border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--text-3)] shadow-[var(--shadow-md)]">
+        {icon ?? <PackageOpen className="h-7 w-7" />}
       </div>
-    </Card>
+
+      <h3 className="relative z-10 text-lg font-bold text-[var(--text-1)]">{title}</h3>
+
+      {description && (
+        <p className="relative z-10 mt-2 max-w-sm text-sm leading-relaxed text-[var(--text-2)]">
+          {description}
+        </p>
+      )}
+
+      {action && (
+        <div className="relative z-10 mt-6">{action}</div>
+      )}
+    </div>
   )
 }

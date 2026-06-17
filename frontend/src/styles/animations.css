@@ -1,118 +1,200 @@
 /* 
-  Animations for rootLens Cockpit
-  Imported by index.css 
+  Animations — RootLens Signal Intelligence Platform
+  ──────────────────────────────────────────────────
 */
 
+/* ─── Keyframes ─────────────────────────────────── */
+
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0);     }
 }
 
 @keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(-18px); }
+  to   { opacity: 1; transform: translateX(0);     }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(18px); }
+  to   { opacity: 1; transform: translateX(0);    }
+}
+
+@keyframes springUp {
+  0%   { opacity: 0; transform: translateY(24px) scale(0.97); }
+  60%  { opacity: 1; transform: translateY(-3px) scale(1.01); }
+  80%  { transform: translateY(1px) scale(0.995); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes springIn {
+  0%   { opacity: 0; transform: scale(0.88); }
+  60%  { opacity: 1; transform: scale(1.03); }
+  80%  { transform: scale(0.98); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
 }
 
 @keyframes pulseGlow {
-  0%, 100% {
-    opacity: 1;
-    filter: brightness(1) drop-shadow(0 0 4px var(--color-brand-500));
-  }
-  50% {
-    opacity: 0.8;
-    filter: brightness(1.2) drop-shadow(0 0 12px var(--color-brand-400));
-  }
+  0%, 100% { box-shadow: 0 0 8px hsl(214 100% 59% / 0.2);  }
+  50%       { box-shadow: 0 0 24px hsl(214 100% 59% / 0.5); }
+}
+
+@keyframes dotPulse {
+  0%, 100% { opacity: 1;   transform: scale(1);   }
+  50%       { opacity: 0.5; transform: scale(0.75); }
+}
+
+@keyframes numberTick {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+@keyframes float {
+  0%   { transform: translateY(0px);   }
+  50%  { transform: translateY(-8px);  }
+  100% { transform: translateY(0px);   }
+}
+
+@keyframes ripple {
+  0%   { transform: scale(0);   opacity: 0.5; }
+  100% { transform: scale(2.5); opacity: 0;   }
 }
 
 @keyframes drawLine {
-  to {
-    stroke-dashoffset: 0;
-  }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes rotateFull {
+  from { transform: rotate(0deg);   }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes borderPulse {
+  0%, 100% { border-color: hsl(214 100% 59% / 0.3); }
+  50%       { border-color: hsl(214 100% 59% / 0.7); }
+}
+
+@keyframes skeletonWave {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%);  }
 }
 
 @keyframes countUp {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0);   }
 }
 
-/* Staggered entrance utilities */
+@keyframes progressBar {
+  0%   { width: 0%; }
+  100% { width: 100%; }
+}
+
+@keyframes toast-progress {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
+/* ─── Utility Classes ──────────────────────────── */
+
 .animate-fade-in-up {
-  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  opacity: 0;
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .animate-fade-in-scale {
-  animation: fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  opacity: 0;
+  animation: fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.35s ease both;
 }
 
 .animate-slide-in-left {
-  animation: slideInLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  opacity: 0;
+  animation: slideInLeft 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-spring-up {
+  animation: springUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-spring-in {
+  animation: springIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .animate-shimmer {
   background: linear-gradient(
     90deg,
-    var(--surface-3) 25%,
-    var(--surface-1) 50%,
-    var(--surface-3) 75%
+    var(--surface-2) 25%,
+    var(--surface-3) 50%,
+    var(--surface-2) 75%
   );
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite linear;
+  animation: shimmer 1.6s infinite linear;
 }
 
 .animate-pulse-glow {
-  animation: pulseGlow 2s infinite ease-in-out;
+  animation: pulseGlow 2.5s ease-in-out infinite;
 }
 
-/* Delay classes */
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: rotateFull 3s linear infinite;
+}
+
+.animate-border-pulse {
+  animation: borderPulse 2s ease-in-out infinite;
+}
+
+.animate-number-tick {
+  animation: numberTick 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ─── Delay Utilities ──────────────────────────── */
+.delay-0   { animation-delay: 0ms;   }
+.delay-50  { animation-delay: 50ms;  }
+.delay-75  { animation-delay: 75ms;  }
 .delay-100 { animation-delay: 100ms; }
 .delay-150 { animation-delay: 150ms; }
 .delay-200 { animation-delay: 200ms; }
+.delay-250 { animation-delay: 250ms; }
 .delay-300 { animation-delay: 300ms; }
+.delay-350 { animation-delay: 350ms; }
 .delay-400 { animation-delay: 400ms; }
 .delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
+.delay-700 { animation-delay: 700ms; }
 
-/* Reduced motion preference */
+/* ─── Reduced Motion ───────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,

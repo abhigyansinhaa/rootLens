@@ -1,47 +1,60 @@
 import { useState, useEffect } from 'react'
-import { Link, Outlet } from 'react-router-dom'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { Sidebar } from './Sidebar'
 import { Breadcrumbs } from './Breadcrumbs'
-import { Menu } from 'lucide-react'
+import { ToastProvider } from './ui'
+import { Menu, Bell } from 'lucide-react'
+
+/** Derive initials from an email address for the avatar */
+function emailInitials(email: string): string {
+  const local = email.split('@')[0] ?? ''
+  const parts = local.split(/[._-]/).filter(Boolean)
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
+  return local.slice(0, 2).toUpperCase()
+}
 
 export function Layout() {
   const { user, logout } = useAuth()
+  const location = useLocation()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const saved = localStorage.getItem('rca:sidebar_collapsed')
     return saved === 'true'
   })
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
+  // Persist sidebar state
   useEffect(() => {
     localStorage.setItem('rca:sidebar_collapsed', sidebarCollapsed.toString())
   }, [sidebarCollapsed])
 
-  // Update header height variable (used by sticky elements)
+  // Close mobile menu on navigation
+  useEffect(() => { setMobileMenuOpen(false) }, [location.pathname])
+
   useEffect(() => {
-    document.documentElement.style.setProperty('--app-header-height', '64px')
+    document.documentElement.style.setProperty('--app-header-height', '60px')
   }, [])
 
+  /* ── Unauthenticated Layout (Auth Pages) ── */
   if (!user) {
-    // Unauthenticated Layout (Auth Pages)
     return (
       <div className="flex min-h-screen flex-col bg-[var(--app-bg)]">
-        <header className="sticky top-0 z-50 border-b border-[var(--border-subtle)] bg-[var(--app-bg)]/80 backdrop-blur-xl">
+        <header className="sticky top-0 z-50 border-b border-[var(--border-subtle)] glass">
           <div className="mx-auto flex h-[var(--app-header-height)] max-w-7xl items-center justify-between px-4 lg:px-8">
-            <Link to="/login" className="group flex items-center gap-2.5 text-base font-bold tracking-tight text-[var(--text-1)]">
-              <span aria-hidden className="flex h-8 w-8 items-center justify-center rounded-md bg-[var(--surface-2)] text-[var(--text-1)] ring-1 ring-[var(--border-strong)]">
-                <span className="font-mono text-sm font-black">R</span>
-              </span>
-              <span className="flex items-baseline gap-1.5">
-                <span className="font-sans font-bold">rootLens</span>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--text-3)]">Cockpit</span>
-              </span>
+            <Link to="/login" className="group flex items-center gap-2.5">
+              <img src="/logo.png" alt="RootLens" className="h-7 w-auto object-contain" />
             </Link>
-            <nav className="flex items-center gap-3">
-              <Link className="rounded-md px-3 py-1.5 text-sm font-semibold text-[var(--text-2)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text-1)]" to="/login">
-                Log in
+            <nav className="flex items-center gap-2">
+              <Link
+                className="rounded-[var(--radius-md)] px-3.5 py-1.5 text-sm font-medium text-[var(--text-2)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text-1)]"
+                to="/login"
+              >
+                Sign in
               </Link>
-              <Link className="rounded-md bg-white px-4 py-1.5 text-sm font-bold text-black transition-colors hover:bg-gray-200" to="/register">
+              <Link
+                className="rounded-[var(--radius-md)] bg-[var(--brand)] px-4 py-1.5 text-sm font-semibold text-white transition-all hover:brightness-110 hover:shadow-[0_0_20px_hsl(214_100%_59%/0.4)]"
+                to="/register"
+              >
                 Get started
               </Link>
             </nav>
@@ -54,59 +67,73 @@ export function Layout() {
     )
   }
 
-  // Authenticated Layout (Cockpit)
+  const initials = emailInitials(user.email)
+
+  /* ── Authenticated Cockpit Layout ── */
   return (
+    <ToastProvider>
     <div className="flex min-h-screen bg-[var(--app-bg)]">
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        userEmail={user.email}
+        user={user}
         onLogout={logout}
         isOpenOnMobile={mobileMenuOpen}
         onCloseMobile={() => setMobileMenuOpen(false)}
       />
-      
-      <div 
-        className={`flex flex-1 flex-col min-w-0 transition-all duration-300 ${sidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-[256px]'}`}
+
+      <div
+        className={`flex flex-1 flex-col min-w-0 transition-all duration-300 ${
+          sidebarCollapsed
+            ? 'md:ml-[var(--sidebar-collapsed-width)]'
+            : 'md:ml-[var(--sidebar-width)]'
+        }`}
       >
-        {/* Top Toolbar */}
-        <header className="sticky top-0 z-30 flex h-[var(--app-header-height)] items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--app-bg)]/80 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+        {/* ── Top Header ── */}
+        <header className="sticky top-0 z-30 flex h-[var(--app-header-height)] items-center justify-between border-b border-[var(--border-subtle)] glass px-4 sm:px-6">
           <div className="flex items-center gap-3">
+            {/* Mobile hamburger */}
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden -ml-2 rounded-md p-2 text-[var(--text-2)] hover:bg-[var(--surface-2)] hover:text-[var(--text-1)]"
-              aria-label="Open sidebar"
+              className="md:hidden -ml-1 rounded-[var(--radius-md)] p-2 text-[var(--text-2)] hover:bg-[var(--surface-2)] hover:text-[var(--text-1)] transition-colors"
+              aria-label="Open navigation"
             >
               <Menu className="h-5 w-5" />
             </button>
             <Breadcrumbs />
           </div>
-          <div className="flex items-center gap-3">
-            {/* Future top toolbar actions can go here */}
+
+          <div className="flex items-center gap-2">
+            {/* Notification bell (placeholder) */}
+            <button
+              className="relative rounded-[var(--radius-md)] p-2 text-[var(--text-3)] hover:bg-[var(--surface-2)] hover:text-[var(--text-1)] transition-colors"
+              aria-label="Notifications"
+              title="Notifications"
+            >
+              <Bell className="h-4.5 w-4.5 h-[18px] w-[18px]" />
+            </button>
+
+            {/* User avatar */}
+            <div
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--brand-dim)] border border-[var(--border-brand)] text-[var(--brand)] text-xs font-bold cursor-default select-none"
+              title={user.email}
+            >
+              {initials}
+            </div>
           </div>
         </header>
 
-        {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 animate-fade-in-up">
-          <div className="mx-auto max-w-7xl">
+        {/* ── Main Content ── */}
+        <main className="flex-1 overflow-hidden">
+          <div
+            className="mx-auto max-w-[var(--page-max-width)] px-4 sm:px-6 lg:px-8 py-6 sm:py-8 animate-fade-in-up"
+            key={location.pathname}
+          >
             <Outlet />
           </div>
         </main>
-
-        {/* Inline Footer */}
-        <footer className="mt-auto border-t border-[var(--border-subtle)] bg-[var(--surface-1)]/50 py-6">
-          <div className="mx-auto flex max-w-7xl flex-col items-center gap-2 px-4 text-[11px] font-medium text-[var(--text-3)] sm:flex-row sm:justify-between sm:px-6 lg:px-8">
-            <span>Root-cause analysis with interpretable ML</span>
-            <span className="flex flex-wrap items-center justify-center gap-3">
-              <span>CSV / Parquet</span>
-              <span aria-hidden className="h-1 w-1 rounded-full bg-[var(--border-2)]" />
-              <span>SHAP-driven explainability</span>
-              <span aria-hidden className="h-1 w-1 rounded-full bg-[var(--border-2)]" />
-              <span>Audit-ready reporting</span>
-            </span>
-          </div>
-        </footer>
       </div>
     </div>
+    </ToastProvider>
   )
 }
