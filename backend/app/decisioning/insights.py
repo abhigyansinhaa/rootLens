@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from typing import Any, Literal
 
 import numpy as np
@@ -403,32 +402,6 @@ def build_insights(
                 "correlation_agreement": shap_corr_agree,
             }
         )
-
-    # #region agent log
-    try:
-        _log_path = Path(__file__).resolve().parents[3] / "debug-d20984.log"
-        _payload = {
-            "sessionId": "d20984",
-            "hypothesisId": "H-calibration",
-            "location": "insights.py:build_insights",
-            "message": "insight_calibration_distribution",
-            "data": {
-                "n": len(insights),
-                "confidence": {c: sum(1 for i in insights if i["confidence"] == c) for c in ("high", "medium", "low")},
-                "severity": {s: sum(1 for i in insights if i["severity"] == s) for s in ("critical", "warning", "informational")},
-                "sample_economic": next(
-                    (i["summary"] for i in insights if "Economic framing" in i["summary"]),
-                    insights[0]["summary"][:120] if insights else "",
-                ),
-            },
-            "timestamp": int(__import__("time").time() * 1000),
-            "runId": "audit",
-        }
-        with _log_path.open("a", encoding="utf-8") as _f:
-            _f.write(json.dumps(_payload) + "\n")
-    except Exception:
-        pass
-    # #endregion
 
     return insights
 
