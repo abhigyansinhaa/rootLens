@@ -1,20 +1,24 @@
 import { useQuery } from '@tanstack/react-query'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../api/client'
 import {
   EmptyState,
   ErrorState,
-  LoadingState,
   PageHeader,
+  SkeletonGroup,
+  SkeletonRow,
   StatusBadge,
 } from '../../components/ui'
-import { BarChart3, ArrowRight, Clock } from 'lucide-react'
+import { BarChart3, ArrowRight, Clock, Search, X } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
+import { KpiSparkline } from './KpiSparkline'
 import type { AnalysisListItem } from '../../types'
 
 const IN_FLIGHT  = new Set(['queued','running','profiling','training','explaining','decisioning'])
 const TERMINAL_OK = new Set(['completed','completed_with_warnings'])
+
+type StatusFilter = 'all' | 'running' | 'completed' | 'failed'
 
 function statusTone(status: string): 'default'|'info'|'success'|'warning'|'risk' {
   if (status === 'completed')               return 'success'
@@ -35,12 +39,27 @@ function timeAgo(iso: string) {
   } catch { return iso }
 }
 
+const STATUS_CHIPS: { label: string; value: StatusFilter }[] = [
+  { label: 'All',       value: 'all'       },
+  { label: 'Running',   value: 'running'   },
+  { label: 'Completed', value: 'completed' },
+  { label: 'Failed',    value: 'failed'    },
+]
+
 export function AnalysesList() {
+  const [search, setSearch]           = useState('')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['analyses'],
     queryFn: async () => {
       const { data } = await api.get<AnalysisListItem[]>('/analyses', { params: { limit: 200 } })
       return data
+    },
+    refetchInterval: (q) => {
+      const d = q.state.data
+      if (!d) return false
+      return d.some(a => IN_FLIGHT.has(a.status)) ? 3000 : false
     },
   })
 
@@ -48,8 +67,37 @@ export function AnalysesList() {
   const completed = analyses.filter(a => TERMINAL_OK.has(a.status)).length
   const inFlight  = analyses.filter(a => IN_FLIGHT.has(a.status)).length
 
-  if (isLoading) return <LoadingState rows={4} message="Loading analyses…" />
-  if (error)     return <ErrorState message="Could not load analyses." onRetry={() => void refetch()} />
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return analyses
+      .slice()
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .filter(a => {
+        const matchSearch = !q ||
+          a.dataset_name.toLowerCase().includes(q) ||
+          a.target.toLowerCase().includes(q)
+        const matchStatus =
+          statusFilter === 'all'       ? true :
+          statusFilter === 'running'   ? IN_FLIGHT.has(a.status) :
+          statusFilter === 'completed' ? TERMINAL_OK.has(a.status) :
+          statusFilter === 'failed'    ? a.status === 'failed' :
+          true
+        return matchSearch && matchStatus
+      })
+  }, [analyses, search, statusFilter])
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8 animate-fade-in-up">
+        <PageHeader eyebrow="Workspace" title="All Analyses" description="Loading…" />
+        <SkeletonGroup label="Loading analyses…">
+          {Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)}
+        </SkeletonGroup>
+      </div>
+    )
+  }
+
+  if (error) return <ErrorState message="Could not load analyses." onRetry={() => void refetch()} />
 
   if (!analyses.length) {
     return (
@@ -62,18 +110,84 @@ export function AnalysesList() {
   }
 
   return (
-    <div className="space-y-8 animate-fade-in-up">
+    <div className="space-y-6 animate-fade-in-up">
       <PageHeader
         eyebrow="Workspace"
         title="All Analyses"
         description={`${analyses.length} total · ${completed} completed · ${inFlight} in progress`}
+        actions={
+          <Button variant="secondary" size="sm" to="/analyses/compare?ids=,">
+            Compare two runs
+          </Button>
+        }
       />
 
-      <div className="grid gap-3">
-        {analyses
-          .slice()
-          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-          .map((run, i) => {
+      {/* Search + Filter bar */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        {/* Search input */}
+        <div className="relative flex-1 max-w-sm">
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-3)]" />
+          <input
+            type="search"
+            placeholder="Search by dataset or target…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--surface-2)] py-2 pl-9 pr-9 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--border-focus)] focus:outline-none focus:ring-1 focus:ring-[var(--border-focus)] transition-colors"
+            aria-label="Search analyses"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-[var(--text-3)] hover:text-[var(--text-1)]"
+              aria-label="Clear search"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Status filter chips */}
+        <div className="flex items-center gap-1.5 flex-wrap" role="group" aria-label="Filter by status">
+          {STATUS_CHIPS.map(chip => (
+            <button
+              key={chip.value}
+              onClick={() => setStatusFilter(chip.value)}
+              aria-pressed={statusFilter === chip.value}
+              className={[
+                'rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] transition-all',
+                statusFilter === chip.value
+                  ? 'bg-[var(--brand-dim)] border border-[var(--border-brand)] text-[var(--brand)]'
+                  : 'border border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-3)] hover:text-[var(--text-1)] hover:border-[var(--border-default)]',
+              ].join(' ')}
+            >
+              {chip.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Results count */}
+      {(search || statusFilter !== 'all') && (
+        <p className="text-xs text-[var(--text-3)]">
+          Showing <span className="font-semibold text-[var(--text-2)]">{filtered.length}</span> of {analyses.length} analyses
+          {(search || statusFilter !== 'all') && (
+            <button
+              onClick={() => { setSearch(''); setStatusFilter('all') }}
+              className="ml-2 font-semibold text-[var(--brand)] hover:underline"
+            >
+              Clear filters
+            </button>
+          )}
+        </p>
+      )}
+
+      {filtered.length === 0 ? (
+        <div className="py-16 text-center text-sm text-[var(--text-3)]">
+          No analyses match your search.
+        </div>
+      ) : (
+        <div className="grid gap-2">
+          {filtered.map((run, i) => {
             const tone = statusTone(run.status)
             const running = IN_FLIGHT.has(run.status)
             return (
@@ -128,11 +242,23 @@ export function AnalysesList() {
                   {timeAgo(run.created_at)}
                 </div>
 
-                <ArrowRight className="h-4 w-4 shrink-0 text-[var(--text-4)] group-hover:text-[var(--brand)] transition-colors" />
+                {/* KPI Sparkline (only for completed analyses) */}
+                {(run.status === 'completed' || run.status === 'completed_with_warnings') && (
+                  <div className="ml-2 pl-4 border-l border-[var(--border-subtle)] hidden sm:block">
+                    <KpiSparkline 
+                      datasetId={run.dataset_id} 
+                      target={run.target} 
+                      kpiSummary={run.kpi_summary} 
+                    />
+                  </div>
+                )}
+
+                <ArrowRight className="ml-2 h-4 w-4 shrink-0 text-[var(--text-4)] group-hover:text-[var(--brand)] transition-colors" />
               </Link>
             )
           })}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

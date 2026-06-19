@@ -5,7 +5,7 @@ import { directionForFeature, formatDriverLabel } from '../../lib/driverLabels'
 import { categoryForDriver, controllabilityBadgeLabel, controllabilityForFeature } from './driverMeta'
 import { formatPct01 } from './format'
 import { AuthenticatedApiImage } from '../AuthenticatedApiImage'
-import { X, ChevronRight } from 'lucide-react'
+import { X, ChevronRight, Search, Filter } from 'lucide-react'
 
 type Row = AnalysisKpis['driver_impact']['per_driver'][0] & {
   importance_share?: number | null
@@ -22,7 +22,8 @@ export function DriverImpactCard({
   roiAssumptions,
   rawColumns,
   shapSummaryUrl,
-  shapBeeswarmUrl
+  shapBeeswarmUrl,
+  highlightFeature,
 }: {
   kpis: AnalysisKpis
   directionByFeature?: Record<string, string>
@@ -30,6 +31,7 @@ export function DriverImpactCard({
   rawColumns?: string[]
   shapSummaryUrl?: string | null
   shapBeeswarmUrl?: string | null
+  highlightFeature?: string | null
 }) {
   const rows: Row[] = useMemo(() => {
     const byFeat = Object.fromEntries((kpis.drivers ?? []).map((d) => [d.feature, d.share]))
@@ -41,21 +43,36 @@ export function DriverImpactCard({
 
   const [sortBy, setSortBy] = useState<'revenue' | 'delta'>('revenue')
   const [evidenceFeature, setEvidenceFeature] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [ctrlFilter, setCtrlFilter] = useState<'all' | 'controllable' | 'observational' | 'mixed'>('all')
 
   const sorted = useMemo(() => {
     const copy = [...rows]
     copy.sort((a, b) => {
       if (sortBy === 'revenue') {
-        return (b.revenue_recoverable ?? 0) - (a.revenue_recoverable ?? 0)
+        const ra = Math.abs(a.revenue_recoverable ?? 0)
+        const rb = Math.abs(b.revenue_recoverable ?? 0)
+        return rb - ra
       }
       return Math.abs(b.delta_target_rate) - Math.abs(a.delta_target_rate)
     })
     return copy
   }, [rows, sortBy])
 
+  const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    return sorted.filter(r => {
+      const label = formatDriverLabel(r.feature, rawColumns).toLowerCase()
+      const matchesSearch = !q || label.includes(q) || r.feature.toLowerCase().includes(q)
+      const ctrl = controllabilityForFeature(r.feature)
+      const matchesCtrl = ctrlFilter === 'all' || ctrl === ctrlFilter
+      return matchesSearch && matchesCtrl
+    })
+  }, [sorted, searchQuery, ctrlFilter, rawColumns])
+
   const MAX_ROWS = 12
   const [showAllDrivers, setShowAllDrivers] = useState(false)
-  const displayed = showAllDrivers ? sorted : sorted.slice(0, MAX_ROWS)
+  const displayed = showAllDrivers ? filtered : filtered.slice(0, MAX_ROWS)
 
   if (!sorted.length) {
     return null
@@ -91,6 +108,64 @@ export function DriverImpactCard({
         </div>
       </div>
 
+      {/* Search + filter bar */}
+      <div className="flex flex-wrap items-center gap-3">
+        {/* Search box */}
+        <div className="relative flex-1 min-w-[200px] max-w-xs">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-3)]" aria-hidden />
+          <input
+            type="search"
+            placeholder="Search drivers…"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className={[
+              'w-full rounded-[var(--radius-md)] border border-[var(--border-default)]',
+              'bg-[var(--surface-2)] pl-8 pr-3 py-2 text-sm text-[var(--text-1)]',
+              'placeholder:text-[var(--text-3)] outline-none',
+              'focus:border-[var(--border-brand)] focus:ring-1 focus:ring-[var(--border-brand)]',
+              'transition-colors',
+            ].join(' ')}
+            aria-label="Search drivers"
+          />
+        </div>
+
+        {/* Controllability filter chips */}
+        <div className="flex items-center gap-1.5" role="group" aria-label="Filter by controllability">
+          <Filter className="h-3.5 w-3.5 text-[var(--text-3)] shrink-0" aria-hidden />
+          {(['all', 'controllable', 'observational', 'mixed'] as const).map(c => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => setCtrlFilter(c)}
+              aria-pressed={ctrlFilter === c}
+              className={[
+                'rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] transition-colors',
+                ctrlFilter === c
+                  ? 'bg-[var(--brand)] text-white shadow-sm'
+                  : 'border border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-3)] hover:border-[var(--border-default)] hover:text-[var(--text-2)]',
+              ].join(' ')}
+            >
+              {c === 'all' ? 'All' : c}
+            </button>
+          ))}
+        </div>
+
+        {/* Result count */}
+        {(searchQuery || ctrlFilter !== 'all') && (
+          <span className="text-xs text-[var(--text-3)] ml-auto">
+            {filtered.length} of {sorted.length} drivers
+            {(searchQuery || ctrlFilter !== 'all') && (
+              <button
+                onClick={() => { setSearchQuery(''); setCtrlFilter('all') }}
+                className="ml-2 text-[var(--brand)] hover:underline font-semibold"
+              >
+                Clear ×
+              </button>
+            )}
+          </span>
+        )}
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {displayed.map((r) => {
           const direction = directionForFeature(r.feature, directionByFeature)
@@ -98,7 +173,18 @@ export function DriverImpactCard({
           const tier = r.confidence_tier
 
           return (
-            <Card key={r.feature} padding="lg" tone="strong" elevated className="flex flex-col border border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)] transition-colors">
+            <Card
+              key={r.feature}
+              padding="lg"
+              tone="strong"
+              elevated
+              className={[
+                'flex flex-col border transition-all duration-300 scroll-mt-24',
+                highlightFeature === r.feature
+                  ? 'border-[var(--brand)] shadow-[var(--shadow-glow-lg)] bg-[var(--surface-2)]'
+                  : 'border-[var(--border-subtle)] bg-[var(--surface-1)] hover:bg-[var(--surface-2)]',
+              ].join(' ')}
+            >
               <div className="flex justify-between items-start mb-4">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)]">
                   {categoryForDriver(r.feature)}
@@ -149,17 +235,27 @@ export function DriverImpactCard({
         })}
       </div>
 
-      {sorted.length > MAX_ROWS ? (
+      {/* No results */}
+      {filtered.length === 0 && (
+        <div className="py-10 text-center text-sm text-[var(--text-3)]">
+          No drivers match your search.
+          <button onClick={() => { setSearchQuery(''); setCtrlFilter('all') }} className="ml-2 text-[var(--brand)] hover:underline font-semibold">Clear filters</button>
+        </div>
+      )}
+
+      {/* Show all toggle */}
+      {filtered.length > MAX_ROWS && (
         <div className="mt-6 flex justify-center print:hidden">
           <button
             type="button"
             className="rounded-lg border border-[var(--border-subtle)] bg-[var(--surface-2)] px-6 py-2.5 text-[11px] font-bold uppercase tracking-wider text-[var(--text-2)] hover:bg-[var(--surface-3)] transition-colors shadow-sm"
             onClick={() => setShowAllDrivers((v) => !v)}
           >
-            {showAllDrivers ? 'Show top drivers only' : `Show all ${sorted.length} drivers`}
+            {showAllDrivers ? 'Show top drivers only' : `Show all ${filtered.length} drivers`}
           </button>
         </div>
-      ) : null}
+      )}
+
 
       {roiAssumptions ? (
         <div className="mt-8 rounded-xl border border-[var(--border-soft)] bg-[var(--surface-2)]/40 p-5">

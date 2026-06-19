@@ -41,6 +41,7 @@ function AnimatedValue({ value }: { value: ReactNode }) {
   const rafRef = useRef<number | null>(null)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (typeof value !== 'number') { setDisplay(value); return }
     const end = value
     const duration = 900

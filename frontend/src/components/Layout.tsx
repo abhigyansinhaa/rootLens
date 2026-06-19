@@ -4,7 +4,9 @@ import { useAuth } from '../auth/AuthContext'
 import { Sidebar } from './Sidebar'
 import { Breadcrumbs } from './Breadcrumbs'
 import { ToastProvider } from './ui'
-import { Menu, Bell } from 'lucide-react'
+import { Menu } from 'lucide-react'
+import { NotificationBell } from './NotificationBell'
+import { ThemeToggle } from './ThemeToggle'
 
 /** Derive initials from an email address for the avatar */
 function emailInitials(email: string): string {
@@ -29,11 +31,27 @@ export function Layout() {
   }, [sidebarCollapsed])
 
   // Close mobile menu on navigation
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setMobileMenuOpen(false) }, [location.pathname])
 
   useEffect(() => {
     document.documentElement.style.setProperty('--app-header-height', '60px')
   }, [])
+
+  // Dynamic page title
+  useEffect(() => {
+    const titles: Record<string, string> = {
+      '/':              'Dashboard',
+      '/datasets':      'Datasets',
+      '/upload':        'Upload Dataset',
+      '/analyses':      'All Analyses',
+      '/analyses/compare': 'Compare Analyses',
+    }
+    const match = Object.entries(titles).find(([path]) =>
+      path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
+    )
+    document.title = match ? `${match[1]} — RootLens` : 'RootLens'
+  }, [location.pathname])
 
   /* ── Unauthenticated Layout (Auth Pages) ── */
   if (!user) {
@@ -104,14 +122,8 @@ export function Layout() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Notification bell (placeholder) */}
-            <button
-              className="relative rounded-[var(--radius-md)] p-2 text-[var(--text-3)] hover:bg-[var(--surface-2)] hover:text-[var(--text-1)] transition-colors"
-              aria-label="Notifications"
-              title="Notifications"
-            >
-              <Bell className="h-4.5 w-4.5 h-[18px] w-[18px]" />
-            </button>
+            <ThemeToggle />
+            <NotificationBell />
 
             {/* User avatar */}
             <div
@@ -124,7 +136,7 @@ export function Layout() {
         </header>
 
         {/* ── Main Content ── */}
-        <main className="flex-1 overflow-hidden">
+        <main id="main-content" className="flex-1 overflow-hidden">
           <div
             className="mx-auto max-w-[var(--page-max-width)] px-4 sm:px-6 lg:px-8 py-6 sm:py-8 animate-fade-in-up"
             key={location.pathname}

@@ -53,13 +53,13 @@
   color-scheme: dark;
 
   /* ── Surfaces (5-level luminance stack) ── */
-  --app-bg:     #080c14;     /* L: 4%  — absolute base */
-  --surface-0:  #080c14;     /* alias for base */
-  --surface-1:  #0d1220;     /* L: 7%  — cards */
-  --surface-2:  #131a2e;     /* L: 10% — elevated cards */
-  --surface-3:  #1a2340;     /* L: 14% — inputs, rows */
-  --surface-4:  #212d50;     /* L: 18% — active/selected */
-  --surface-5:  #2a3a63;     /* L: 24% — hover highlights */
+  --app-bg:     #000000;     /* L: 0%  — absolute base */
+  --surface-0:  #000000;     /* alias for base */
+  --surface-1:  #0a0a0a;     /* L: 4%  — cards */
+  --surface-2:  #141414;     /* L: 8% — elevated cards */
+  --surface-3:  #1f1f1f;     /* L: 12% — inputs, rows */
+  --surface-4:  #292929;     /* L: 16% — active/selected */
+  --surface-5:  #333333;     /* L: 20% — hover highlights */
 
   /* ── Borders ── */
   --border-subtle:  rgba(255,255,255,0.06);
@@ -69,10 +69,10 @@
   --border-focus:   hsl(214 100% 59% / 0.8);
 
   /* ── Text ── */
-  --text-1: #f1f5f9;   /* primary */
-  --text-2: #94a3b8;   /* secondary */
-  --text-3: #4e637a;   /* tertiary/placeholder */
-  --text-4: #2d3f54;   /* disabled */
+  --text-1: #fafafa;   /* primary */
+  --text-2: #a1a1aa;   /* secondary */
+  --text-3: #52525b;   /* tertiary/placeholder */
+  --text-4: #3f3f46;   /* disabled */
 
   /* ── Brand shortcuts ── */
   --brand:          hsl(214 100% 59%);
@@ -140,6 +140,51 @@
   --duration-fast:   120ms;
   --duration-normal: 220ms;
   --duration-slow:   380ms;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* ── Surfaces (5-level luminance stack) ── */
+  --app-bg:     #f8fafc;     /* L: 98%  — absolute base */
+  --surface-0:  #f8fafc;     /* alias for base */
+  --surface-1:  #ffffff;     /* L: 100%  — cards */
+  --surface-2:  #f1f5f9;     /* L: 96% — elevated cards */
+  --surface-3:  #e2e8f0;     /* L: 91% — inputs, rows */
+  --surface-4:  #cbd5e1;     /* L: 84% — active/selected */
+  --surface-5:  #94a3b8;     /* L: 65% — hover highlights */
+
+  /* ── Borders ── */
+  --border-subtle:  rgba(0,0,0,0.06);
+  --border-default: rgba(0,0,0,0.10);
+  --border-strong:  rgba(0,0,0,0.18);
+  --border-brand:   hsl(214 100% 59% / 0.4);
+  --border-focus:   hsl(214 100% 59% / 0.8);
+
+  /* ── Text ── */
+  --text-1: #0f172a;   /* primary */
+  --text-2: #334155;   /* secondary */
+  --text-3: #64748b;   /* tertiary/placeholder */
+  --text-4: #94a3b8;   /* disabled */
+
+  /* ── Brand shortcuts ── */
+  --brand:          hsl(214 100% 45%);
+  --brand-dim:      hsl(214 100% 59% / 0.10);
+  --brand-dimmer:   hsl(214 100% 59% / 0.05);
+
+  /* ── Chart colors ── */
+  --chart-primary:  hsl(214 100% 45%);
+  --chart-success:  hsl(158 64% 35%);
+  --chart-warning:  hsl(38 92% 45%);
+  --chart-danger:   hsl(0 84% 45%);
+  --chart-purple:   hsl(258 80% 50%);
+  --chart-cyan:     hsl(190 100% 40%);
+  --chart-grid:     rgba(0,0,0,0.05);
+
+  /* ── Glass surfaces ── */
+  --glass-1: rgba(255, 255, 255, 0.70);
+  --glass-2: rgba(255, 255, 255, 0.85);
+  --glass-3: rgba(255, 255, 255, 0.95);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -375,6 +420,38 @@ input, textarea, select, button {
   font-family: inherit;
   font-size: inherit;
 }
+
+/* ── Range slider (What-If Simulator) ── */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-1);
+  border: 2px solid var(--surface-1);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+input[type='range']::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-1);
+  border: 2px solid var(--surface-1);
+  cursor: pointer;
+}
+
 
 /* ─────────────────────────────────────────────────────────────────────────────
    PRINT STYLES

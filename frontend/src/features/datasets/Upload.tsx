@@ -1,9 +1,10 @@
-import { useCallback, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useCallback, useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { api } from '../../api/client'
 import { Button, Input, PageHeader, StatusBadge } from '../../components/ui'
-import { UploadCloud, FileType, CheckCircle2, AlertCircle, Zap, Shield, BarChart3 } from 'lucide-react'
+import { UploadCloud, FileType, CheckCircle2, AlertCircle, Zap, Shield, BarChart3, DatabaseZap } from 'lucide-react'
+import { DEMO_CSV } from './demoData'
 
 const FEATURES = [
   {
@@ -35,16 +36,19 @@ const FEATURES = [
 export function Upload() {
   const navigate = useNavigate()
   const qc       = useQueryClient()
-  const [name,     setName]     = useState('')
-  const [loading,  setLoading]  = useState(false)
-  const [success,  setSuccess]  = useState(false)
-  const [err,      setErr]      = useState<string | null>(null)
-  const [drag,     setDrag]     = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [name,         setName]         = useState('')
+  const [loading,      setLoading]      = useState(false)
+  const [success,      setSuccess]      = useState(false)
+  const [err,          setErr]          = useState<string | null>(null)
+  const [drag,         setDrag]         = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   const uploadFile = useCallback(
     async (file: File) => {
       setErr(null)
       setLoading(true)
+      setSelectedFile(null)
       const fd = new FormData()
       fd.append('file', file)
       if (name.trim()) fd.append('name', name.trim())
@@ -68,13 +72,32 @@ export function Upload() {
     [name, navigate, qc],
   )
 
+  const loadDemoData = useCallback(() => {
+    setName('Demo: Telco Churn')
+    const blob = new Blob([DEMO_CSV], { type: 'text/csv' })
+    const file = new File([blob], 'demo_churn.csv', { type: 'text/csv' })
+    setSelectedFile(file)
+    void uploadFile(file)
+  }, [uploadFile])
+
+  useEffect(() => {
+    if (searchParams.get('demo') === 'true') {
+      setSearchParams({})
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadDemoData()
+    }
+  }, [searchParams, setSearchParams, loadDemoData])
+
   const onDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault()
       setDrag(false)
       if (loading || success) return
       const f = e.dataTransfer.files[0]
-      if (f) void uploadFile(f)
+      if (f) {
+        setSelectedFile(f)
+        void uploadFile(f)
+      }
     },
     [loading, success, uploadFile],
   )
@@ -82,7 +105,10 @@ export function Upload() {
   const onChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const f = e.target.files?.[0]
-      if (f) void uploadFile(f)
+      if (f) {
+        setSelectedFile(f)
+        void uploadFile(f)
+      }
     },
     [uploadFile],
   )
@@ -102,15 +128,24 @@ export function Upload() {
         }
       />
 
-      {/* Optional name field */}
-      <div className="max-w-sm animate-slide-in-left delay-100">
-        <Input
-          label="Dataset name (optional)"
-          placeholder="e.g. Customer Churn Q2 2025"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          hint="Defaults to filename if left blank"
-        />
+      {/* Top section: Name & Demo */}
+      <div className="flex flex-col sm:flex-row gap-4 items-end animate-slide-in-left delay-100">
+        <div className="flex-1 w-full max-w-sm">
+          <Input
+            label="Dataset name (optional)"
+            placeholder="e.g. Customer Churn Q2 2025"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            hint="Defaults to filename if left blank"
+          />
+        </div>
+        <div className="pb-6 text-[var(--text-3)] hidden sm:block">or</div>
+        <div className="pb-6">
+          <Button type="button" variant="secondary" onClick={loadDemoData} disabled={loading || success}>
+            <DatabaseZap className="h-4 w-4 text-[var(--brand)]" />
+            Try with demo data
+          </Button>
+        </div>
       </div>
 
       {/* Drop zone */}
@@ -198,6 +233,25 @@ export function Upload() {
           </label>
         )}
       </div>
+
+      {/* File preview strip */}
+      {selectedFile && loading && (
+        <div className="flex items-center gap-4 rounded-[var(--radius-lg)] border border-[var(--border-brand)] bg-[var(--brand-dim)] px-5 py-4 animate-spring-in">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] border border-[var(--border-brand)] bg-[var(--brand-dimmer)]">
+            <FileType className="h-5 w-5 text-[var(--brand)]" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-[var(--text-1)] truncate">{selectedFile.name}</p>
+            <p className="text-xs text-[var(--text-2)] mt-0.5">
+              {(selectedFile.size / 1024).toFixed(1)} KB
+              {selectedFile.type && (
+                <span className="ml-2 capitalize">{selectedFile.type.split('/').pop()?.toUpperCase()}</span>
+              )}
+            </p>
+          </div>
+          <span className="shrink-0 text-xs font-bold text-[var(--brand)] animate-pulse">Uploading…</span>
+        </div>
+      )}
 
       {err && (
         <div className="flex items-start gap-3 rounded-[var(--radius-lg)] border border-[var(--c-danger-border)] bg-[var(--c-danger-bg)] px-5 py-4 animate-spring-in">

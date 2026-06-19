@@ -54,6 +54,7 @@ function Counter({ value }: { value: number | string }) {
   const rafRef = useRef<number | null>(null)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (typeof value !== 'number') { setDisplay(value); return }
     const end = value, start = performance.now(), dur = 1000
     const tick = (now: number) => {
@@ -146,7 +147,12 @@ export function Dashboard() {
       <EmptyState
         title="Start your RootLens workspace"
         description="Upload a CSV or Parquet dataset, select a target column, and turn model outputs into decisions."
-        action={<Button to="/upload"><PlusCircle className="h-4 w-4" /> Upload dataset</Button>}
+        action={
+          <div className="flex items-center gap-3">
+            <Button to="/upload"><PlusCircle className="h-4 w-4" /> Upload dataset</Button>
+            <Button variant="secondary" to="/upload?demo=true">Try demo data</Button>
+          </div>
+        }
       />
     )
 

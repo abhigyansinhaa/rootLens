@@ -9,18 +9,13 @@ import {
   Card,
   CardEyebrow,
   ConfirmModal,
-  DataTable,
+  DatasetColumnCard,
   LoadingState,
   PageHeader,
   SectionHeader,
   Select,
   Stat,
   StatusBadge,
-  TBody,
-  TD,
-  TH,
-  THead,
-  TR,
   useToast,
 } from '../../components/ui'
 import { PlayCircle, Trash2, ArrowLeft, Activity, Target, Settings2, Sparkles, CheckCircle2 } from 'lucide-react'
@@ -107,12 +102,6 @@ function pickDefaultValueColumn(columns: ColumnSchema[], target: string): string
   return candidates[0]?.name ?? ''
 }
 
-function nullTone(ratio: number): 'success' | 'warning' | 'risk' {
-  if (ratio < 0.05) return 'success'
-  if (ratio < 0.25) return 'warning'
-  return 'risk'
-}
-
 function DatasetDetailInner({ datasetId }: { datasetId: number }) {
   const navigate = useNavigate()
   const qc = useQueryClient()
@@ -141,6 +130,12 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
     },
     enabled: Number.isFinite(datasetId),
   })
+
+  const healthScore = useMemo(() => {
+    if (!ds?.columns?.length) return 100
+    const nulls = ds.columns.reduce((acc, c) => acc + c.null_ratio, 0) / ds.columns.length
+    return Math.max(0, Math.round(100 - (nulls * 100)))
+  }, [ds?.columns])
 
   const runMutation = useMutation({
     mutationFn: async () => {
@@ -412,42 +407,25 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
             title="Schema Readiness"
             description="Review columns and quality before running."
           />
-          <Card padding="none" className="overflow-hidden">
-            <div className="max-h-[500px] overflow-auto custom-scrollbar">
-              <DataTable>
-                <THead>
-                  <tr className="sticky top-0 z-10 bg-[var(--surface-2)] shadow-sm">
-                    <TH>Column</TH>
-                    <TH>Type</TH>
-                    <TH align="right">Null %</TH>
-                    <TH align="right">Health</TH>
-                  </tr>
-                </THead>
-                <TBody>
-                  {ds.columns.map((c) => (
-                    <TR key={c.name}>
-                      <TD mono className={c.name === effectiveTarget ? 'text-brand-600 font-bold dark:text-brand-400' : ''}>
-                        {c.name}
-                      </TD>
-                      <TD>
-                        <span className="font-mono text-xs uppercase tracking-wider text-[var(--text-2)] bg-[var(--surface-3)] px-1.5 py-0.5 rounded">
-                          {c.dtype}
-                        </span>
-                      </TD>
-                      <TD align="right" numeric className="tabular-nums">
-                        {(c.null_ratio * 100).toFixed(1)}%
-                      </TD>
-                      <TD align="right">
-                        <StatusBadge tone={nullTone(c.null_ratio)} dot className="scale-90 origin-right">
-                          {nullTone(c.null_ratio) === 'success' ? 'OK' : nullTone(c.null_ratio) === 'warning' ? 'Watch' : 'Risk'}
-                        </StatusBadge>
-                      </TD>
-                    </TR>
-                  ))}
-                </TBody>
-              </DataTable>
+          <Card padding="lg" className="border-t-4 border-t-[var(--c-success)]">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-sm font-semibold text-[var(--text-2)]">Dataset Health</p>
+                <p className="text-3xl font-black text-[var(--text-1)] tabular-nums">{healthScore}/100</p>
+              </div>
+              <Activity className="h-8 w-8 text-[var(--c-success)] opacity-80" />
             </div>
+            <p className="text-xs text-[var(--text-3)] leading-relaxed">
+              Based on missing values, column variance, and type distribution. 
+              {healthScore < 80 ? ' Consider imputing or dropping high-null columns.' : ' Ready for analysis.'}
+            </p>
           </Card>
+          
+          <div className="grid gap-3 max-h-[500px] overflow-auto custom-scrollbar pr-2">
+            {ds.columns.map(c => (
+              <DatasetColumnCard key={c.name} col={c} />
+            ))}
+          </div>
         </section>
 
         {preview && preview.rows.length > 0 && (

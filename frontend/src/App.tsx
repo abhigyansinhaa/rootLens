@@ -1,16 +1,35 @@
+import { lazy, Suspense } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './features/auth/AuthContext'
 import { Layout } from './components/Layout'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { ProtectedRoute } from './features/auth/ProtectedRoute'
-import { AnalysesList } from './features/analysis/AnalysesList'
-import { AnalysisResult } from './features/analysis/AnalysisResult'
-import { Dashboard } from './features/dashboard/Dashboard'
-import { Datasets } from './features/datasets/DatasetsList'
-import { DatasetDetail } from './features/datasets/DatasetDetail'
-import { Login } from './features/auth/Login'
-import { Register } from './features/auth/Register'
-import { Upload } from './features/datasets/Upload'
+import {
+  AnalysesListSkeleton,
+  AnalysisResultSkeleton,
+  AuthSkeleton,
+  CompareAnalysesSkeleton,
+  DashboardSkeleton,
+  DatasetDetailSkeleton,
+  DatasetsListSkeleton,
+  UploadSkeleton,
+} from './components/PageSkeletons'
+
+/* ─── Lazy-loaded page components ──────────────────────────────────────────
+   Each import() creates a separate JS chunk that is only fetched when the
+   user first navigates to that route. The Suspense fallback shows the
+   content-shaped skeleton while the chunk is being downloaded + parsed.
+   ─────────────────────────────────────────────────────────────────────── */
+const Dashboard       = lazy(() => import('./features/dashboard/Dashboard').then(m => ({ default: m.Dashboard })))
+const Datasets        = lazy(() => import('./features/datasets/DatasetsList').then(m => ({ default: m.Datasets })))
+const DatasetDetail   = lazy(() => import('./features/datasets/DatasetDetail').then(m => ({ default: m.DatasetDetail })))
+const Upload          = lazy(() => import('./features/datasets/Upload').then(m => ({ default: m.Upload })))
+const AnalysesList    = lazy(() => import('./features/analysis/AnalysesList').then(m => ({ default: m.AnalysesList })))
+const AnalysisResult  = lazy(() => import('./features/analysis/AnalysisResult').then(m => ({ default: m.AnalysisResult })))
+const CompareAnalyses = lazy(() => import('./features/analysis/CompareAnalyses').then(m => ({ default: m.CompareAnalyses })))
+const Login           = lazy(() => import('./features/auth/Login').then(m => ({ default: m.Login })))
+const Register        = lazy(() => import('./features/auth/Register').then(m => ({ default: m.Register })))
 
 const queryClient = new QueryClient()
 
@@ -19,15 +38,43 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrowserRouter>
+          {/* Skip to main content — keyboard / screen reader accessibility */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[99999] focus:rounded-[var(--radius-lg)] focus:border focus:border-[var(--border-brand)] focus:bg-[var(--surface-2)] focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-[var(--brand)] focus:shadow-[var(--shadow-lg)]"
+          >
+            Skip to main content
+          </a>
           <Routes>
             <Route element={<Layout />}>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+              {/* ── Auth routes ── */}
+              <Route
+                path="/login"
+                element={
+                  <Suspense fallback={<AuthSkeleton />}>
+                    <Login />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/register"
+                element={
+                  <Suspense fallback={<AuthSkeleton />}>
+                    <Register />
+                  </Suspense>
+                }
+              />
+
+              {/* ── Protected routes ── */}
               <Route
                 path="/"
                 element={
                   <ProtectedRoute>
-                    <Dashboard />
+                    <ErrorBoundary label="Dashboard error">
+                      <Suspense fallback={<DashboardSkeleton />}>
+                        <Dashboard />
+                      </Suspense>
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -35,7 +82,11 @@ export default function App() {
                 path="/datasets"
                 element={
                   <ProtectedRoute>
-                    <Datasets />
+                    <ErrorBoundary label="Datasets error">
+                      <Suspense fallback={<DatasetsListSkeleton />}>
+                        <Datasets />
+                      </Suspense>
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -43,7 +94,11 @@ export default function App() {
                 path="/upload"
                 element={
                   <ProtectedRoute>
-                    <Upload />
+                    <ErrorBoundary label="Upload error">
+                      <Suspense fallback={<UploadSkeleton />}>
+                        <Upload />
+                      </Suspense>
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -51,7 +106,11 @@ export default function App() {
                 path="/datasets/:id"
                 element={
                   <ProtectedRoute>
-                    <DatasetDetail />
+                    <ErrorBoundary label="Dataset detail error">
+                      <Suspense fallback={<DatasetDetailSkeleton />}>
+                        <DatasetDetail />
+                      </Suspense>
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -59,7 +118,23 @@ export default function App() {
                 path="/analyses"
                 element={
                   <ProtectedRoute>
-                    <AnalysesList />
+                    <ErrorBoundary label="Analyses list error">
+                      <Suspense fallback={<AnalysesListSkeleton />}>
+                        <AnalysesList />
+                      </Suspense>
+                    </ErrorBoundary>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/analyses/compare"
+                element={
+                  <ProtectedRoute>
+                    <ErrorBoundary label="Comparison error">
+                      <Suspense fallback={<CompareAnalysesSkeleton />}>
+                        <CompareAnalyses />
+                      </Suspense>
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
@@ -67,7 +142,11 @@ export default function App() {
                 path="/analyses/:id"
                 element={
                   <ProtectedRoute>
-                    <AnalysisResult />
+                    <ErrorBoundary label="Analysis result error">
+                      <Suspense fallback={<AnalysisResultSkeleton />}>
+                        <AnalysisResult />
+                      </Suspense>
+                    </ErrorBoundary>
                   </ProtectedRoute>
                 }
               />
