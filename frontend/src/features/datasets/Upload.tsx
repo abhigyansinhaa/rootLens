@@ -139,10 +139,10 @@ export function Upload() {
             hint="Defaults to filename if left blank"
           />
         </div>
-        <div className="pb-6 text-[var(--text-3)] hidden sm:block">or</div>
+        <div className="pb-6 text-(--text-3) hidden sm:block">or</div>
         <div className="pb-6">
           <Button type="button" variant="secondary" onClick={loadDemoData} disabled={loading || success}>
-            <DatabaseZap className="h-4 w-4 text-[var(--brand)]" />
+            <DatabaseZap className="h-4 w-4 text-(--brand)" />
             Try with demo data
           </Button>
         </div>
@@ -155,12 +155,12 @@ export function Upload() {
         onDragLeave={() => setDrag(false)}
         onDrop={onDrop}
         className={[
-          'relative flex flex-col items-center justify-center rounded-[var(--radius-xl)]',
-          'min-h-[280px] transition-all duration-[var(--duration-normal)]',
+          'relative flex flex-col items-center justify-center rounded-xl',
+          'min-h-[280px] transition-all duration-(--duration-normal)',
           'border-2 border-dashed',
           drag
-            ? 'border-[var(--brand)] bg-[var(--brand-dim)] scale-[1.01] shadow-[var(--shadow-glow)]'
-            : 'border-[var(--border-default)] bg-[var(--surface-1)] hover:border-[var(--border-brand)] hover:bg-[var(--brand-dimmer)]',
+            ? 'border-(--brand) bg-(--brand-dim) scale-[1.01] shadow-(--shadow-glow)'
+            : 'border-(--border-default) bg-(--surface-1) hover:border-(--border-brand) hover:bg-(--brand-dimmer)',
           'animate-fade-in-up delay-150',
         ].join(' ')}
       >
@@ -177,19 +177,19 @@ export function Upload() {
         {loading && (
           <div className="relative z-10 flex flex-col items-center gap-5 animate-spring-in">
             <div className="relative h-14 w-14">
-              <div className="absolute inset-0 rounded-full border-2 border-[var(--border-subtle)]" />
-              <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[var(--brand)] animate-spin" />
+              <div className="absolute inset-0 rounded-full border-2 border-(--border-subtle)" />
+              <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-(--brand) animate-spin" />
             </div>
-            <p className="text-sm font-semibold text-[var(--text-2)] animate-pulse">Uploading and profiling…</p>
+            <p className="text-sm font-semibold text-(--text-2) animate-pulse">Uploading and profiling…</p>
           </div>
         )}
 
         {success && (
           <div className="relative z-10 flex flex-col items-center gap-4 animate-spring-in">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--c-success-bg)] border border-[var(--c-success-border)]">
-              <CheckCircle2 className="h-8 w-8 text-[var(--c-success)]" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-(--c-success-bg) border border-(--c-success-border)">
+              <CheckCircle2 className="h-8 w-8 text-(--c-success)" />
             </div>
-            <p className="text-sm font-semibold text-[var(--c-success)]">Uploaded! Redirecting…</p>
+            <p className="text-sm font-semibold text-(--c-success)">Uploaded! Redirecting…</p>
           </div>
         )}
 
@@ -203,21 +203,21 @@ export function Upload() {
             />
 
             <div className={[
-              'flex h-16 w-16 items-center justify-center rounded-[var(--radius-xl)]',
-              'border border-[var(--border-brand)] bg-[var(--brand-dim)]',
-              'text-[var(--brand)] transition-transform',
+              'flex h-16 w-16 items-center justify-center rounded-xl',
+              'border border-(--border-brand) bg-(--brand-dim)',
+              'text-(--brand) transition-transform',
               drag ? 'scale-110 animate-bounce' : 'animate-float',
             ].join(' ')}>
               <UploadCloud className="h-8 w-8" />
             </div>
 
             <div>
-              <p className="text-lg font-bold text-[var(--text-1)]">
+              <p className="text-lg font-bold text-(--text-1)">
                 {drag ? 'Release to upload' : 'Drop your file here'}
               </p>
-              <p className="mt-1.5 text-sm text-[var(--text-2)]">
+              <p className="mt-1.5 text-sm text-(--text-2)">
                 or{' '}
-                <span className="font-semibold text-[var(--brand)] underline underline-offset-2 decoration-dashed">
+                <span className="font-semibold text-(--brand) underline underline-offset-2 decoration-dashed">
                   browse files
                 </span>
               </p>
@@ -225,7 +225,7 @@ export function Upload() {
 
             <div className="flex items-center gap-3">
               {['CSV', 'PARQUET', 'XLSX'].map(f => (
-                <span key={f} className="flex items-center gap-1.5 rounded-full border border-[var(--border-default)] bg-[var(--surface-2)] px-2.5 py-1 text-[11px] font-semibold text-[var(--text-3)]">
+                <span key={f} className="flex items-center gap-1.5 rounded-full border border-(--border-default) bg-(--surface-2) px-2.5 py-1 text-[11px] font-semibold text-(--text-3)">
                   <FileType className="h-3 w-3" /> {f}
                 </span>
               ))}
@@ -236,54 +236,54 @@ export function Upload() {
 
       {/* File preview strip */}
       {selectedFile && loading && (
-        <div className="flex items-center gap-4 rounded-[var(--radius-lg)] border border-[var(--border-brand)] bg-[var(--brand-dim)] px-5 py-4 animate-spring-in">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] border border-[var(--border-brand)] bg-[var(--brand-dimmer)]">
-            <FileType className="h-5 w-5 text-[var(--brand)]" />
+        <div className="flex items-center gap-4 rounded-lg border border-(--border-brand) bg-(--brand-dim) px-5 py-4 animate-spring-in">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-(--border-brand) bg-(--brand-dimmer)">
+            <FileType className="h-5 w-5 text-(--brand)" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-[var(--text-1)] truncate">{selectedFile.name}</p>
-            <p className="text-xs text-[var(--text-2)] mt-0.5">
+            <p className="text-sm font-bold text-(--text-1) truncate">{selectedFile.name}</p>
+            <p className="text-xs text-(--text-2) mt-0.5">
               {(selectedFile.size / 1024).toFixed(1)} KB
               {selectedFile.type && (
                 <span className="ml-2 capitalize">{selectedFile.type.split('/').pop()?.toUpperCase()}</span>
               )}
             </p>
           </div>
-          <span className="shrink-0 text-xs font-bold text-[var(--brand)] animate-pulse">Uploading…</span>
+          <span className="shrink-0 text-xs font-bold text-(--brand) animate-pulse">Uploading…</span>
         </div>
       )}
 
       {err && (
-        <div className="flex items-start gap-3 rounded-[var(--radius-lg)] border border-[var(--c-danger-border)] bg-[var(--c-danger-bg)] px-5 py-4 animate-spring-in">
-          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-[var(--c-danger)]" />
+        <div className="flex items-start gap-3 rounded-lg border border-(--c-danger-border) bg-(--c-danger-bg) px-5 py-4 animate-spring-in">
+          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-(--c-danger)" />
           <div>
-            <p className="text-sm font-bold text-[var(--c-danger)]">Upload failed</p>
-            <p className="mt-0.5 text-xs text-[var(--text-2)]">{err}</p>
+            <p className="text-sm font-bold text-(--c-danger)">Upload failed</p>
+            <p className="mt-0.5 text-xs text-(--text-2)">{err}</p>
           </div>
         </div>
       )}
 
       {/* Feature cards */}
       <div>
-        <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--text-3)]">
+        <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-(--text-3)">
           What happens after upload
         </p>
         <div className="grid gap-4 sm:grid-cols-3">
           {FEATURES.map((f, i) => (
             <div
               key={f.title}
-              className={`flex gap-4 rounded-[var(--radius-lg)] border p-4 transition-colors hover:border-[var(--border-default)] animate-spring-up delay-${(i+2)*100}`}
+              className={`flex gap-4 rounded-lg border p-4 transition-colors hover:border-(--border-default) animate-spring-up delay-${(i+2)*100}`}
               style={{ borderColor: f.border, background: f.bg }}
             >
               <div
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] border"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border"
                 style={{ borderColor: f.border, background: f.bg }}
               >
                 <f.icon className="h-5 w-5" style={{ color: f.color }} />
               </div>
               <div>
-                <p className="text-sm font-bold text-[var(--text-1)]">{f.title}</p>
-                <p className="mt-1 text-xs leading-relaxed text-[var(--text-2)]">{f.desc}</p>
+                <p className="text-sm font-bold text-(--text-1)">{f.title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-(--text-2)">{f.desc}</p>
               </div>
             </div>
           ))}

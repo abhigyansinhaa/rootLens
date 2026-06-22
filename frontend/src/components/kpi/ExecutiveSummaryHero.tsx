@@ -34,7 +34,7 @@ export function ExecutiveSummaryHero({
   const relValue = formatNumber(kpis.reliability.headline_value)
 
   return (
-    <Card padding="xl" tone="strong" elevated className="relative overflow-hidden border-2 border-[var(--border-subtle)] bg-gradient-to-br from-[var(--surface-1)] to-[var(--surface-2)]">
+    <Card padding="xl" tone="strong" elevated className="relative overflow-hidden border-2 border-(--border-subtle) bg-linear-to-br from-(--surface-1) to-(--surface-2)">
       {/* Decorative background element */}
       <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-brand-500/5 blur-[80px] pointer-events-none" />
       <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500/5 blur-[80px] pointer-events-none" />
@@ -44,7 +44,7 @@ export function ExecutiveSummaryHero({
           Executive Summary
         </p>
         
-        <h2 className="text-2xl sm:text-3xl font-medium leading-snug text-[var(--text-1)] tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-medium leading-snug text-(--text-1) tracking-tight">
           The baseline {isRegression ? 'average' : 'rate'} for <span className="font-bold text-brand-600 dark:text-brand-400">{detail.target}</span> is <span className="font-bold">{baseline}</span>. 
           Currently, <span className="font-bold text-red-600 dark:text-red-400">{highRiskShare}</span> of the population ({highRiskCount} rows) is classified as high-risk
           {revenue ? <>, putting <span className="font-bold text-emerald-600 dark:text-emerald-400">{revenue}</span> at risk</> : ''}. 

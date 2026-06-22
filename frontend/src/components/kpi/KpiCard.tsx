@@ -21,9 +21,9 @@ export function KpiCard({ label, value, hint, ciHint, tone = 'default' }: Props)
   const hintNode =
     hint || ciHint ? (
       <>
-        {hint ? <span className="text-[var(--text-2)]">{hint}</span> : null}
+        {hint ? <span className="text-(--text-2)">{hint}</span> : null}
         {ciHint ? (
-          <span className="block text-[11px] font-semibold tabular-nums text-[var(--text-3)]">{ciHint}</span>
+          <span className="block text-[11px] font-semibold tabular-nums text-(--text-3)">{ciHint}</span>
         ) : null}
       </>
     ) : undefined

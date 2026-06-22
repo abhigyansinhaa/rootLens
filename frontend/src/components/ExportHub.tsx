@@ -85,7 +85,7 @@ export function ExportHub({
       {/* Backdrop */}
       <div
         aria-hidden
-        className="fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm animate-fade-in"
+        className="fixed inset-0 z-10000 bg-black/60 backdrop-blur-sm animate-fade-in"
         onClick={onClose}
       />
 
@@ -95,25 +95,25 @@ export function ExportHub({
         aria-modal="true"
         aria-label="Export options"
         className={[
-          'fixed left-1/2 top-1/2 z-[10001] -translate-x-1/2 -translate-y-1/2',
+          'fixed left-1/2 top-1/2 z-10001 -translate-x-1/2 -translate-y-1/2',
           'w-full max-w-md',
-          'rounded-[var(--radius-xl)] border border-[var(--border-default)]',
-          'bg-[var(--surface-2)] shadow-[var(--shadow-2xl)]',
+          'rounded-xl border border-(--border-default)',
+          'bg-(--surface-2) shadow-(--shadow-2xl)',
           'overflow-hidden animate-spring-up',
         ].join(' ')}
       >
         {/* Header */}
-        <div className="relative flex items-center gap-3 border-b border-[var(--border-subtle)] bg-[var(--surface-1)] px-6 py-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] bg-[var(--brand-dim)] border border-[var(--border-brand)]">
-            <Download className="h-4 w-4 text-[var(--brand)]" />
+        <div className="relative flex items-center gap-3 border-b border-(--border-subtle) bg-(--surface-1) px-6 py-4">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-(--brand-dim) border border-(--border-brand)">
+            <Download className="h-4 w-4 text-(--brand)" />
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--brand)]">Export Hub</p>
-            <p className="text-sm font-bold text-[var(--text-1)]">Analysis #{analysisId}</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--brand)">Export Hub</p>
+            <p className="text-sm font-bold text-(--text-1)">Analysis #{analysisId}</p>
           </div>
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 rounded-[var(--radius-sm)] p-1.5 text-[var(--text-3)] hover:bg-[var(--surface-3)] hover:text-[var(--text-1)] transition-colors"
+            className="absolute right-4 top-4 rounded-sm p-1.5 text-(--text-3) hover:bg-(--surface-3) hover:text-(--text-1) transition-colors"
             aria-label="Close export hub"
           >
             <X className="h-4 w-4" />
@@ -129,23 +129,23 @@ export function ExportHub({
               onClick={onClick}
               disabled={disabled}
               className={[
-                'w-full flex items-center gap-4 rounded-[var(--radius-lg)] border p-4',
-                'text-left transition-all duration-[var(--duration-normal)]',
+                'w-full flex items-center gap-4 rounded-lg border p-4',
+                'text-left transition-all duration-(--duration-normal)',
                 disabled
                   ? 'opacity-40 cursor-not-allowed'
-                  : 'hover:-translate-y-px hover:shadow-[var(--shadow-md)] cursor-pointer',
+                  : 'hover:-translate-y-px hover:shadow-(--shadow-md) cursor-pointer',
               ].join(' ')}
               style={{ borderColor: border, background: bg }}
             >
               <div
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-md)] border"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border"
                 style={{ borderColor: border, background: bg }}
               >
                 <Icon className="h-4 w-4" style={{ color }} />
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-bold" style={{ color }}>{label}</p>
-                <p className="text-xs text-[var(--text-3)] mt-0.5 leading-relaxed">{desc}</p>
+                <p className="text-xs text-(--text-3) mt-0.5 leading-relaxed">{desc}</p>
               </div>
             </button>
           ))}
@@ -153,7 +153,7 @@ export function ExportHub({
 
         {!canExport && (
           <div className="px-4 pb-4">
-            <p className="text-xs text-center text-[var(--text-3)]">
+            <p className="text-xs text-center text-(--text-3)">
               Export is available once the analysis completes.
             </p>
           </div>

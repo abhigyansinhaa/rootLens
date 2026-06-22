@@ -18,7 +18,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={id}
-            className="mb-1.5 block text-xs font-semibold text-[var(--text-2)] tracking-wide"
+            className="mb-1.5 block text-xs font-semibold text-(--text-2) tracking-wide"
           >
             {label}
           </label>
@@ -26,7 +26,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
         <div className="relative">
           {leftIcon && (
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-3)]">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-(--text-3)">
               {leftIcon}
             </span>
           )}
@@ -35,17 +35,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={id}
             className={[
-              'w-full rounded-[var(--radius-md)]',
-              'border border-[var(--border-default)]',
-              'bg-[var(--surface-2)]',
-              'text-sm text-[var(--text-1)]',
-              'placeholder:text-[var(--text-3)]',
-              'transition-all duration-[var(--duration-normal)]',
-              'focus:outline-none focus:border-[var(--border-focus)] focus:bg-[var(--surface-3)]',
+              'w-full rounded-md',
+              'border border-(--border-default)',
+              'bg-(--surface-2)',
+              'text-sm text-(--text-1)',
+              'placeholder:text-(--text-3)',
+              'transition-all duration-(--duration-normal)',
+              'focus:outline-none focus:border-(--border-focus) focus:bg-(--surface-3)',
               'focus:shadow-[0_0_0_3px_hsl(214_100%_59%/0.15)]',
               'disabled:cursor-not-allowed disabled:opacity-50',
               error
-                ? 'border-[var(--c-danger)] focus:border-[var(--c-danger)] focus:shadow-[0_0_0_3px_hsl(0_84%_60%/0.15)]'
+                ? 'border-(--c-danger) focus:border-(--c-danger) focus:shadow-[0_0_0_3px_hsl(0_84%_60%/0.15)]'
                 : '',
               leftIcon  ? 'pl-9'  : 'px-3',
               rightIcon ? 'pr-9'  : '',
@@ -58,20 +58,20 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           />
 
           {rightIcon && (
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-3)]">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-(--text-3)">
               {rightIcon}
             </span>
           )}
         </div>
 
         {error && (
-          <p id={`${id}-error`} className="mt-1.5 text-xs font-medium text-[var(--c-danger)]">
+          <p id={`${id}-error`} className="mt-1.5 text-xs font-medium text-(--c-danger)">
             {error}
           </p>
         )}
 
         {hint && !error && (
-          <p id={`${id}-hint`} className="mt-1.5 text-xs text-[var(--text-3)]">
+          <p id={`${id}-hint`} className="mt-1.5 text-xs text-(--text-3)">
             {hint}
           </p>
         )}

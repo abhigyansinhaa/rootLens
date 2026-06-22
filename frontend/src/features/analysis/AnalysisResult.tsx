@@ -212,7 +212,7 @@ export function AnalysisResult() {
       {/* ── Back + Page header ── */}
       <div className="flex flex-col gap-4">
         <Link
-          className="print:hidden inline-flex items-center gap-2 text-sm font-semibold text-[var(--text-3)] hover:text-[var(--brand)] transition-colors"
+          className="print:hidden inline-flex items-center gap-2 text-sm font-semibold text-(--text-3) hover:text-(--brand) transition-colors"
           to={`/datasets/${data.dataset_id}`}
         >
           <ArrowLeft className="h-4 w-4" /> Back to dataset
@@ -230,13 +230,13 @@ export function AnalysisResult() {
               {data.task_type && (
                 <StatusBadge tone="info">{data.task_type.replace('_',' ')}</StatusBadge>
               )}
-              <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border-brand)] bg-[var(--brand-dim)] px-2.5 py-1 text-xs font-semibold text-[var(--brand)]">
-                <span className="text-[var(--text-3)] font-normal">target</span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-(--border-brand) bg-(--brand-dim) px-2.5 py-1 text-xs font-semibold text-(--brand)">
+                <span className="text-(--text-3) font-normal">target</span>
                 {data.target}
               </span>
               {data.value_column && (
-                <span className="inline-flex items-center gap-2 rounded-full border border-[var(--c-success-border)] bg-[var(--c-success-bg)] px-2.5 py-1 text-xs font-semibold text-[var(--c-success)]">
-                  <span className="text-[var(--text-3)] font-normal">value</span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-(--c-success-border) bg-(--c-success-bg) px-2.5 py-1 text-xs font-semibold text-(--c-success)">
+                  <span className="text-(--text-3) font-normal">value</span>
                   {data.value_column}
                 </span>
               )}
@@ -310,8 +310,8 @@ export function AnalysisResult() {
         <>
           {/* Tab bar */}
           <div
-            className="sticky top-[var(--app-header-height)] z-30 -mx-4 px-4 sm:mx-0 sm:px-0 py-3
-                       bg-[var(--app-bg)]/90 backdrop-blur-xl border-b border-[var(--border-subtle)] print:hidden"
+            className="sticky top-(--app-header-height) z-30 -mx-4 px-4 sm:mx-0 sm:px-0 py-3
+                       bg-(--app-bg)/90 backdrop-blur-xl border-b border-(--border-subtle) print:hidden"
           >
             <nav className="flex items-center gap-1 overflow-x-auto" role="tablist" aria-label="Analysis sections">
               {TABS.map(tab => {
@@ -327,10 +327,10 @@ export function AnalysisResult() {
                     className={[
                       'flex items-center gap-2 rounded-full px-4 py-2',
                       'text-sm font-semibold whitespace-nowrap',
-                      'transition-all duration-[var(--duration-normal)]',
+                      'transition-all duration-(--duration-normal)',
                       active
-                        ? 'bg-[var(--brand-dim)] text-[var(--brand)] border border-[var(--border-brand)] shadow-[var(--shadow-glow)]'
-                        : 'text-[var(--text-3)] hover:bg-[var(--surface-2)] hover:text-[var(--text-1)] border border-transparent',
+                        ? 'bg-(--brand-dim) text-(--brand) border border-(--border-brand) shadow-(--shadow-glow)'
+                        : 'text-(--text-3) hover:bg-(--surface-2) hover:text-(--text-1) border border-transparent',
                     ].join(' ')}
                   >
                     <tab.icon className="h-3.5 w-3.5" />

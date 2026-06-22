@@ -17,12 +17,12 @@ type CardProps = {
 }
 
 const toneStyles: Record<CardTone, string> = {
-  default: 'bg-[var(--surface-1)] border-[var(--border-subtle)]',
-  strong:  'bg-[var(--surface-2)] border-[var(--border-default)]',
-  risk:    'bg-[var(--c-danger-bg)] border-[var(--c-danger-border)]',
-  success: 'bg-[var(--c-success-bg)] border-[var(--c-success-border)]',
-  warning: 'bg-[var(--c-warning-bg)] border-[var(--c-warning-border)]',
-  info:    'bg-[var(--c-info-bg)] border-[var(--c-info-border)]',
+  default: 'bg-(--surface-1) border-(--border-subtle)',
+  strong:  'bg-(--surface-2) border-(--border-default)',
+  risk:    'bg-(--c-danger-bg) border-(--c-danger-border)',
+  success: 'bg-(--c-success-bg) border-(--c-success-border)',
+  warning: 'bg-(--c-warning-bg) border-(--c-warning-border)',
+  info:    'bg-(--c-info-bg) border-(--c-info-border)',
 }
 
 const variantStyles: Record<CardVariant, string> = {
@@ -52,21 +52,21 @@ export function Card({
   className = '',
 }: CardProps) {
   const elevShadow = elevated
-    ? 'shadow-[var(--shadow-md)]'
+    ? 'shadow-(--shadow-md)'
     : ''
 
   const hoverCls = hover
-    ? 'transition-all duration-[var(--duration-normal)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-lg),0_0_30px_hsl(214_100%_59%/0.08)] hover:border-[var(--border-brand)]'
+    ? 'transition-all duration-(--duration-normal) hover:-translate-y-0.5 hover:shadow-[var(--shadow-lg),0_0_30px_hsl(214_100%_59%/0.08)] hover:border-(--border-brand)'
     : ''
 
   const glassBase = variant === 'glass'
-    ? 'bg-[var(--glass-1)] backdrop-blur-[20px]'
+    ? 'bg-(--glass-1) backdrop-blur-[20px]'
     : ''
 
   return (
     <div
       className={[
-        'relative overflow-hidden rounded-[var(--radius-lg)]',
+        'relative overflow-hidden rounded-lg',
         variant !== 'glass' ? toneStyles[tone] : `border ${toneStyles[tone].split(' ').find(c => c.startsWith('border-[')) ?? ''}`,
         variant === 'glass' ? glassBase : '',
         variantStyles[variant],
@@ -101,7 +101,7 @@ export function Card({
 
 export function CardEyebrow({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <p className={`text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-3)] ${className}`}>
+    <p className={`text-[11px] font-bold uppercase tracking-[0.14em] text-(--text-3) ${className}`}>
       {children}
     </p>
   )

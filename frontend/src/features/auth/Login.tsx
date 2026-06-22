@@ -14,15 +14,15 @@ type FloatingStatProps = {
 function FloatingStat({ title, value, icon: Icon, style }: FloatingStatProps) {
   return (
     <div
-      className="absolute hidden lg:flex glass-2 rounded-[var(--radius-lg)] px-4 py-3 gap-3 items-center shadow-[var(--shadow-xl)] border border-[var(--border-default)] animate-float"
+      className="absolute hidden lg:flex glass-2 rounded-lg px-4 py-3 gap-3 items-center shadow-(--shadow-xl) border border-(--border-default) animate-float"
       style={style}
     >
-      <div className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] bg-[var(--brand-dim)] border border-[var(--border-brand)] text-[var(--brand)]">
+      <div className="flex h-9 w-9 items-center justify-center rounded-md bg-(--brand-dim) border border-(--border-brand) text-(--brand)">
         <Icon className="h-4 w-4" />
       </div>
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-3)]">{title}</p>
-        <p className="text-base font-bold text-[var(--text-1)] font-[var(--font-mono)] tabular-nums">{value}</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3)">{title}</p>
+        <p className="text-base font-bold text-(--text-1) font-mono tabular-nums">{value}</p>
       </div>
     </div>
   )
@@ -67,10 +67,10 @@ export function Login() {
   return (
     <div className="flex min-h-screen">
       {/* ── Left Panel — Brand ── */}
-      <div className="relative hidden w-1/2 overflow-hidden bg-[var(--surface-1)] lg:flex lg:flex-col lg:items-center lg:justify-center border-r border-[var(--border-subtle)]">
+      <div className="relative hidden w-1/2 overflow-hidden bg-(--surface-1) lg:flex lg:flex-col lg:items-center lg:justify-center border-r border-(--border-subtle)">
         {/* Mesh gradient */}
         <div className="absolute inset-0 z-0" aria-hidden>
-          <div className="absolute -left-[15%] top-[-15%] h-[55%] w-[55%] rounded-full bg-[var(--brand)] opacity-[0.08] blur-[100px]" />
+          <div className="absolute -left-[15%] top-[-15%] h-[55%] w-[55%] rounded-full bg-(--brand) opacity-[0.08] blur-[100px]" />
           <div className="absolute bottom-[-10%] right-[-10%] h-[50%] w-[50%] rounded-full bg-purple-600 opacity-[0.07] blur-[100px]" />
           <div className="absolute left-[30%] top-[60%] h-[35%] w-[35%] rounded-full bg-cyan-500 opacity-[0.05] blur-[80px]" />
         </div>
@@ -97,24 +97,24 @@ export function Login() {
 
         {/* Center brand lockup */}
         <div className="relative z-20 flex flex-col items-center text-center animate-spring-in">
-          <div className="glass-2 rounded-[var(--radius-2xl)] p-10 shadow-[var(--shadow-2xl)] border border-[var(--border-default)]">
+          <div className="glass-2 rounded-2xl p-10 shadow-(--shadow-2xl) border border-(--border-default)">
             <div className="mb-6 flex justify-center">
-              <div className="rounded-[var(--radius-xl)] bg-white p-5 shadow-[var(--shadow-lg)]">
+              <div className="rounded-xl bg-white p-5 shadow-(--shadow-lg)">
                 <img src="/logo.png" alt="RootLens" className="h-16 w-auto object-contain" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-[var(--text-1)] tracking-tight">
+            <h1 className="text-2xl font-bold text-(--text-1) tracking-tight">
               Root-Cause Intelligence
             </h1>
-            <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-[var(--text-2)]">
+            <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-(--text-2)">
               Upload your data. Identify root causes. Quantify risk and act with confidence.
             </p>
 
             {/* Animated separator */}
             <div className="mt-6 flex items-center gap-3">
-              <div className="h-px flex-1 bg-[var(--border-subtle)]" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-4)]">Powered by SHAP</span>
-              <div className="h-px flex-1 bg-[var(--border-subtle)]" />
+              <div className="h-px flex-1 bg-(--border-subtle)" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-4)">Powered by SHAP</span>
+              <div className="h-px flex-1 bg-(--border-subtle)" />
             </div>
           </div>
         </div>
@@ -130,13 +130,13 @@ export function Login() {
         <div className="w-full max-w-sm animate-spring-up">
           {/* Header */}
           <div className="mb-8 text-center">
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--brand)]">Welcome back</p>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-[var(--text-1)]">Sign in to workspace</h2>
-            <p className="mt-1.5 text-sm text-[var(--text-3)]">Enter your credentials to continue</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-(--brand)">Welcome back</p>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-(--text-1)">Sign in to workspace</h2>
+            <p className="mt-1.5 text-sm text-(--text-3)">Enter your credentials to continue</p>
           </div>
 
           {/* Form card */}
-          <div className="rounded-[var(--radius-xl)] border border-[var(--border-default)] bg-[var(--surface-1)] p-6 shadow-[var(--shadow-xl)]">
+          <div className="rounded-xl border border-(--border-default) bg-(--surface-1) p-6 shadow-(--shadow-xl)">
             <form onSubmit={onSubmit} className="space-y-4">
               <div className="animate-slide-in-left delay-50">
                 <Input
@@ -163,7 +163,7 @@ export function Login() {
                     <button
                       type="button"
                       onClick={() => setShowPw(!showPw)}
-                      className="flex items-center text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
+                      className="flex items-center text-(--text-3) hover:text-(--text-1) transition-colors"
                       aria-label={showPw ? 'Hide password' : 'Show password'}
                     >
                       {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -173,7 +173,7 @@ export function Login() {
               </div>
 
               {err && (
-                <div className="rounded-[var(--radius-md)] border border-[var(--c-danger-border)] bg-[var(--c-danger-bg)] px-4 py-3 text-sm font-medium text-[var(--c-danger)] animate-spring-in">
+                <div className="rounded-md border border-(--c-danger-border) bg-(--c-danger-bg) px-4 py-3 text-sm font-medium text-(--c-danger) animate-spring-in">
                   {err}
                 </div>
               )}
@@ -190,10 +190,10 @@ export function Login() {
             </form>
           </div>
 
-          <p className="mt-6 text-center text-sm text-[var(--text-3)] animate-fade-in delay-300">
+          <p className="mt-6 text-center text-sm text-(--text-3) animate-fade-in delay-300">
             No workspace yet?{' '}
             <Link
-              className="font-semibold text-[var(--brand)] transition-colors hover:brightness-110"
+              className="font-semibold text-(--brand) transition-colors hover:brightness-110"
               to="/register"
             >
               Create account

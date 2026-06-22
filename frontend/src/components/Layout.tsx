@@ -56,21 +56,21 @@ export function Layout() {
   /* ── Unauthenticated Layout (Auth Pages) ── */
   if (!user) {
     return (
-      <div className="flex min-h-screen flex-col bg-[var(--app-bg)]">
-        <header className="sticky top-0 z-50 border-b border-[var(--border-subtle)] glass">
-          <div className="mx-auto flex h-[var(--app-header-height)] max-w-7xl items-center justify-between px-4 lg:px-8">
+      <div className="flex min-h-screen flex-col bg-(--app-bg)">
+        <header className="sticky top-0 z-50 border-b border-(--border-subtle) glass">
+          <div className="mx-auto flex h-(--app-header-height) max-w-7xl items-center justify-between px-4 lg:px-8">
             <Link to="/login" className="group flex items-center gap-2.5">
               <img src="/logo.png" alt="RootLens" className="h-7 w-auto object-contain" />
             </Link>
             <nav className="flex items-center gap-2">
               <Link
-                className="rounded-[var(--radius-md)] px-3.5 py-1.5 text-sm font-medium text-[var(--text-2)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text-1)]"
+                className="rounded-md px-3.5 py-1.5 text-sm font-medium text-(--text-2) transition-colors hover:bg-(--surface-2) hover:text-(--text-1)"
                 to="/login"
               >
                 Sign in
               </Link>
               <Link
-                className="rounded-[var(--radius-md)] bg-[var(--brand)] px-4 py-1.5 text-sm font-semibold text-white transition-all hover:brightness-110 hover:shadow-[0_0_20px_hsl(214_100%_59%/0.4)]"
+                className="rounded-md bg-(--brand) px-4 py-1.5 text-sm font-semibold text-white transition-all hover:brightness-110 hover:shadow-[0_0_20px_hsl(214_100%_59%/0.4)]"
                 to="/register"
               >
                 Get started
@@ -90,7 +90,7 @@ export function Layout() {
   /* ── Authenticated Cockpit Layout ── */
   return (
     <ToastProvider>
-    <div className="flex min-h-screen bg-[var(--app-bg)]">
+    <div className="flex min-h-screen bg-(--app-bg)">
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -103,17 +103,17 @@ export function Layout() {
       <div
         className={`flex flex-1 flex-col min-w-0 transition-all duration-300 ${
           sidebarCollapsed
-            ? 'md:ml-[var(--sidebar-collapsed-width)]'
-            : 'md:ml-[var(--sidebar-width)]'
+            ? 'md:ml-(--sidebar-collapsed-width)'
+            : 'md:ml-(--sidebar-width)'
         }`}
       >
         {/* ── Top Header ── */}
-        <header className="sticky top-0 z-30 flex h-[var(--app-header-height)] items-center justify-between border-b border-[var(--border-subtle)] glass px-4 sm:px-6">
+        <header className="sticky top-0 z-30 flex h-(--app-header-height) items-center justify-between border-b border-(--border-subtle) glass px-4 sm:px-6">
           <div className="flex items-center gap-3">
             {/* Mobile hamburger */}
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden -ml-1 rounded-[var(--radius-md)] p-2 text-[var(--text-2)] hover:bg-[var(--surface-2)] hover:text-[var(--text-1)] transition-colors"
+              className="md:hidden -ml-1 rounded-md p-2 text-(--text-2) hover:bg-(--surface-2) hover:text-(--text-1) transition-colors"
               aria-label="Open navigation"
             >
               <Menu className="h-5 w-5" />
@@ -127,7 +127,7 @@ export function Layout() {
 
             {/* User avatar */}
             <div
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--brand-dim)] border border-[var(--border-brand)] text-[var(--brand)] text-xs font-bold cursor-default select-none"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-(--brand-dim) border border-(--border-brand) text-(--brand) text-xs font-bold cursor-default select-none"
               title={user.email}
             >
               {initials}
@@ -138,7 +138,7 @@ export function Layout() {
         {/* ── Main Content ── */}
         <main id="main-content" className="flex-1 overflow-hidden">
           <div
-            className="mx-auto max-w-[var(--page-max-width)] px-4 sm:px-6 lg:px-8 py-6 sm:py-8 animate-fade-in-up"
+            className="mx-auto max-w-(--page-max-width) px-4 sm:px-6 lg:px-8 py-6 sm:py-8 animate-fade-in-up"
             key={location.pathname}
           >
             <Outlet />

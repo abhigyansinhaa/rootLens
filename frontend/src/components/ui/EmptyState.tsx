@@ -14,8 +14,8 @@ export function EmptyState({ title, description, icon, action, className = '' }:
     <div
       className={[
         'relative flex flex-col items-center justify-center',
-        'rounded-[var(--radius-xl)] border border-dashed border-[var(--border-default)]',
-        'bg-[var(--surface-1)] px-8 py-16 text-center',
+        'rounded-xl border border-dashed border-(--border-default)',
+        'bg-(--surface-1) px-8 py-16 text-center',
         'animate-fade-in',
         className,
       ].join(' ')}
@@ -23,21 +23,21 @@ export function EmptyState({ title, description, icon, action, className = '' }:
       {/* Ambient glow */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 rounded-[var(--radius-xl)]"
+        className="pointer-events-none absolute inset-0 rounded-xl"
         style={{
           background: 'radial-gradient(ellipse 60% 40% at 50% 0%, hsl(214 100% 59% / 0.06) 0%, transparent 70%)',
         }}
       />
 
       {/* Icon */}
-      <div className="relative z-10 mb-5 flex h-16 w-16 items-center justify-center rounded-[var(--radius-xl)] border border-[var(--border-default)] bg-[var(--surface-2)] text-[var(--text-3)] shadow-[var(--shadow-md)]">
+      <div className="relative z-10 mb-5 flex h-16 w-16 items-center justify-center rounded-xl border border-(--border-default) bg-(--surface-2) text-(--text-3) shadow-(--shadow-md)">
         {icon ?? <PackageOpen className="h-7 w-7" />}
       </div>
 
-      <h3 className="relative z-10 text-lg font-bold text-[var(--text-1)]">{title}</h3>
+      <h3 className="relative z-10 text-lg font-bold text-(--text-1)">{title}</h3>
 
       {description && (
-        <p className="relative z-10 mt-2 max-w-sm text-sm leading-relaxed text-[var(--text-2)]">
+        <p className="relative z-10 mt-2 max-w-sm text-sm leading-relaxed text-(--text-2)">
           {description}
         </p>
       )}

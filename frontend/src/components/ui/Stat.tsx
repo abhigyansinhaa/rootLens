@@ -16,11 +16,11 @@ type StatProps = {
 }
 
 const toneAccent: Record<StatTone, string> = {
-  default: 'bg-[var(--brand)]',
-  success: 'bg-[var(--c-success)]',
-  warning: 'bg-[var(--c-warning)]',
-  risk:    'bg-[var(--c-danger)]',
-  info:    'bg-[var(--c-info)]',
+  default: 'bg-(--brand)',
+  success: 'bg-(--c-success)',
+  warning: 'bg-(--c-warning)',
+  risk:    'bg-(--c-danger)',
+  info:    'bg-(--c-info)',
 }
 
 const trendIconMap = {
@@ -30,9 +30,9 @@ const trendIconMap = {
 }
 
 const trendColorMap = {
-  up:   'text-[var(--c-success)]',
-  down: 'text-[var(--c-danger)]',
-  flat: 'text-[var(--text-3)]',
+  up:   'text-(--c-success)',
+  down: 'text-(--c-danger)',
+  flat: 'text-(--text-3)',
 }
 
 /** Rolls numbers from 0 → target on mount. Strings skip animation. */
@@ -67,26 +67,26 @@ export function Stat({ label, value, hint, tone = 'default', trend, trendValue, 
   return (
     <div
       className={[
-        'relative overflow-hidden rounded-[var(--radius-lg)]',
-        'border border-[var(--border-subtle)] bg-[var(--surface-1)]',
-        'p-5 transition-all duration-[var(--duration-normal)]',
-        'hover:border-[var(--border-default)] hover:bg-[var(--surface-2)]',
+        'relative overflow-hidden rounded-lg',
+        'border border-(--border-subtle) bg-(--surface-1)',
+        'p-5 transition-all duration-(--duration-normal)',
+        'hover:border-(--border-default) hover:bg-(--surface-2)',
         className,
       ].join(' ')}
     >
       {/* Tone accent bar */}
       <div className={`absolute left-0 top-0 bottom-0 w-[3px] rounded-r-full ${toneAccent[tone]}`} />
 
-      <p className="pl-3 text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--text-3)]">
+      <p className="pl-3 text-[11px] font-bold uppercase tracking-[0.12em] text-(--text-3)">
         {label}
       </p>
 
-      <p className="pl-3 mt-2 text-3xl font-bold tracking-tight text-[var(--text-1)] font-[var(--font-mono)] tabular-nums leading-none">
+      <p className="pl-3 mt-2 text-3xl font-bold tracking-tight text-(--text-1) font-mono tabular-nums leading-none">
         <AnimatedValue value={value} />
       </p>
 
       <div className="pl-3 mt-2 flex items-center gap-2">
-        {hint && <p className="text-xs text-[var(--text-2)]">{hint}</p>}
+        {hint && <p className="text-xs text-(--text-2)">{hint}</p>}
         {TrendIcon && trendValue && (
           <span className={`flex items-center gap-1 text-xs font-semibold ${trendColorMap[trend!]}`}>
             <TrendIcon className="h-3 w-3" />

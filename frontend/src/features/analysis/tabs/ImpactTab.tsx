@@ -39,7 +39,7 @@ export function ImpactTab({ data, kpis, rawColumnNames }: ImpactTabProps) {
 
       {/* Narrative insights */}
       {data.insights && data.insights.length > 0 && (
-        <div className="space-y-4 pt-6 border-t border-[var(--border-subtle)]">
+        <div className="space-y-4 pt-6 border-t border-(--border-subtle)">
           <SectionHeader eyebrow="Narrative" title="Why is this happening?" />
           <ul className="grid gap-4 lg:grid-cols-2">
             {data.insights.map((ins, i) => {
@@ -52,7 +52,7 @@ export function ImpactTab({ data, kpis, rawColumnNames }: ImpactTabProps) {
                   : 'var(--brand)'
               return (
                 <li key={i} className={`animate-spring-up delay-${Math.min((i + 1) * 100, 400)}`}>
-                  <div className="relative h-full overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-5">
+                  <div className="relative h-full overflow-hidden rounded-lg border border-(--border-subtle) bg-(--surface-2) p-5">
                     <div
                       className="absolute top-0 left-0 right-0 h-[2px]"
                       style={{ background: borderColor }}
@@ -66,23 +66,23 @@ export function ImpactTab({ data, kpis, rawColumnNames }: ImpactTabProps) {
                         <StatusBadge tone={sevTone}>{ins.severity}</StatusBadge>
                       )}
                     </div>
-                    <h3 className="text-sm font-bold text-[var(--brand)] mb-2">
+                    <h3 className="text-sm font-bold text-(--brand) mb-2">
                       {ins.display_label ?? formatDriverLabel(ins.feature, rawColumnNames)}
                     </h3>
-                    <p className="text-sm leading-relaxed text-[var(--text-1)]">{ins.summary}</p>
+                    <p className="text-sm leading-relaxed text-(--text-1)">{ins.summary}</p>
                     {ins.investigation_questions?.length ? (
-                      <div className="mt-4 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--surface-1)] p-4">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-3)] mb-2">
+                      <div className="mt-4 rounded-md border border-(--border-subtle) bg-(--surface-1) p-4">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3) mb-2">
                           Investigate
                         </p>
                         <ul className="space-y-1.5">
                           {ins.investigation_questions.map((q, qi) => (
                             <li
                               key={qi}
-                              className="flex items-start gap-2 text-xs text-[var(--text-2)]"
+                              className="flex items-start gap-2 text-xs text-(--text-2)"
                             >
                               <span
-                                className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[var(--text-3)]"
+                                className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-(--text-3)"
                                 aria-hidden
                               />
                               {q}

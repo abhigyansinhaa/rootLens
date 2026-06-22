@@ -38,10 +38,10 @@ function ShapTooltip({ active, payload }: { active?: boolean; payload?: { payloa
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (
-    <div className="rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--surface-2)] px-4 py-3 shadow-[var(--shadow-lg)] text-sm">
-      <p className="font-bold text-[var(--text-1)] mb-1">{d.full}</p>
-      <p className="text-[var(--text-3)] text-xs">
-        Mean |SHAP|: <span className="font-mono font-bold text-[var(--brand)]">{d.importance.toFixed(4)}</span>
+    <div className="rounded-lg border border-(--border-default) bg-(--surface-2) px-4 py-3 shadow-(--shadow-lg) text-sm">
+      <p className="font-bold text-(--text-1) mb-1">{d.full}</p>
+      <p className="text-(--text-3) text-xs">
+        Mean |SHAP|: <span className="font-mono font-bold text-(--brand)">{d.importance.toFixed(4)}</span>
       </p>
     </div>
   )
@@ -208,7 +208,7 @@ export function DriversTab({
             {selectedFeature && (
               <button
                 onClick={() => setSelectedFeature(null)}
-                className="text-xs font-semibold text-[var(--brand)] hover:underline shrink-0 pb-1"
+                className="text-xs font-semibold text-(--brand) hover:underline shrink-0 pb-1"
               >
                 Clear selection ×
               </button>
@@ -218,7 +218,7 @@ export function DriversTab({
             padding="lg"
             tone="strong"
             elevated
-            className="border border-[var(--border-subtle)] bg-[var(--surface-1)]/50 backdrop-blur"
+            className="border border-(--border-subtle) bg-(--surface-1)/50 backdrop-blur"
           >
             <InteractiveShapChart
               chartData={chartData}
@@ -228,9 +228,9 @@ export function DriversTab({
           </Card>
 
           {selectedFeature && (
-            <p className="mt-3 text-xs text-[var(--text-3)] text-center animate-fade-in">
+            <p className="mt-3 text-xs text-(--text-3) text-center animate-fade-in">
               Showing driver card for{' '}
-              <span className="font-semibold text-[var(--brand)]">
+              <span className="font-semibold text-(--brand)">
                 {formatDriverLabel(selectedFeature, rawColumnNames)}
               </span>{' '}
               — scroll down to see it highlighted

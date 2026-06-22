@@ -103,10 +103,10 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
           title={datasetName ? `Runs for ${datasetName}` : 'Analysis dashboard'}
           description="Start a root-cause analysis above. When a run finishes, open the dedicated result page for KPIs, drivers, metrics, and recommendations."
         />
-        <Card padding="xl" className="border-dashed border-2 border-[var(--border-subtle)] bg-[var(--surface-2)]/30 text-center">
-          <BarChart3 className="mx-auto mb-4 h-12 w-12 text-[var(--text-3)]" />
-          <h2 className="text-xl font-bold text-[var(--text-1)]">No analyses yet</h2>
-          <p className="mt-2 max-w-md mx-auto text-sm text-[var(--text-2)]">
+        <Card padding="xl" className="border-dashed border-2 border-(--border-subtle) bg-(--surface-2)/30 text-center">
+          <BarChart3 className="mx-auto mb-4 h-12 w-12 text-(--text-3)" />
+          <h2 className="text-xl font-bold text-(--text-1)">No analyses yet</h2>
+          <p className="mt-2 max-w-md mx-auto text-sm text-(--text-2)">
             Pick a target column and run an analysis. You’ll be taken to the result page while the job runs; return
             here anytime to switch runs or check status.
           </p>
@@ -128,7 +128,7 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
         }
       />
 
-      <Card padding="md" tone="strong" elevated className="glass border-t-[var(--border-subtle)] border-t-2">
+      <Card padding="md" tone="strong" elevated className="glass border-t-(--border-subtle) border-t-2">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
           <div className="flex items-center gap-4">
             <Activity className="h-5 w-5 text-brand-500 hidden sm:block" />
@@ -136,7 +136,7 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
               label="Analysis focus"
               id="dataset-analysis-select"
               value={activeAnalysisId ?? ''}
-              className="bg-[var(--surface-1)] transition-colors focus:ring-brand-500 w-full sm:w-96"
+              className="bg-(--surface-1) transition-colors focus:ring-brand-500 w-full sm:w-96"
               onChange={(e) => {
                 const next = Number(e.target.value)
                 setSelectedId(Number.isFinite(next) ? next : null)
@@ -174,13 +174,13 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
                 <CheckCircle2 className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-[var(--text-1)]">
+                <h2 className="text-xl font-bold text-(--text-1)">
                   {detail.status === 'completed_with_warnings'
                     ? 'Analysis complete (with warnings)'
                     : 'Analysis complete'}
                 </h2>
-                <p className="mt-2 text-sm text-[var(--text-2)] max-w-2xl">
-                  Target <code className="rounded bg-[var(--surface-2)] border border-[var(--border-subtle)] px-1.5 py-0.5 font-mono text-xs font-bold text-[var(--text-1)]">{detail.target}</code>
+                <p className="mt-2 text-sm text-(--text-2) max-w-2xl">
+                  Target <code className="rounded bg-(--surface-2) border border-(--border-subtle) px-1.5 py-0.5 font-mono text-xs font-bold text-(--text-1)">{detail.target}</code>
                   {detail.task_type && (
                     <>
                       {' '}•{' '}
@@ -192,7 +192,7 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
                 </p>
               </div>
             </div>
-            <Button className="shrink-0 bg-[var(--text-1)] text-[var(--app-bg)] hover:bg-[var(--text-2)] shadow-lg" to={`/analyses/${detail.id}`}>
+            <Button className="shrink-0 bg-(--text-1) text-(--app-bg) hover:bg-(--text-2) shadow-lg" to={`/analyses/${detail.id}`}>
               Open Result Page
             </Button>
           </div>
@@ -205,10 +205,10 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
                 {detail?.status === 'failed' ? <AlertCircle className="h-5 w-5" /> : <PlayCircle className="h-5 w-5 animate-pulse" />}
               </div>
               <div>
-                <h2 className="text-xl font-bold text-[var(--text-1)]">
+                <h2 className="text-xl font-bold text-(--text-1)">
                   {detail?.status === 'failed' ? 'Analysis needs attention' : 'Analysis is preparing results'}
                 </h2>
-                <p className="mt-1 text-sm text-[var(--text-2)] max-w-xl">
+                <p className="mt-1 text-sm text-(--text-2) max-w-xl">
                   {detail?.error ||
                     detail?.report?.user_message ||
                     'When this job finishes, open the result page for the full report. You can safely navigate away.'}

@@ -15,15 +15,15 @@ type FloatingStepProps = {
 function FloatingStep({ step, title, icon: Icon, style }: FloatingStepProps) {
   return (
     <div
-      className="absolute hidden lg:flex glass-2 rounded-[var(--radius-lg)] px-4 py-3 gap-3 items-center shadow-[var(--shadow-xl)] border border-[var(--border-default)] animate-float"
+      className="absolute hidden lg:flex glass-2 rounded-lg px-4 py-3 gap-3 items-center shadow-(--shadow-xl) border border-(--border-default) animate-float"
       style={style}
     >
-      <div className="flex h-9 w-9 items-center justify-center rounded-[var(--radius-md)] bg-[hsl(258_80%_58%/0.15)] border border-[hsl(258_80%_58%/0.3)] text-[var(--color-purple-400)]">
+      <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[hsl(258_80%_58%/0.15)] border border-[hsl(258_80%_58%/0.3)] text-purple-400">
         <Icon className="h-4 w-4" />
       </div>
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--color-purple-400)]">Step {step}</p>
-        <p className="text-sm font-semibold text-[var(--text-1)]">{title}</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-purple-400">Step {step}</p>
+        <p className="text-sm font-semibold text-(--text-1)">{title}</p>
       </div>
     </div>
   )
@@ -42,9 +42,9 @@ function StrengthBar({ password }: { password: string }) {
   })()
 
   const color =
-    score < 40 ? 'bg-[var(--c-danger)]' :
-    score < 80 ? 'bg-[var(--c-warning)]' :
-                 'bg-[var(--c-success)]'
+    score < 40 ? 'bg-(--c-danger)' :
+    score < 80 ? 'bg-(--c-warning)' :
+                 'bg-(--c-success)'
   const label =
     score < 40 ? 'Weak' :
     score < 80 ? 'Fair' :
@@ -54,10 +54,10 @@ function StrengthBar({ password }: { password: string }) {
 
   return (
     <div className="mt-2 space-y-1">
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--surface-4)]">
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-(--surface-4)">
         <div className={`h-full transition-all duration-500 rounded-full ${color}`} style={{ width: `${score}%` }} />
       </div>
-      <p className="text-[10px] font-semibold text-[var(--text-3)]">Password strength: {label}</p>
+      <p className="text-[10px] font-semibold text-(--text-3)">Password strength: {label}</p>
     </div>
   )
 }
@@ -107,11 +107,11 @@ export function Register() {
   return (
     <div className="flex min-h-screen">
       {/* ── Left Panel ── */}
-      <div className="relative hidden w-1/2 overflow-hidden bg-[var(--surface-1)] lg:flex lg:flex-col lg:items-center lg:justify-center border-r border-[var(--border-subtle)]">
+      <div className="relative hidden w-1/2 overflow-hidden bg-(--surface-1) lg:flex lg:flex-col lg:items-center lg:justify-center border-r border-(--border-subtle)">
         {/* Mesh */}
         <div className="absolute inset-0 z-0" aria-hidden>
           <div className="absolute left-[-10%] top-[-10%] h-[50%] w-[50%] rounded-full bg-purple-600 opacity-[0.08] blur-[100px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] h-[50%] w-[50%] rounded-full bg-[var(--brand)] opacity-[0.06] blur-[100px]" />
+          <div className="absolute bottom-[-10%] right-[-10%] h-[50%] w-[50%] rounded-full bg-(--brand) opacity-[0.06] blur-[100px]" />
         </div>
 
         {/* Grid */}
@@ -136,14 +136,14 @@ export function Register() {
 
         {/* Brand lockup */}
         <div className="relative z-20 flex flex-col items-center text-center animate-spring-in">
-          <div className="glass-2 rounded-[var(--radius-2xl)] p-10 shadow-[var(--shadow-2xl)] border border-[var(--border-default)]">
+          <div className="glass-2 rounded-2xl p-10 shadow-(--shadow-2xl) border border-(--border-default)">
             <div className="mb-6 flex justify-center">
-              <div className="rounded-[var(--radius-xl)] bg-white p-5 shadow-[var(--shadow-lg)]">
+              <div className="rounded-xl bg-white p-5 shadow-(--shadow-lg)">
                 <img src="/logo.png" alt="RootLens" className="h-16 w-auto object-contain" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-[var(--text-1)] tracking-tight">Create your workspace</h1>
-            <p className="mt-3 max-w-[260px] text-sm leading-relaxed text-[var(--text-2)]">
+            <h1 className="text-2xl font-bold text-(--text-1) tracking-tight">Create your workspace</h1>
+            <p className="mt-3 max-w-[260px] text-sm leading-relaxed text-(--text-2)">
               ML-powered root-cause analysis. No data science required.
             </p>
           </div>
@@ -159,12 +159,12 @@ export function Register() {
 
         <div className="w-full max-w-sm animate-spring-up">
           <div className="mb-8 text-center">
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--color-purple-400)]">Get started free</p>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-[var(--text-1)]">Create workspace</h2>
-            <p className="mt-1.5 text-sm text-[var(--text-3)]">Takes less than 60 seconds</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-purple-400">Get started free</p>
+            <h2 className="mt-2 text-2xl font-bold tracking-tight text-(--text-1)">Create workspace</h2>
+            <p className="mt-1.5 text-sm text-(--text-3)">Takes less than 60 seconds</p>
           </div>
 
-          <div className="rounded-[var(--radius-xl)] border border-[var(--border-default)] bg-[var(--surface-1)] p-6 shadow-[var(--shadow-xl)]">
+          <div className="rounded-xl border border-(--border-default) bg-(--surface-1) p-6 shadow-(--shadow-xl)">
             <form onSubmit={onSubmit} className="space-y-4">
               <div className="animate-slide-in-left delay-50">
                 <Input
@@ -192,7 +192,7 @@ export function Register() {
                     <button
                       type="button"
                       onClick={() => setShowPw(!showPw)}
-                      className="text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
+                      className="text-(--text-3) hover:text-(--text-1) transition-colors"
                       aria-label={showPw ? 'Hide password' : 'Show password'}
                     >
                       {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -203,7 +203,7 @@ export function Register() {
               </div>
 
               {err && (
-                <div className="rounded-[var(--radius-md)] border border-[var(--c-danger-border)] bg-[var(--c-danger-bg)] px-4 py-3 text-sm font-medium text-[var(--c-danger)] animate-spring-in">
+                <div className="rounded-md border border-(--c-danger-border) bg-(--c-danger-bg) px-4 py-3 text-sm font-medium text-(--c-danger) animate-spring-in">
                   {err}
                 </div>
               )}
@@ -221,9 +221,9 @@ export function Register() {
             </form>
           </div>
 
-          <p className="mt-6 text-center text-sm text-[var(--text-3)] animate-fade-in delay-300">
+          <p className="mt-6 text-center text-sm text-(--text-3) animate-fade-in delay-300">
             Already have a workspace?{' '}
-            <Link className="font-semibold text-[var(--brand)] transition-colors hover:brightness-110" to="/login">
+            <Link className="font-semibold text-(--brand) transition-colors hover:brightness-110" to="/login">
               Sign in
             </Link>
           </p>

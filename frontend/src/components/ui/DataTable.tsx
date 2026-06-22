@@ -2,7 +2,7 @@ import type { ReactNode, ThHTMLAttributes, TdHTMLAttributes, HTMLAttributes } fr
 
 export function DataTable({ children, className = '', ...rest }: HTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-[var(--border-1)] bg-[var(--surface-1)]">
+    <div className="overflow-x-auto rounded-xl border border-(--border-1) bg-(--surface-1)">
       <table className={`min-w-full text-left text-sm ${className}`.trim()} {...rest}>
         {children}
       </table>
@@ -12,19 +12,19 @@ export function DataTable({ children, className = '', ...rest }: HTMLAttributes<
 
 export function THead({ children }: { children: ReactNode }) {
   return (
-    <thead className="border-b border-[var(--border-1)] bg-[var(--surface-3)] text-[10px] font-black uppercase tracking-[0.18em] text-[var(--text-3)]">
+    <thead className="border-b border-(--border-1) bg-(--surface-3) text-[10px] font-black uppercase tracking-[0.18em] text-(--text-3)">
       {children}
     </thead>
   )
 }
 
 export function TBody({ children }: { children: ReactNode }) {
-  return <tbody className="divide-y divide-[var(--border-1)]">{children}</tbody>
+  return <tbody className="divide-y divide-(--border-1)">{children}</tbody>
 }
 
 export function TR({ children, className = '', ...rest }: HTMLAttributes<HTMLTableRowElement>) {
   return (
-    <tr className={`transition-colors hover:bg-[var(--surface-3)]/60 ${className}`.trim()} {...rest}>
+    <tr className={`transition-colors hover:bg-(--surface-3)/60 ${className}`.trim()} {...rest}>
       {children}
     </tr>
   )
@@ -66,7 +66,7 @@ export function TD({
   const monoCls = mono ? 'font-mono text-xs' : ''
   return (
     <td
-      className={`px-4 py-3 text-[var(--text-1)] ${alignCls} ${numericCls} ${monoCls} ${className}`.trim()}
+      className={`px-4 py-3 text-(--text-1) ${alignCls} ${numericCls} ${monoCls} ${className}`.trim()}
       {...rest}
     >
       {children}

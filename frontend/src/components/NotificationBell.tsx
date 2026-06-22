@@ -92,13 +92,13 @@ export function NotificationBell() {
         aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
         aria-expanded={open}
         aria-haspopup="dialog"
-        className="relative rounded-[var(--radius-md)] p-2 text-[var(--text-3)] hover:bg-[var(--surface-2)] hover:text-[var(--text-1)] transition-colors"
+        className="relative rounded-md p-2 text-(--text-3) hover:bg-(--surface-2) hover:text-(--text-1) transition-colors"
       >
         <Bell className="h-[18px] w-[18px]" />
         {unreadCount > 0 && (
           <span
             aria-hidden
-            className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--c-danger)] text-[9px] font-black text-white shadow-[var(--shadow-sm)] animate-spring-up"
+            className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-(--c-danger) text-[9px] font-black text-white shadow-(--shadow-sm) animate-spring-up"
           >
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
@@ -110,17 +110,17 @@ export function NotificationBell() {
           role="dialog"
           aria-label="Notifications"
           className={[
-            'absolute right-0 top-full mt-2 z-[200]',
-            'w-80 rounded-[var(--radius-xl)] border border-[var(--border-default)]',
-            'bg-[var(--surface-2)] shadow-[var(--shadow-2xl)]',
+            'absolute right-0 top-full mt-2 z-200',
+            'w-80 rounded-xl border border-(--border-default)',
+            'bg-(--surface-2) shadow-(--shadow-2xl)',
             'overflow-hidden animate-spring-up',
           ].join(' ')}
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-4 py-3 bg-[var(--surface-1)]">
+          <div className="flex items-center justify-between border-b border-(--border-subtle) px-4 py-3 bg-(--surface-1)">
             <div className="flex items-center gap-2">
-              <Bell className="h-3.5 w-3.5 text-[var(--brand)]" />
-              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-2)]">
+              <Bell className="h-3.5 w-3.5 text-(--brand)" />
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-(--text-2)">
                 Recent Completions
               </p>
             </div>
@@ -128,14 +128,14 @@ export function NotificationBell() {
               {unreadCount === 0 && completed.length === 0 && (
                 <button
                   onClick={markAllRead}
-                  className="text-[10px] font-semibold text-[var(--brand)] hover:underline mr-1"
+                  className="text-[10px] font-semibold text-(--brand) hover:underline mr-1"
                 >
                   Mark all read
                 </button>
               )}
               <button
                 onClick={() => setOpen(false)}
-                className="rounded p-0.5 text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
+                className="rounded p-0.5 text-(--text-3) hover:text-(--text-1) transition-colors"
                 aria-label="Close notifications"
               >
                 <X className="h-3.5 w-3.5" />
@@ -144,7 +144,7 @@ export function NotificationBell() {
           </div>
 
           {/* List */}
-          <div className="max-h-72 overflow-y-auto divide-y divide-[var(--border-subtle)]">
+          <div className="max-h-72 overflow-y-auto divide-y divide-(--border-subtle)">
             {(data ?? [])
               .filter(a => a.status === 'completed' || a.status === 'completed_with_warnings')
               .slice(0, 8)
@@ -155,39 +155,39 @@ export function NotificationBell() {
                     key={run.id}
                     to={`/analyses/${run.id}`}
                     onClick={() => setOpen(false)}
-                    className="group flex items-center gap-3 px-4 py-3 hover:bg-[var(--surface-3)] transition-colors"
+                    className="group flex items-center gap-3 px-4 py-3 hover:bg-(--surface-3) transition-colors"
                   >
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--c-success)]" />
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-(--c-success)" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-[var(--text-1)] truncate">
+                      <p className="text-xs font-semibold text-(--text-1) truncate">
                         {run.dataset_name}
                         {isNew && (
-                          <span className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-[var(--brand)] align-middle" aria-label="New" />
+                          <span className="ml-2 inline-block h-1.5 w-1.5 rounded-full bg-(--brand) align-middle" aria-label="New" />
                         )}
                       </p>
-                      <p className="text-[10px] text-[var(--text-3)] mt-0.5">
-                        target: <span className="text-[var(--brand)]">{run.target}</span>
+                      <p className="text-[10px] text-(--text-3) mt-0.5">
+                        target: <span className="text-(--brand)">{run.target}</span>
                         {run.completed_at && ` · ${timeAgo(run.completed_at)}`}
                       </p>
                     </div>
-                    <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[var(--text-4)] group-hover:text-[var(--brand)] transition-colors" />
+                    <ArrowRight className="h-3.5 w-3.5 shrink-0 text-(--text-4) group-hover:text-(--brand) transition-colors" />
                   </Link>
                 )
               })
             }
             {(data ?? []).filter(a => a.status === 'completed' || a.status === 'completed_with_warnings').length === 0 && (
-              <div className="py-10 text-center text-xs text-[var(--text-3)]">
+              <div className="py-10 text-center text-xs text-(--text-3)">
                 No completed analyses yet.
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className="border-t border-[var(--border-subtle)] px-4 py-2.5 bg-[var(--surface-1)]">
+          <div className="border-t border-(--border-subtle) px-4 py-2.5 bg-(--surface-1)">
             <Link
               to="/analyses"
               onClick={() => setOpen(false)}
-              className="text-[11px] font-semibold text-[var(--brand)] hover:underline"
+              className="text-[11px] font-semibold text-(--brand) hover:underline"
             >
               View all analyses →
             </Link>

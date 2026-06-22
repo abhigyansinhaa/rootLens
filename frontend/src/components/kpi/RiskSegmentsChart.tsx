@@ -39,14 +39,14 @@ export function RiskSegmentsChart({ kpis, hasValue }: { kpis: AnalysisKpis; hasV
   }))
 
   return (
-    <Card padding="xl" tone="strong" elevated className="border-t-[var(--border-subtle)] border-t-2 glass overflow-hidden relative">
+    <Card padding="xl" tone="strong" elevated className="border-t-(--border-subtle) border-t-2 glass overflow-hidden relative">
       <div className="absolute top-0 right-0 -mt-24 -mr-24 h-64 w-64 rounded-full bg-brand-500/10 blur-3xl pointer-events-none" />
       
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <CardEyebrow>Segmentation Strategy</CardEyebrow>
-          <h2 className="mt-2 text-2xl font-black tracking-tight text-[var(--text-1)]">Risk by Population and Value</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--text-2)]">
+          <h2 className="mt-2 text-2xl font-black tracking-tight text-(--text-1)">Risk by Population and Value</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-(--text-2)">
             Compare where your users sit versus where modeled monetary exposure concentrates. This helps prioritize interventions based on ROI.
           </p>
         </div>
@@ -129,7 +129,7 @@ function SegmentTile({
   const Icon = segment.bucket === 'high' ? AlertTriangle : segment.bucket === 'medium' ? Target : TrendingUp
 
   return (
-    <div className={`rounded-xl border border-[var(--border-subtle)] bg-[var(--surface-1)] p-5 shadow-sm transition-all hover:shadow-md ${tone === 'risk' ? 'border-red-500/20 bg-red-500/5' : tone === 'warning' ? 'border-amber-500/20 bg-amber-500/5' : 'border-emerald-500/20 bg-emerald-500/5'}`}>
+    <div className={`rounded-xl border border-(--border-subtle) bg-(--surface-1) p-5 shadow-sm transition-all hover:shadow-md ${tone === 'risk' ? 'border-red-500/20 bg-red-500/5' : tone === 'warning' ? 'border-amber-500/20 bg-amber-500/5' : 'border-emerald-500/20 bg-emerald-500/5'}`}>
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <Icon className={`h-4 w-4 ${tone === 'risk' ? 'text-red-500' : tone === 'warning' ? 'text-amber-500' : 'text-emerald-500'}`} />
         <span className={`text-sm font-bold ${tone === 'risk' ? 'text-red-700 dark:text-red-400' : tone === 'warning' ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
@@ -138,40 +138,40 @@ function SegmentTile({
         {segment.easiest_to_fix ? <StatusBadge tone="success" className="ml-auto scale-90 origin-right">Highest tractability</StatusBadge> : null}
       </div>
 
-      <dl className="space-y-3 text-sm text-[var(--text-2)] mb-5">
-        <div className="flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-2">
+      <dl className="space-y-3 text-sm text-(--text-2) mb-5">
+        <div className="flex items-center justify-between gap-2 border-b border-(--border-subtle) pb-2">
           <dt>Rows</dt>
-          <dd className="font-bold tabular-nums text-[var(--text-1)]">{segment.count.toLocaleString()}</dd>
+          <dd className="font-bold tabular-nums text-(--text-1)">{segment.count.toLocaleString()}</dd>
         </div>
-        <div className="flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-2">
+        <div className="flex items-center justify-between gap-2 border-b border-(--border-subtle) pb-2">
           <dt>Population share</dt>
-          <dd className="font-bold tabular-nums text-[var(--text-1)]">{formatPct01(segment.share)}</dd>
+          <dd className="font-bold tabular-nums text-(--text-1)">{formatPct01(segment.share)}</dd>
         </div>
         {hasValue ? (
-          <div className="flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-2">
+          <div className="flex items-center justify-between gap-2 border-b border-(--border-subtle) pb-2">
             <dt>Value share</dt>
-            <dd className="font-bold tabular-nums text-[var(--text-1)]">
+            <dd className="font-bold tabular-nums text-(--text-1)">
               {formatPct01(segment.value_share ?? 0)}
             </dd>
           </div>
         ) : null}
         {evPerUser != null ? (
-          <div className="flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] pb-2">
+          <div className="flex items-center justify-between gap-2 border-b border-(--border-subtle) pb-2">
             <dt>Exp. value / user</dt>
-            <dd className="font-bold tabular-nums text-[var(--text-1)]">{formatCompactMoney(evPerUser)}</dd>
+            <dd className="font-bold tabular-nums text-(--text-1)">{formatCompactMoney(evPerUser)}</dd>
           </div>
         ) : null}
         <div className="flex items-center justify-between gap-2">
           <dt>Avg model score</dt>
-          <dd className="font-bold tabular-nums text-[var(--text-1)]">
+          <dd className="font-bold tabular-nums text-(--text-1)">
             {segment.avg_proba?.toFixed(3) ?? '-'}
           </dd>
         </div>
       </dl>
 
-      <div className="rounded-lg bg-[var(--surface-2)] p-3">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--text-3)] mb-2">Recommendations</p>
-        <ul className="list-disc space-y-1.5 pl-4 text-xs text-[var(--text-1)]">
+      <div className="rounded-lg bg-(--surface-2) p-3">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-(--text-3) mb-2">Recommendations</p>
+        <ul className="list-disc space-y-1.5 pl-4 text-xs text-(--text-1)">
           {playbook.map((line, i) => (
             <li key={i}>{line}</li>
           ))}

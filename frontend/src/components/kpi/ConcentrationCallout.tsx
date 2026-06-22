@@ -61,7 +61,7 @@ export function ConcentrationCallout({ kpis }: { kpis: AnalysisKpis }) {
             Risk lens
           </StatusBadge>
         </div>
-        <p className="text-xl font-bold leading-tight text-[var(--text-1)]">
+        <p className="text-xl font-bold leading-tight text-(--text-1)">
           Top{' '}
           <span className="tabular-nums text-brand-600 dark:text-brand-300">
             {(h.top_pct_users * 100).toFixed(0)}%
@@ -73,19 +73,19 @@ export function ConcentrationCallout({ kpis }: { kpis: AnalysisKpis }) {
           of expected exposure
         </p>
         {interpretation ? (
-          <p className="text-sm leading-6 text-[var(--text-2)]">{interpretation}</p>
+          <p className="text-sm leading-6 text-(--text-2)">{interpretation}</p>
         ) : (
-          <p className="text-sm leading-6 text-[var(--text-2)]">
+          <p className="text-sm leading-6 text-(--text-2)">
             Gini coefficient{' '}
-            <span className="font-semibold tabular-nums text-[var(--text-1)]">
+            <span className="font-semibold tabular-nums text-(--text-1)">
               {kpis.concentration.gini.toFixed(2)}
             </span>{' '}
             — the closer to 1.00, the more concentrated the modeled tail risk.
           </p>
         )}
         {cutOptions.length > 0 ? (
-          <div className="rounded-xl border border-[var(--border-1)] bg-[var(--surface-1)] p-3 text-xs">
-            <p className="font-bold uppercase tracking-[0.14em] text-[var(--text-3)]">Threshold simulation</p>
+          <div className="rounded-xl border border-(--border-1) bg-(--surface-1) p-3 text-xs">
+            <p className="font-bold uppercase tracking-[0.14em] text-(--text-3)">Threshold simulation</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {cutOptions.map((c, i) => (
                 <button
@@ -95,7 +95,7 @@ export function ConcentrationCallout({ kpis }: { kpis: AnalysisKpis }) {
                   className={`rounded-lg px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${
                     idx === i
                       ? 'bg-brand-600 text-white'
-                      : 'border border-[var(--border-1)] bg-[var(--surface-2)] text-[var(--text-2)]'
+                      : 'border border-(--border-1) bg-(--surface-2) text-(--text-2)'
                   }`}
                 >
                   Top {(c.top_pct * 100).toFixed(0)}%
@@ -103,21 +103,21 @@ export function ConcentrationCallout({ kpis }: { kpis: AnalysisKpis }) {
               ))}
             </div>
             {selected ? (
-              <dl className="mt-3 grid gap-1 text-[var(--text-2)]">
+              <dl className="mt-3 grid gap-1 text-(--text-2)">
                 <div className="flex justify-between gap-2">
                   <dt>Share of modeled exposure</dt>
-                  <dd className="font-bold tabular-nums text-[var(--text-1)]">{formatPct01(selected.share_of_risk)}</dd>
+                  <dd className="font-bold tabular-nums text-(--text-1)">{formatPct01(selected.share_of_risk)}</dd>
                 </div>
                 <div className="flex justify-between gap-2">
                   <dt>Approx. users in tail</dt>
-                  <dd className="font-bold tabular-nums text-[var(--text-1)]">
+                  <dd className="font-bold tabular-nums text-(--text-1)">
                     {selected.approx_users.toLocaleString()}
                   </dd>
                 </div>
                 {selected.approx_revenue_at_risk != null && Number.isFinite(selected.approx_revenue_at_risk) ? (
                   <div className="flex justify-between gap-2">
                     <dt>Approx. revenue at risk (tail)</dt>
-                    <dd className="font-bold tabular-nums text-[var(--text-1)]">
+                    <dd className="font-bold tabular-nums text-(--text-1)">
                       {formatCompactMoney(selected.approx_revenue_at_risk)}
                     </dd>
                   </div>
@@ -164,12 +164,12 @@ export function ConcentrationCallout({ kpis }: { kpis: AnalysisKpis }) {
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-sm text-[var(--text-3)]">Not enough variance to plot.</p>
+            <p className="text-sm text-(--text-3)">Not enough variance to plot.</p>
           )}
         </div>
         {paretoBars.length >= 2 ? (
           <div className="h-36 w-full">
-            <p className="mb-1 text-[10px] font-black uppercase tracking-[0.14em] text-[var(--text-3)]">
+            <p className="mb-1 text-[10px] font-black uppercase tracking-[0.14em] text-(--text-3)">
               Pareto cuts (share of risk by tail %)
             </p>
             <ResponsiveContainer width="100%" height="100%">

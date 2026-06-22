@@ -69,10 +69,10 @@ export function DatasetsListSkeleton() {
           {Array.from({ length: 6 }, (_, i) => (
             <div
               key={i}
-              className="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-1)] p-6 space-y-4"
+              className="rounded-xl border border-(--border-subtle) bg-(--surface-1) p-6 space-y-4"
             >
               <div className="flex items-center gap-3">
-                <SkeletonBlock className="h-10 w-10 rounded-[var(--radius-md)]" />
+                <SkeletonBlock className="h-10 w-10 rounded-md" />
                 <div className="flex-1 space-y-2">
                   <SkeletonLine className="w-3/4" />
                   <SkeletonLine className="h-2 w-1/2" />
@@ -86,7 +86,7 @@ export function DatasetsListSkeleton() {
                   </div>
                 ))}
               </div>
-              <SkeletonBlock className="h-8 w-full rounded-[var(--radius-md)]" />
+              <SkeletonBlock className="h-8 w-full rounded-md" />
             </div>
           ))}
         </div>
@@ -121,7 +121,7 @@ export function DatasetDetailSkeleton() {
             <SkeletonPageHeader />
             <SkeletonBlock className="h-24 w-full" />
             {Array.from({ length: 5 }, (_, i) => (
-              <div key={i} className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--surface-1)] p-4 space-y-3">
+              <div key={i} className="rounded-lg border border-(--border-subtle) bg-(--surface-1) p-4 space-y-3">
                 <div className="flex justify-between">
                   <SkeletonLine className="w-1/3" />
                   <SkeletonLine className="h-4 w-12" />
@@ -152,7 +152,7 @@ export function UploadSkeleton() {
         <SkeletonPageHeader />
 
         {/* Drop zone */}
-        <div className="rounded-[var(--radius-2xl)] border-2 border-dashed border-[var(--border-default)] bg-[var(--surface-1)] p-16 flex flex-col items-center gap-4">
+        <div className="rounded-2xl border-2 border-dashed border-(--border-default) bg-(--surface-1) p-16 flex flex-col items-center gap-4">
           <SkeletonBlock className="h-12 w-12 rounded-full" />
           <SkeletonLine className="h-5 w-48" />
           <SkeletonLine className="h-3 w-64" />
@@ -239,7 +239,7 @@ export function AnalysisResultSkeleton() {
         {/* Driver cards */}
         <div className="grid gap-4 md:grid-cols-2">
           {Array.from({ length: 4 }, (_, i) => (
-            <div key={i} className="rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-1)] p-5 space-y-4">
+            <div key={i} className="rounded-xl border border-(--border-subtle) bg-(--surface-1) p-5 space-y-4">
               <div className="flex justify-between items-start">
                 <SkeletonLine className="w-2/5 h-4" />
                 <SkeletonBlock className="h-5 w-14 rounded-full" />
@@ -284,7 +284,7 @@ export function AuthSkeleton() {
   return (
     <SkeletonGroup label="Loading…">
       <div className="flex min-h-[80vh] items-center justify-center animate-fade-in-up">
-        <div className="w-full max-w-md space-y-6 rounded-[var(--radius-2xl)] border border-[var(--border-subtle)] bg-[var(--surface-1)] p-8">
+        <div className="w-full max-w-md space-y-6 rounded-2xl border border-(--border-subtle) bg-(--surface-1) p-8">
           <div className="space-y-2 text-center">
             <SkeletonBlock className="h-10 w-10 rounded-full mx-auto" />
             <SkeletonLine className="h-6 w-40 mx-auto" />

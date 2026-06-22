@@ -77,18 +77,18 @@ export function StickyExecutiveStrip({
 
   return (
     <div
-      className="sticky z-40 -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-[var(--border-subtle)] bg-[var(--app-bg)]/80 backdrop-blur-xl shadow-sm transition-all print:shadow-none"
+      className="sticky z-40 -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-(--border-subtle) bg-(--app-bg)/80 backdrop-blur-xl shadow-sm transition-all print:shadow-none"
       style={{ top: 'var(--app-header-height, 64px)' }}
     >
       <div className="flex flex-col justify-center py-3">
         <div className="flex items-center justify-between gap-4">
           
           <div className="flex-1 md:flex-[1.5] min-w-0">
-            <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-3)] mb-1">
+            <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-1">
               <Activity className="h-3.5 w-3.5 text-brand-500" /> {primary.label}
               <HelpTooltip title="Baseline target metric for this cohort on the completed run.">ⓘ</HelpTooltip>
             </p>
-            <p className="truncate text-2xl md:text-3xl font-black tabular-nums tracking-tight text-[var(--text-1)]">
+            <p className="truncate text-2xl md:text-3xl font-black tabular-nums tracking-tight text-(--text-1)">
               {primary.value}
             </p>
           </div>
@@ -96,40 +96,40 @@ export function StickyExecutiveStrip({
           <div className="hidden md:flex flex-1 items-center justify-between gap-6">
             
             <div className="min-w-0">
-              <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-3)] mb-2">
-                <ShieldCheck className="h-3.5 w-3.5 text-[var(--text-2)]" /> Reliability
+              <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-2">
+                <ShieldCheck className="h-3.5 w-3.5 text-(--text-2)" /> Reliability
               </p>
               <div className="flex items-center gap-2">
                 <StatusBadge tone={relTone} dot className="px-2 py-0.5 text-[10px]">
                   {r.tier}
                 </StatusBadge>
-                <span className="text-sm font-bold tabular-nums text-[var(--text-1)]">
-                  {formatNumber(r.headline_value)} <span className="font-medium text-[var(--text-3)] text-xs">({r.headline_metric})</span>
+                <span className="text-sm font-bold tabular-nums text-(--text-1)">
+                  {formatNumber(r.headline_value)} <span className="font-medium text-(--text-3) text-xs">({r.headline_metric})</span>
                 </span>
               </div>
             </div>
 
             <div className="min-w-0">
-              <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-3)] mb-2">
-                <Target className="h-3.5 w-3.5 text-[var(--text-2)]" /> Top Driver
+              <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-2">
+                <Target className="h-3.5 w-3.5 text-(--text-2)" /> Top Driver
               </p>
               <p className="truncate font-mono text-sm font-bold text-brand-600 dark:text-brand-400" title={topDriver}>
                 {topDriver}
               </p>
             </div>
 
-            <div className="min-w-0 pr-4 border-r border-[var(--border-subtle)]">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-3)] mb-2">
+            <div className="min-w-0 pr-4 border-r border-(--border-subtle)">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-2">
                 Vs Prior Run
               </p>
-              <div className="flex items-center gap-1.5 text-sm font-bold tabular-nums text-[var(--text-1)]">
+              <div className="flex items-center gap-1.5 text-sm font-bold tabular-nums text-(--text-1)">
                 {compare.trend === 'up' ? <TrendingUp className="h-4 w-4 text-red-500" /> : compare.trend === 'down' ? <TrendingDown className="h-4 w-4 text-emerald-500" /> : null}
                 {compare.text}
               </div>
             </div>
 
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-3)] mb-2">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-2">
                 Intervention
               </p>
               <StatusBadge
@@ -147,7 +147,7 @@ export function StickyExecutiveStrip({
 
           <button
             type="button"
-            className="md:hidden shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-[var(--surface-2)] text-[var(--text-2)]"
+            className="md:hidden shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-(--surface-2) text-(--text-2)"
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((v) => !v)}
           >
@@ -156,15 +156,15 @@ export function StickyExecutiveStrip({
         </div>
 
         {mobileOpen && (
-          <div className="md:hidden mt-4 pt-4 border-t border-[var(--border-subtle)] grid grid-cols-2 gap-4 animate-fade-in-up">
+          <div className="md:hidden mt-4 pt-4 border-t border-(--border-subtle) grid grid-cols-2 gap-4 animate-fade-in-up">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-3)] mb-1">Reliability</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-1">Reliability</p>
               <div className="flex items-center gap-2">
                 <StatusBadge tone={relTone} dot className="px-2 py-0.5 text-[10px]">{r.tier}</StatusBadge>
               </div>
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-3)] mb-1">Intervention</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-1">Intervention</p>
               <StatusBadge
                 tone={iv?.tier === 'high' ? 'success' : iv?.tier === 'low' ? 'risk' : iv?.tier === 'medium' ? 'warning' : 'default'}
                 dot
@@ -174,11 +174,11 @@ export function StickyExecutiveStrip({
               </StatusBadge>
             </div>
             <div className="col-span-2">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-3)] mb-1">Top Driver</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-1">Top Driver</p>
               <p className="font-mono text-sm font-bold text-brand-600 truncate">{topDriver}</p>
             </div>
             <div className="col-span-2">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-3)] mb-1">Vs Prior Run</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-1">Vs Prior Run</p>
               <p className="text-sm font-bold">{compare.text}</p>
             </div>
           </div>

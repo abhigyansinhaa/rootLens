@@ -14,7 +14,7 @@ export function ThemeToggle() {
       onClick={toggle}
       title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      className="relative rounded-[var(--radius-md)] p-2 text-[var(--text-3)] hover:bg-[var(--surface-2)] hover:text-[var(--text-1)] transition-colors"
+      className="relative rounded-md p-2 text-(--text-3) hover:bg-(--surface-2) hover:text-(--text-1) transition-colors"
     >
       <span
         className="absolute inset-0 flex items-center justify-center transition-all duration-300"

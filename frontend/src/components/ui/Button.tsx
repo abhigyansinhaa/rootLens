@@ -20,7 +20,7 @@ type ButtonProps =
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary: [
-    'bg-[var(--brand)] text-white font-semibold',
+    'bg-(--brand) text-white font-semibold',
     'hover:brightness-110 hover:shadow-[0_0_24px_hsl(214_100%_59%/0.4)]',
     'active:brightness-95',
     'shadow-[0_0_0_1px_hsl(214_100%_59%/0.5),0_2px_8px_hsl(214_100%_59%/0.3)]',
@@ -28,24 +28,24 @@ const variantClasses: Record<ButtonVariant, string> = {
   ].join(' '),
 
   secondary: [
-    'bg-[var(--surface-2)] text-[var(--text-1)] font-medium',
-    'border border-[var(--border-default)]',
-    'hover:bg-[var(--surface-3)] hover:border-[var(--border-strong)]',
-    'active:bg-[var(--surface-4)]',
+    'bg-(--surface-2) text-(--text-1) font-medium',
+    'border border-(--border-default)',
+    'hover:bg-(--surface-3) hover:border-(--border-strong)',
+    'active:bg-(--surface-4)',
     'disabled:opacity-40 disabled:cursor-not-allowed',
   ].join(' '),
 
   ghost: [
-    'bg-transparent text-[var(--text-2)] font-medium',
-    'hover:bg-[var(--surface-2)] hover:text-[var(--text-1)]',
-    'active:bg-[var(--surface-3)]',
+    'bg-transparent text-(--text-2) font-medium',
+    'hover:bg-(--surface-2) hover:text-(--text-1)',
+    'active:bg-(--surface-3)',
     'disabled:opacity-40 disabled:cursor-not-allowed',
   ].join(' '),
 
   danger: [
-    'bg-[var(--c-danger-bg)] text-[var(--c-danger)] font-semibold',
-    'border border-[var(--c-danger-border)]',
-    'hover:bg-[var(--c-danger)] hover:text-white hover:border-transparent',
+    'bg-(--c-danger-bg) text-(--c-danger) font-semibold',
+    'border border-(--c-danger-border)',
+    'hover:bg-(--c-danger) hover:text-white hover:border-transparent',
     'hover:shadow-[0_0_20px_hsl(0_84%_60%/0.3)]',
     'active:brightness-90',
     'disabled:opacity-40 disabled:cursor-not-allowed',
@@ -53,17 +53,17 @@ const variantClasses: Record<ButtonVariant, string> = {
 }
 
 const sizeClasses: Record<ButtonSize, string> = {
-  xs: 'h-7  px-2.5 text-[11px] rounded-[var(--radius-sm)] gap-1.5',
-  sm: 'h-8  px-3.5 text-xs    rounded-[var(--radius-md)] gap-2',
-  md: 'h-10 px-5   text-sm    rounded-[var(--radius-md)] gap-2',
-  lg: 'h-12 px-7   text-base  rounded-[var(--radius-lg)] gap-2.5',
+  xs: 'h-7  px-2.5 text-[11px] rounded-sm gap-1.5',
+  sm: 'h-8  px-3.5 text-xs    rounded-md gap-2',
+  md: 'h-10 px-5   text-sm    rounded-md gap-2',
+  lg: 'h-12 px-7   text-base  rounded-lg gap-2.5',
 }
 
 const base = [
   'relative inline-flex items-center justify-center',
   'overflow-hidden select-none whitespace-nowrap',
-  'transition-all duration-[var(--duration-normal)]',
-  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--border-focus)] focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--app-bg)]',
+  'transition-all duration-(--duration-normal)',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--border-focus) focus-visible:ring-offset-1 focus-visible:ring-offset-(--app-bg)',
 ].join(' ')
 
 export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(

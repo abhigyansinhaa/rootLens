@@ -9,7 +9,7 @@ export function Breadcrumbs() {
     <nav aria-label="Breadcrumb" className="flex items-center space-x-1 sm:space-x-2">
       <Link
         to="/"
-        className="flex items-center text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors"
+        className="flex items-center text-(--text-3) hover:text-(--text-1) transition-colors"
       >
         <Home className="h-4 w-4" />
         <span className="sr-only">Home</span>
@@ -24,13 +24,13 @@ export function Breadcrumbs() {
 
         return (
           <div key={to} className="flex items-center">
-            <ChevronRight className="h-4 w-4 flex-shrink-0 text-[var(--border-strong)]" />
+            <ChevronRight className="h-4 w-4 flex-shrink-0 text-(--border-strong)" />
             <Link
               to={last ? '#' : to}
               className={`ml-1 sm:ml-2 text-sm font-medium ${
                 last
-                  ? 'text-[var(--text-1)] pointer-events-none'
-                  : 'text-[var(--text-3)] hover:text-[var(--text-1)] transition-colors'
+                  ? 'text-(--text-1) pointer-events-none'
+                  : 'text-(--text-3) hover:text-(--text-1) transition-colors'
               }`}
               aria-current={last ? 'page' : undefined}
             >

@@ -58,8 +58,8 @@ export function KpiSparkline({ datasetId, target, kpiSummary }: KpiSparklineProp
       {delta != null && (
         <div className={[
           'flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide',
-          delta < 0 ? 'bg-[var(--c-success-bg)] text-[var(--c-success)] border border-[var(--c-success-border)]' 
-                    : 'bg-[var(--c-danger-bg)] text-[var(--c-danger)] border border-[var(--c-danger-border)]'
+          delta < 0 ? 'bg-(--c-success-bg) text-(--c-success) border border-(--c-success-border)' 
+                    : 'bg-(--c-danger-bg) text-(--c-danger) border border-(--c-danger-border)'
         ].join(' ')}>
           {delta < 0 ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
           {formatPct01(Math.abs(delta))}

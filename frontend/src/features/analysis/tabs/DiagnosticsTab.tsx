@@ -19,8 +19,8 @@ export function DiagnosticsTab({ data }: DiagnosticsTabProps) {
       <GovernancePanel governance={data.report?.governance} />
 
       {data.report?.quality_signals && data.report.quality_signals.length > 0 && (
-        <div className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--surface-1)] p-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-3)] mb-4">
+        <div className="rounded-lg border border-(--border-subtle) bg-(--surface-1) p-5">
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-(--text-3) mb-4">
             Quality Alerts
           </p>
           <div className="flex flex-col gap-3" role="list" aria-label="Quality alerts">
@@ -51,7 +51,7 @@ export function DiagnosticsTab({ data }: DiagnosticsTabProps) {
                 <div
                   key={i}
                   role="listitem"
-                  className="flex items-start gap-3 rounded-[var(--radius-md)] border p-3.5"
+                  className="flex items-start gap-3 rounded-md border p-3.5"
                   style={{ background: t.bg, borderColor: t.border }}
                 >
                   <Icon
@@ -66,7 +66,7 @@ export function DiagnosticsTab({ data }: DiagnosticsTabProps) {
                     >
                       {s.scope}
                     </p>
-                    <p className="text-sm text-[var(--text-1)]">{s.message}</p>
+                    <p className="text-sm text-(--text-1)">{s.message}</p>
                   </div>
                 </div>
               )
@@ -76,7 +76,7 @@ export function DiagnosticsTab({ data }: DiagnosticsTabProps) {
       )}
 
       {data.metrics && (
-        <div className="pt-6 border-t border-[var(--border-subtle)]">
+        <div className="pt-6 border-t border-(--border-subtle)">
           <SectionHeader
             eyebrow="Confidence"
             title="Model Metrics"
@@ -101,8 +101,8 @@ export function DiagnosticsTab({ data }: DiagnosticsTabProps) {
       )}
 
       {/* Interpretation guide */}
-      <div className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--surface-1)] p-5">
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-3)] mb-4">
+      <div className="rounded-lg border border-(--border-subtle) bg-(--surface-1) p-5">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-(--text-3) mb-4">
           How to read this report
         </p>
         <div className="grid gap-3 sm:grid-cols-3">
@@ -122,10 +122,10 @@ export function DiagnosticsTab({ data }: DiagnosticsTabProps) {
           ].map(({ badge, text }, i) => (
             <div
               key={i}
-              className="rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4"
+              className="rounded-md border border-(--border-subtle) bg-(--surface-2) p-4"
             >
               <div className="mb-2">{badge}</div>
-              <p className="text-xs leading-relaxed text-[var(--text-2)]">{text}</p>
+              <p className="text-xs leading-relaxed text-(--text-2)">{text}</p>
             </div>
           ))}
         </div>

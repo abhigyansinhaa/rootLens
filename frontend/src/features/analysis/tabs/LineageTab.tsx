@@ -18,15 +18,15 @@ export function LineageTab({ data, onDownloadJson }: LineageTabProps) {
 
       {/* Run Lineage */}
       <section
-        className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--surface-1)] overflow-hidden"
+        className="rounded-lg border border-(--border-subtle) bg-(--surface-1) overflow-hidden"
         aria-label="Run lineage metadata"
       >
-        <div className="border-b border-[var(--border-subtle)] bg-[var(--surface-2)] px-5 py-3">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--brand)]">
+        <div className="border-b border-(--border-subtle) bg-(--surface-2) px-5 py-3">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-(--brand)">
             Run Lineage
           </p>
         </div>
-        <div className="grid grid-cols-1 divide-y divide-[var(--border-subtle)] md:grid-cols-2 md:divide-y-0 md:divide-x lg:grid-cols-4">
+        <div className="grid grid-cols-1 divide-y divide-(--border-subtle) md:grid-cols-2 md:divide-y-0 md:divide-x lg:grid-cols-4">
           {[
             { label: 'Pipeline Version', value: data.pipeline_version },
             { label: 'Encoder',          value: data.encoder_version  },
@@ -34,11 +34,11 @@ export function LineageTab({ data, onDownloadJson }: LineageTabProps) {
             { label: 'Schema Hash',      value: data.schema_hash      },
           ].map(({ label, value }) => (
             <div key={label} className="px-5 py-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-3)] mb-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3) mb-1">
                 {label}
               </p>
               <code
-                className="block truncate font-[var(--font-mono)] text-sm font-semibold text-[var(--text-1)]"
+                className="block truncate font-mono text-sm font-semibold text-(--text-1)"
                 title={value ?? undefined}
               >
                 {value ?? '—'}
@@ -50,15 +50,15 @@ export function LineageTab({ data, onDownloadJson }: LineageTabProps) {
 
       {/* Analysis config */}
       <section
-        className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--surface-1)] overflow-hidden"
+        className="rounded-lg border border-(--border-subtle) bg-(--surface-1) overflow-hidden"
         aria-label="Analysis configuration"
       >
-        <div className="border-b border-[var(--border-subtle)] bg-[var(--surface-2)] px-5 py-3">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--text-3)]">
+        <div className="border-b border-(--border-subtle) bg-(--surface-2) px-5 py-3">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-(--text-3)">
             Analysis Configuration
           </p>
         </div>
-        <div className="grid grid-cols-2 divide-x divide-[var(--border-subtle)] sm:grid-cols-4">
+        <div className="grid grid-cols-2 divide-x divide-(--border-subtle) sm:grid-cols-4">
           {[
             { label: 'Analysis ID',   value: `#${data.id}` },
             { label: 'Target',        value: data.target },
@@ -66,10 +66,10 @@ export function LineageTab({ data, onDownloadJson }: LineageTabProps) {
             { label: 'Value Column',  value: data.value_column ?? '—' },
           ].map(({ label, value }) => (
             <div key={label} className="px-5 py-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-3)] mb-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3) mb-1">
                 {label}
               </p>
-              <p className="text-sm font-semibold text-[var(--text-1)] capitalize">{value}</p>
+              <p className="text-sm font-semibold text-(--text-1) capitalize">{value}</p>
             </div>
           ))}
         </div>
@@ -78,11 +78,11 @@ export function LineageTab({ data, onDownloadJson }: LineageTabProps) {
       {/* Model metadata */}
       {data.model_metadata && Object.keys(data.model_metadata).length > 0 && (
         <div
-          className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--surface-1)] overflow-hidden"
+          className="rounded-lg border border-(--border-subtle) bg-(--surface-1) overflow-hidden"
           aria-label="Model metadata"
         >
-          <div className="flex items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--surface-2)] px-5 py-3">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--text-3)]">
+          <div className="flex items-center justify-between border-b border-(--border-subtle) bg-(--surface-2) px-5 py-3">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-(--text-3)">
               Model Metadata
             </p>
             <Button size="xs" variant="secondary" type="button" onClick={onDownloadJson}>
@@ -90,7 +90,7 @@ export function LineageTab({ data, onDownloadJson }: LineageTabProps) {
             </Button>
           </div>
           <pre
-            className="max-h-96 overflow-auto p-5 whitespace-pre-wrap break-words font-[var(--font-mono)] text-xs leading-relaxed text-[var(--text-2)]"
+            className="max-h-96 overflow-auto p-5 whitespace-pre-wrap wrap-break-word font-mono text-xs leading-relaxed text-(--text-2)"
             tabIndex={0}
             aria-label="Model metadata JSON"
           >
@@ -100,11 +100,11 @@ export function LineageTab({ data, onDownloadJson }: LineageTabProps) {
       )}
 
       {/* Reproducibility note */}
-      <div className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--brand-dimmer)] p-5">
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--brand)] mb-2">
+      <div className="rounded-lg border border-(--border-subtle) bg-(--brand-dimmer) p-5">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-(--brand) mb-2">
           Reproducibility guarantee
         </p>
-        <p className="text-sm leading-relaxed text-[var(--text-2)]">
+        <p className="text-sm leading-relaxed text-(--text-2)">
           The dataset hash and schema hash uniquely fingerprint the data used in this run. If either
           hash changes, the pipeline will detect a data drift event and flag the analysis accordingly.
           Pipeline version pins the exact ML code path — use it to reproduce results identically.

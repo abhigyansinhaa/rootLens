@@ -56,32 +56,32 @@ const VARIANT_STYLES: Record<ToastVariant, {
   border: string
 }> = {
   success: {
-    bar: 'bg-[var(--c-success)]',
+    bar: 'bg-(--c-success)',
     icon: CheckCircle2,
-    iconColor: 'text-[var(--c-success)]',
-    bg: 'bg-[var(--surface-2)]',
-    border: 'border-[var(--c-success-border)]',
+    iconColor: 'text-(--c-success)',
+    bg: 'bg-(--surface-2)',
+    border: 'border-(--c-success-border)',
   },
   error: {
-    bar: 'bg-[var(--c-danger)]',
+    bar: 'bg-(--c-danger)',
     icon: XCircle,
-    iconColor: 'text-[var(--c-danger)]',
-    bg: 'bg-[var(--surface-2)]',
-    border: 'border-[var(--c-danger-border)]',
+    iconColor: 'text-(--c-danger)',
+    bg: 'bg-(--surface-2)',
+    border: 'border-(--c-danger-border)',
   },
   warning: {
-    bar: 'bg-[var(--c-warning)]',
+    bar: 'bg-(--c-warning)',
     icon: AlertTriangle,
-    iconColor: 'text-[var(--c-warning)]',
-    bg: 'bg-[var(--surface-2)]',
-    border: 'border-[var(--c-warning-border)]',
+    iconColor: 'text-(--c-warning)',
+    bg: 'bg-(--surface-2)',
+    border: 'border-(--c-warning-border)',
   },
   info: {
-    bar: 'bg-[var(--c-info)]',
+    bar: 'bg-(--c-info)',
     icon: Info,
-    iconColor: 'text-[var(--c-info)]',
-    bg: 'bg-[var(--surface-2)]',
-    border: 'border-[var(--c-info-border)]',
+    iconColor: 'text-(--c-info)',
+    bg: 'bg-(--surface-2)',
+    border: 'border-(--c-info-border)',
   },
 }
 
@@ -123,14 +123,14 @@ function ToastItem({
       className={[
         'relative flex items-start gap-3 overflow-hidden',
         'w-[360px] max-w-[calc(100vw-2rem)]',
-        'rounded-[var(--radius-lg)] border',
-        'p-4 shadow-[var(--shadow-lg)]',
+        'rounded-lg border',
+        'p-4 shadow-(--shadow-lg)',
         'backdrop-blur-xl',
         v.bg, v.border,
       ].join(' ')}
     >
       {/* Left accent bar */}
-      <div className={`absolute left-0 top-0 bottom-0 w-[3px] rounded-l-[var(--radius-lg)] ${v.bar}`} />
+      <div className={`absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg ${v.bar}`} />
 
       {/* Icon */}
       <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${v.iconColor}`} />
@@ -138,17 +138,17 @@ function ToastItem({
       {/* Content */}
       <div className="flex-1 min-w-0 pl-1">
         {toast.title && (
-          <p className="text-sm font-bold text-[var(--text-1)] leading-tight mb-0.5">
+          <p className="text-sm font-bold text-(--text-1) leading-tight mb-0.5">
             {toast.title}
           </p>
         )}
-        <p className="text-sm text-[var(--text-2)] leading-snug">{toast.message}</p>
+        <p className="text-sm text-(--text-2) leading-snug">{toast.message}</p>
       </div>
 
       {/* Close button */}
       <button
         onClick={dismiss}
-        className="shrink-0 rounded-[var(--radius-sm)] p-1 text-[var(--text-3)] hover:bg-[var(--surface-3)] hover:text-[var(--text-1)] transition-colors"
+        className="shrink-0 rounded-sm p-1 text-(--text-3) hover:bg-(--surface-3) hover:text-(--text-1) transition-colors"
         aria-label="Dismiss notification"
       >
         <X className="h-3.5 w-3.5" />
@@ -198,7 +198,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {createPortal(
         <div
           aria-label="Notifications"
-          className="fixed bottom-6 right-6 z-[9999] flex flex-col-reverse gap-3 pointer-events-none"
+          className="fixed bottom-6 right-6 z-9999 flex flex-col-reverse gap-3 pointer-events-none"
         >
           {toasts.map(t => (
             <div key={t.id} className="pointer-events-auto">

@@ -23,17 +23,17 @@ function delta(a: number | null | undefined, b: number | null | undefined): numb
 }
 
 function DeltaPill({ value, fmt }: { value: number | null; fmt: (n: number) => string }) {
-  if (value == null) return <span className="text-[var(--text-4)] text-xs">—</span>
+  if (value == null) return <span className="text-(--text-4) text-xs">—</span>
   const pos = value > 0
   const zero = Math.abs(value) < 0.001
   return (
     <span className={[
       'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold',
       zero
-        ? 'bg-[var(--surface-3)] text-[var(--text-3)]'
+        ? 'bg-(--surface-3) text-(--text-3)'
         : pos
-        ? 'bg-[var(--c-success-bg)] text-[var(--c-success)]'
-        : 'bg-[var(--c-danger-bg)] text-[var(--c-danger)]',
+        ? 'bg-(--c-success-bg) text-(--c-success)'
+        : 'bg-(--c-danger-bg) text-(--c-danger)',
     ].join(' ')}>
       {zero ? <Minus className="h-3 w-3" /> : pos ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
       {zero ? 'no change' : `${pos ? '+' : ''}${fmt(value)}`}
@@ -58,12 +58,12 @@ function MetricRow({
   const adjustedDelta = invert && d != null ? -d : d
 
   return (
-    <tr className="border-b border-[var(--border-subtle)] last:border-0">
-      <td className="py-3 pr-4 text-xs text-[var(--text-3)] font-semibold uppercase tracking-[0.1em]">{label}</td>
-      <td className="py-3 pr-4 text-sm font-mono font-bold text-[var(--text-1)] tabular-nums">
+    <tr className="border-b border-(--border-subtle) last:border-0">
+      <td className="py-3 pr-4 text-xs text-(--text-3) font-semibold uppercase tracking-widest">{label}</td>
+      <td className="py-3 pr-4 text-sm font-mono font-bold text-(--text-1) tabular-nums">
         {a != null ? format(a) : '—'}
       </td>
-      <td className="py-3 pr-4 text-sm font-mono font-bold text-[var(--text-1)] tabular-nums">
+      <td className="py-3 pr-4 text-sm font-mono font-bold text-(--text-1) tabular-nums">
         {b != null ? format(b) : '—'}
       </td>
       <td className="py-3">
@@ -127,7 +127,7 @@ export function CompareAnalyses() {
     <div className="space-y-8 animate-fade-in-up pb-20">
       <Link
         to="/analyses"
-        className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--text-3)] hover:text-[var(--brand)] transition-colors print:hidden"
+        className="inline-flex items-center gap-2 text-sm font-semibold text-(--text-3) hover:text-(--brand) transition-colors print:hidden"
       >
         <ArrowLeft className="h-4 w-4" /> Back to analyses
       </Link>
@@ -144,33 +144,33 @@ export function CompareAnalyses() {
           { run: a, label: 'Run A (baseline)' },
           { run: b, label: 'Run B (comparison)' },
         ].map(({ run, label }, i) => (
-          <Card key={i} padding="lg" className="border border-[var(--border-subtle)] bg-[var(--surface-1)]">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-3)] mb-2">{label}</p>
+          <Card key={i} padding="lg" className="border border-(--border-subtle) bg-(--surface-1)">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3) mb-2">{label}</p>
             <div className="flex items-center gap-2 flex-wrap mb-3">
-              <span className="text-lg font-bold text-[var(--text-1)]">Analysis #{run.id}</span>
+              <span className="text-lg font-bold text-(--text-1)">Analysis #{run.id}</span>
               <StatusBadge tone={statusTone(run.status)}>{run.status}</StatusBadge>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-xs text-[var(--text-2)]">
+            <div className="grid grid-cols-2 gap-2 text-xs text-(--text-2)">
               <div>
-                <p className="text-[var(--text-3)] mb-0.5">Target</p>
-                <p className="font-semibold text-[var(--brand)]">{run.target}</p>
+                <p className="text-(--text-3) mb-0.5">Target</p>
+                <p className="font-semibold text-(--brand)">{run.target}</p>
               </div>
               <div>
-                <p className="text-[var(--text-3)] mb-0.5">Task type</p>
+                <p className="text-(--text-3) mb-0.5">Task type</p>
                 <p className="font-semibold capitalize">{run.task_type?.replace('_',' ') ?? '—'}</p>
               </div>
               <div>
-                <p className="text-[var(--text-3)] mb-0.5">Dataset</p>
+                <p className="text-(--text-3) mb-0.5">Dataset</p>
                 <p className="font-semibold truncate">Dataset #{run.dataset_id}</p>
               </div>
               <div>
-                <p className="text-[var(--text-3)] mb-0.5">Pipeline</p>
+                <p className="text-(--text-3) mb-0.5">Pipeline</p>
                 <p className="font-mono font-semibold">{run.pipeline_version ?? '—'}</p>
               </div>
             </div>
             <Link
               to={`/analyses/${run.id}`}
-              className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-[var(--brand)] hover:underline"
+              className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-(--brand) hover:underline"
             >
               Open full report →
             </Link>
@@ -186,14 +186,14 @@ export function CompareAnalyses() {
             title="Target & Revenue Delta"
             description="Positive delta (green) means Run B improved vs. Run A."
           />
-          <Card padding="lg" className="mt-4 overflow-x-auto border border-[var(--border-subtle)]">
+          <Card padding="lg" className="mt-4 overflow-x-auto border border-(--border-subtle)">
             <table className="w-full min-w-[480px]">
               <thead>
-                <tr className="border-b border-[var(--border-default)]">
-                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-3)]">Metric</th>
-                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--brand)]">Run A #{a.id}</th>
-                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--c-info)]">Run B #{b.id}</th>
-                  <th className="pb-3 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-3)]">Δ Change</th>
+                <tr className="border-b border-(--border-default)">
+                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3)">Metric</th>
+                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--brand)">Run A #{a.id}</th>
+                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--c-info)">Run B #{b.id}</th>
+                  <th className="pb-3 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3)">Δ Change</th>
                 </tr>
               </thead>
               <tbody>
@@ -215,14 +215,14 @@ export function CompareAnalyses() {
       {a.metrics && b.metrics && (
         <section>
           <SectionHeader eyebrow="Model Performance" title="Metric Comparison" />
-          <Card padding="lg" className="mt-4 overflow-x-auto border border-[var(--border-subtle)]">
+          <Card padding="lg" className="mt-4 overflow-x-auto border border-(--border-subtle)">
             <table className="w-full min-w-[480px]">
               <thead>
-                <tr className="border-b border-[var(--border-default)]">
-                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-3)]">Metric</th>
-                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--brand)]">Run A #{a.id}</th>
-                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--c-info)]">Run B #{b.id}</th>
-                  <th className="pb-3 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--text-3)]">Δ Change</th>
+                <tr className="border-b border-(--border-default)">
+                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3)">Metric</th>
+                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--brand)">Run A #{a.id}</th>
+                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--c-info)">Run B #{b.id}</th>
+                  <th className="pb-3 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3)">Δ Change</th>
                 </tr>
               </thead>
               <tbody>
@@ -247,7 +247,7 @@ export function CompareAnalyses() {
       {kA && kB && allDrivers.length > 0 && (
         <section>
           <SectionHeader eyebrow="Driver Overlap" title="Top Driver Comparison" />
-          <Card padding="lg" className="mt-4 border border-[var(--border-subtle)]">
+          <Card padding="lg" className="mt-4 border border-(--border-subtle)">
             <div className="grid gap-3">
               {allDrivers.map((feature, i) => {
                 const rankA = topDriversA.indexOf(feature)
@@ -257,21 +257,21 @@ export function CompareAnalyses() {
                 return (
                   <div
                     key={feature}
-                    className={`flex items-center gap-4 rounded-[var(--radius-md)] border p-3 animate-slide-in-right delay-${Math.min((i+1)*50, 400)} ${
-                      inA && inB ? 'border-[var(--border-brand)] bg-[var(--brand-dim)]' : 'border-[var(--border-subtle)] bg-[var(--surface-2)]'
+                    className={`flex items-center gap-4 rounded-md border p-3 animate-slide-in-right delay-${Math.min((i+1)*50, 400)} ${
+                      inA && inB ? 'border-(--border-brand) bg-(--brand-dim)' : 'border-(--border-subtle) bg-(--surface-2)'
                     }`}
                   >
-                    <code className="flex-1 text-sm font-semibold text-[var(--text-1)] truncate">{feature}</code>
+                    <code className="flex-1 text-sm font-semibold text-(--text-1) truncate">{feature}</code>
                     <div className="flex items-center gap-3 shrink-0 text-xs">
                       {inA ? (
-                        <span className="text-[var(--brand)] font-bold">A: #{rankA + 1}</span>
+                        <span className="text-(--brand) font-bold">A: #{rankA + 1}</span>
                       ) : (
-                        <span className="text-[var(--text-4)]">A: —</span>
+                        <span className="text-(--text-4)">A: —</span>
                       )}
                       {inB ? (
-                        <span className="text-[var(--c-info)] font-bold">B: #{rankB + 1}</span>
+                        <span className="text-(--c-info) font-bold">B: #{rankB + 1}</span>
                       ) : (
-                        <span className="text-[var(--text-4)]">B: —</span>
+                        <span className="text-(--text-4)">B: —</span>
                       )}
                       {inA && inB && (
                         <StatusBadge tone="success" className="text-[9px]">shared</StatusBadge>

@@ -42,7 +42,7 @@ export function CounterfactualCallout({
           {formatCompactMoney(rev)}
         </span>
         {' · '}users crossing high to low thresholds:{' '}
-        <span className="font-bold tabular-nums text-[var(--text-1)]">
+        <span className="font-bold tabular-nums text-(--text-1)">
           {formatNumber(t2.users_savable, 0)}
         </span>
         .
@@ -66,19 +66,19 @@ export function CounterfactualCallout({
           <StatusBadge tone="default">Scenario tier: {t2.confidence_tier}</StatusBadge>
         ) : null}
       </div>
-      <p className="text-xl font-bold leading-tight text-[var(--text-1)]">{mainLine}</p>
-      <p className="text-sm leading-6 text-[var(--text-2)]">{revLine}</p>
+      <p className="text-xl font-bold leading-tight text-(--text-1)">{mainLine}</p>
+      <p className="text-sm leading-6 text-(--text-2)">{revLine}</p>
       <p className="rounded-lg border border-amber-700/30 bg-amber-950/10 px-3 py-2 text-[11px] font-semibold leading-5 text-amber-950 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-100">
         {causal ??
           'Scenario estimates are based on modeled associations. They are not guaranteed causal outcomes.'}{' '}
         {corr ? <span className="mt-1 block font-normal opacity-90">{corr}</span> : null}
       </p>
       {roiNote ? (
-        <p className="rounded-lg border border-[var(--border-1)] bg-[var(--surface-3)]/60 px-3 py-2 text-[11px] leading-5 text-[var(--text-3)]">
+        <p className="rounded-lg border border-(--border-1) bg-(--surface-3)/60 px-3 py-2 text-[11px] leading-5 text-(--text-3)">
           {roiNote}
         </p>
       ) : null}
-      <p className="rounded-lg border border-[var(--border-1)] bg-[var(--surface-3)]/60 px-3 py-2 text-[11px] leading-5 text-[var(--text-3)]">
+      <p className="rounded-lg border border-(--border-1) bg-(--surface-3)/60 px-3 py-2 text-[11px] leading-5 text-(--text-3)">
         {subtitle}
       </p>
     </Card>

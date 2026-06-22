@@ -126,19 +126,19 @@ export function AnalysesList() {
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Search input */}
         <div className="relative flex-1 max-w-sm">
-          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-3)]" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-(--text-3)" />
           <input
             type="search"
             placeholder="Search by dataset or target…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--surface-2)] py-2 pl-9 pr-9 text-sm text-[var(--text-1)] placeholder:text-[var(--text-3)] focus:border-[var(--border-focus)] focus:outline-none focus:ring-1 focus:ring-[var(--border-focus)] transition-colors"
+            className="w-full rounded-lg border border-(--border-default) bg-(--surface-2) py-2 pl-9 pr-9 text-sm text-(--text-1) placeholder:text-(--text-3) focus:border-(--border-focus) focus:outline-none focus:ring-1 focus:ring-(--border-focus) transition-colors"
             aria-label="Search analyses"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-[var(--text-3)] hover:text-[var(--text-1)]"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-(--text-3) hover:text-(--text-1)"
               aria-label="Clear search"
             >
               <X className="h-3.5 w-3.5" />
@@ -154,10 +154,10 @@ export function AnalysesList() {
               onClick={() => setStatusFilter(chip.value)}
               aria-pressed={statusFilter === chip.value}
               className={[
-                'rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] transition-all',
+                'rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest transition-all',
                 statusFilter === chip.value
-                  ? 'bg-[var(--brand-dim)] border border-[var(--border-brand)] text-[var(--brand)]'
-                  : 'border border-[var(--border-subtle)] bg-[var(--surface-2)] text-[var(--text-3)] hover:text-[var(--text-1)] hover:border-[var(--border-default)]',
+                  ? 'bg-(--brand-dim) border border-(--border-brand) text-(--brand)'
+                  : 'border border-(--border-subtle) bg-(--surface-2) text-(--text-3) hover:text-(--text-1) hover:border-(--border-default)',
               ].join(' ')}
             >
               {chip.label}
@@ -168,12 +168,12 @@ export function AnalysesList() {
 
       {/* Results count */}
       {(search || statusFilter !== 'all') && (
-        <p className="text-xs text-[var(--text-3)]">
-          Showing <span className="font-semibold text-[var(--text-2)]">{filtered.length}</span> of {analyses.length} analyses
+        <p className="text-xs text-(--text-3)">
+          Showing <span className="font-semibold text-(--text-2)">{filtered.length}</span> of {analyses.length} analyses
           {(search || statusFilter !== 'all') && (
             <button
               onClick={() => { setSearch(''); setStatusFilter('all') }}
-              className="ml-2 font-semibold text-[var(--brand)] hover:underline"
+              className="ml-2 font-semibold text-(--brand) hover:underline"
             >
               Clear filters
             </button>
@@ -182,7 +182,7 @@ export function AnalysesList() {
       )}
 
       {filtered.length === 0 ? (
-        <div className="py-16 text-center text-sm text-[var(--text-3)]">
+        <div className="py-16 text-center text-sm text-(--text-3)">
           No analyses match your search.
         </div>
       ) : (
@@ -195,56 +195,56 @@ export function AnalysesList() {
                 key={run.id}
                 to={`/analyses/${run.id}`}
                 className={[
-                  'group flex items-center gap-4 rounded-[var(--radius-lg)]',
-                  'border border-[var(--border-subtle)] bg-[var(--surface-1)]',
-                  'p-4 transition-all duration-[var(--duration-normal)]',
-                  'hover:border-[var(--border-brand)] hover:bg-[var(--surface-2)] hover:-translate-y-px hover:shadow-[var(--shadow-md)]',
+                  'group flex items-center gap-4 rounded-lg',
+                  'border border-(--border-subtle) bg-(--surface-1)',
+                  'p-4 transition-all duration-(--duration-normal)',
+                  'hover:border-(--border-brand) hover:bg-(--surface-2) hover:-translate-y-px hover:shadow-(--shadow-md)',
                   `animate-slide-in-right delay-${Math.min((i + 1) * 30, 300)}`,
                 ].join(' ')}
               >
                 {/* Status dot */}
                 <div className={[
                   'h-2.5 w-2.5 shrink-0 rounded-full',
-                  tone === 'success' ? 'bg-[var(--c-success)]' :
-                  tone === 'risk'    ? 'bg-[var(--c-danger)]'  :
-                  tone === 'warning' ? 'bg-[var(--c-warning)]' :
-                  tone === 'info'    ? 'bg-[var(--c-info)]'    :
-                  'bg-[var(--text-4)]',
+                  tone === 'success' ? 'bg-(--c-success)' :
+                  tone === 'risk'    ? 'bg-(--c-danger)'  :
+                  tone === 'warning' ? 'bg-(--c-warning)' :
+                  tone === 'info'    ? 'bg-(--c-info)'    :
+                  'bg-(--text-4)',
                   running ? 'animate-pulse' : '',
                 ].join(' ')} />
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-sm font-semibold text-[var(--text-1)] group-hover:text-[var(--brand)] transition-colors truncate">
+                    <span className="text-sm font-semibold text-(--text-1) group-hover:text-(--brand) transition-colors truncate">
                       {run.dataset_name}
                     </span>
                     <StatusBadge tone={tone} dot={running} pulse={running} className="text-[9px] shrink-0">
                       {run.status}
                     </StatusBadge>
                   </div>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-[var(--text-3)]">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-(--text-3)">
                     <span>
-                      target: <span className="text-[var(--brand)] font-medium">{run.target}</span>
+                      target: <span className="text-(--brand) font-medium">{run.target}</span>
                     </span>
                     {run.task_type && (
                       <span className="capitalize">{run.task_type.replace('_', ' ')}</span>
                     )}
                     {run.value_column && (
-                      <span>value: <span className="text-[var(--c-success)]">{run.value_column}</span></span>
+                      <span>value: <span className="text-(--c-success)">{run.value_column}</span></span>
                     )}
                   </div>
                 </div>
 
                 {/* Time */}
-                <div className="flex items-center gap-1 shrink-0 text-[11px] text-[var(--text-3)] font-[var(--font-mono)]">
+                <div className="flex items-center gap-1 shrink-0 text-[11px] text-(--text-3) font-mono">
                   <Clock className="h-3 w-3" />
                   {timeAgo(run.created_at)}
                 </div>
 
                 {/* KPI Sparkline (only for completed analyses) */}
                 {(run.status === 'completed' || run.status === 'completed_with_warnings') && (
-                  <div className="ml-2 pl-4 border-l border-[var(--border-subtle)] hidden sm:block">
+                  <div className="ml-2 pl-4 border-l border-(--border-subtle) hidden sm:block">
                     <KpiSparkline 
                       datasetId={run.dataset_id} 
                       target={run.target} 
@@ -253,7 +253,7 @@ export function AnalysesList() {
                   </div>
                 )}
 
-                <ArrowRight className="ml-2 h-4 w-4 shrink-0 text-[var(--text-4)] group-hover:text-[var(--brand)] transition-colors" />
+                <ArrowRight className="ml-2 h-4 w-4 shrink-0 text-(--text-4) group-hover:text-(--brand) transition-colors" />
               </Link>
             )
           })}

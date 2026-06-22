@@ -12,16 +12,16 @@ export function ReliabilityBadge({ kpis }: { kpis: AnalysisKpis }) {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">
         <div className="min-w-[180px] flex-1">
           <CardEyebrow>Model reliability</CardEyebrow>
-          <h2 className="mt-2 text-lg font-bold text-[var(--text-1)]">Separation &amp; stability</h2>
+          <h2 className="mt-2 text-lg font-bold text-(--text-1)">Separation &amp; stability</h2>
           <div className="mt-3">
             <StatusBadge tone={tone} dot className="text-xs">
               {r.tier}
             </StatusBadge>
           </div>
         </div>
-        <div className="min-w-[180px] flex-1 lg:border-l lg:border-[var(--border-soft)] lg:pl-10">
+        <div className="min-w-[180px] flex-1 lg:border-l lg:border-(--border-soft) lg:pl-10">
           <CardEyebrow>Intervention confidence</CardEyebrow>
-          <h2 className="mt-2 text-lg font-bold text-[var(--text-1)]">Action readiness</h2>
+          <h2 className="mt-2 text-lg font-bold text-(--text-1)">Action readiness</h2>
           <div className="mt-3">
             <StatusBadge
               tone={
@@ -34,33 +34,33 @@ export function ReliabilityBadge({ kpis }: { kpis: AnalysisKpis }) {
             </StatusBadge>
           </div>
           {iv?.rationale_bullets?.length ? (
-            <ul className="mt-3 list-disc space-y-1 pl-4 text-[11px] leading-5 text-[var(--text-2)]">
+            <ul className="mt-3 list-disc space-y-1 pl-4 text-[11px] leading-5 text-(--text-2)">
               {iv.rationale_bullets.map((b, i) => (
                 <li key={i}>{b}</li>
               ))}
             </ul>
           ) : (
-            <p className="mt-3 text-[11px] text-[var(--text-3)]">
+            <p className="mt-3 text-[11px] text-(--text-3)">
               A strong model can still misstate causal lift — pair scenarios with pilots.
             </p>
           )}
         </div>
-        <div className="flex-1 border-t border-[var(--border-soft)] pt-6 text-sm leading-6 text-[var(--text-1)] lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
+        <div className="flex-1 border-t border-(--border-soft) pt-6 text-sm leading-6 text-(--text-1) lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
           <p className="text-base font-bold tracking-tight">
             Headline{' '}
             <span className="tabular-nums">{formatNumber(r.headline_value)}</span>{' '}
-            <span className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--text-2)]">
+            <span className="text-xs font-medium uppercase tracking-[0.16em] text-(--text-2)">
               ({r.headline_metric})
             </span>
             {r.cv_std !== undefined && r.cv_std !== null ? (
-              <span className="ml-2 text-xs font-medium uppercase tracking-[0.16em] text-[var(--text-2)]">
+              <span className="ml-2 text-xs font-medium uppercase tracking-[0.16em] text-(--text-2)">
                 · CV std <span className="tabular-nums">{formatNumber(r.cv_std)}</span>
               </span>
             ) : null}
           </p>
-          <p className="mt-2 text-xs leading-5 text-[var(--text-2)]">{r.hint}</p>
+          <p className="mt-2 text-xs leading-5 text-(--text-2)">{r.hint}</p>
           {r.business_explanation ? (
-            <p className="mt-3 text-xs leading-5 text-[var(--text-3)]">{r.business_explanation}</p>
+            <p className="mt-3 text-xs leading-5 text-(--text-3)">{r.business_explanation}</p>
           ) : null}
         </div>
       </div>

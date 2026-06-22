@@ -23,10 +23,10 @@ export function DatasetColumnCard({ col }: { col: ColumnSchema }) {
         : 'text-amber-500' // object/string
 
   return (
-    <div className="flex flex-col justify-between rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--surface-1)] p-4 transition-colors hover:border-[var(--border-default)] hover:bg-[var(--surface-2)]">
+    <div className="flex flex-col justify-between rounded-lg border border-(--border-subtle) bg-(--surface-1) p-4 transition-colors hover:border-(--border-default) hover:bg-(--surface-2)">
       <div>
         <div className="flex items-start justify-between gap-2 mb-3">
-          <p className="font-mono text-sm font-bold text-[var(--text-1)] break-all" title={col.name}>
+          <p className="font-mono text-sm font-bold text-(--text-1) break-all" title={col.name}>
             {col.name}
           </p>
           <div className="flex shrink-0 items-center gap-1.5">
@@ -40,21 +40,21 @@ export function DatasetColumnCard({ col }: { col: ColumnSchema }) {
 
         {/* Null ratio bar */}
         <div className="mb-4">
-          <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.1em] font-bold mb-1.5">
-            <span className="text-[var(--text-3)] flex items-center gap-1">
+          <div className="flex items-center justify-between text-[10px] uppercase tracking-widest font-bold mb-1.5">
+            <span className="text-(--text-3) flex items-center gap-1">
               Missing
               {nullPct > 0.5 && <HelpTooltip title="Columns with >50% missing values are often dropped.">!</HelpTooltip>}
             </span>
-            <span className={nullPct > 0 ? 'text-[var(--text-2)]' : 'text-[var(--c-success)]'}>
+            <span className={nullPct > 0 ? 'text-(--text-2)' : 'text-(--c-success)'}>
               {formatPct01(nullPct)}
             </span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-[var(--surface-3)] overflow-hidden">
+          <div className="h-1.5 w-full rounded-full bg-(--surface-3) overflow-hidden">
             <div 
               className={`h-full rounded-full ${
-                nullTone === 'risk' ? 'bg-[var(--c-danger)]' : 
-                nullTone === 'warning' ? 'bg-[var(--c-warning)]' : 
-                'bg-[var(--c-success)]'
+                nullTone === 'risk' ? 'bg-(--c-danger)' : 
+                nullTone === 'warning' ? 'bg-(--c-warning)' : 
+                'bg-(--c-success)'
               }`}
               style={{ width: `${Math.max(1, nullPct * 100)}%` }}
             />
@@ -62,8 +62,8 @@ export function DatasetColumnCard({ col }: { col: ColumnSchema }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-xs text-[var(--text-3)] border-t border-[var(--border-subtle)] pt-3">
-        <span><span className="font-semibold text-[var(--text-2)]">{formatNumber(col.n_unique)}</span> unique</span>
+      <div className="flex items-center justify-between text-xs text-(--text-3) border-t border-(--border-subtle) pt-3">
+        <span><span className="font-semibold text-(--text-2)">{formatNumber(col.n_unique)}</span> unique</span>
         <span className="truncate max-w-[120px] ml-4 text-right" title={col.sample_values?.join(', ')}>
           {col.sample_values?.slice(0, 2).join(', ')}...
         </span>

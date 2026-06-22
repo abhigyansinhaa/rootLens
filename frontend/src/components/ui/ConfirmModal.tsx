@@ -46,16 +46,16 @@ export function ConfirmModal({
 
   if (!open) return null
 
-  const iconColor = variant === 'danger' ? 'text-[var(--c-danger)]' : 'text-[var(--c-warning)]'
-  const iconBg    = variant === 'danger' ? 'bg-[var(--c-danger-bg)] border-[var(--c-danger-border)]'
-                                         : 'bg-[var(--c-warning-bg)] border-[var(--c-warning-border)]'
+  const iconColor = variant === 'danger' ? 'text-(--c-danger)' : 'text-(--c-warning)'
+  const iconBg    = variant === 'danger' ? 'bg-(--c-danger-bg) border-(--c-danger-border)'
+                                         : 'bg-(--c-warning-bg) border-(--c-warning-border)'
 
   return createPortal(
     <>
       {/* Backdrop */}
       <div
         aria-hidden
-        className="fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm animate-fade-in"
+        className="fixed inset-0 z-10000 bg-black/60 backdrop-blur-sm animate-fade-in"
         onClick={onCancel}
       />
 
@@ -66,10 +66,10 @@ export function ConfirmModal({
         aria-labelledby="confirm-modal-title"
         aria-describedby="confirm-modal-desc"
         className={[
-          'fixed left-1/2 top-1/2 z-[10001] -translate-x-1/2 -translate-y-1/2',
+          'fixed left-1/2 top-1/2 z-10001 -translate-x-1/2 -translate-y-1/2',
           'w-full max-w-md',
-          'rounded-[var(--radius-xl)] border border-[var(--border-default)]',
-          'bg-[var(--surface-2)] shadow-[var(--shadow-2xl)]',
+          'rounded-xl border border-(--border-default)',
+          'bg-(--surface-2) shadow-(--shadow-2xl)',
           'p-6',
           'animate-spring-up',
         ].join(' ')}
@@ -77,7 +77,7 @@ export function ConfirmModal({
         {/* Close button */}
         <button
           onClick={onCancel}
-          className="absolute right-4 top-4 rounded-[var(--radius-sm)] p-1.5 text-[var(--text-3)] hover:bg-[var(--surface-3)] hover:text-[var(--text-1)] transition-colors"
+          className="absolute right-4 top-4 rounded-sm p-1.5 text-(--text-3) hover:bg-(--surface-3) hover:text-(--text-1) transition-colors"
           aria-label="Cancel"
         >
           <X className="h-4 w-4" />
@@ -89,10 +89,10 @@ export function ConfirmModal({
         </div>
 
         {/* Text */}
-        <h2 id="confirm-modal-title" className="text-lg font-bold text-[var(--text-1)] mb-2">
+        <h2 id="confirm-modal-title" className="text-lg font-bold text-(--text-1) mb-2">
           {title}
         </h2>
-        <p id="confirm-modal-desc" className="text-sm leading-relaxed text-[var(--text-2)]">
+        <p id="confirm-modal-desc" className="text-sm leading-relaxed text-(--text-2)">
           {message}
         </p>
 

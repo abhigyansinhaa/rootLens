@@ -17,7 +17,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         {label && (
           <label
             htmlFor={id}
-            className="mb-1.5 block text-xs font-semibold text-[var(--text-2)] tracking-wide"
+            className="mb-1.5 block text-xs font-semibold text-(--text-2) tracking-wide"
           >
             {label}
           </label>
@@ -28,16 +28,16 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             ref={ref}
             id={id}
             className={[
-              'w-full appearance-none rounded-[var(--radius-md)]',
-              'border border-[var(--border-default)]',
-              'bg-[var(--surface-2)]',
+              'w-full appearance-none rounded-md',
+              'border border-(--border-default)',
+              'bg-(--surface-2)',
               'px-3 py-2.5 pr-9',
-              'text-sm text-[var(--text-1)]',
-              'transition-all duration-[var(--duration-normal)]',
-              'focus:outline-none focus:border-[var(--border-focus)] focus:bg-[var(--surface-3)]',
+              'text-sm text-(--text-1)',
+              'transition-all duration-(--duration-normal)',
+              'focus:outline-none focus:border-(--border-focus) focus:bg-(--surface-3)',
               'focus:shadow-[0_0_0_3px_hsl(214_100%_59%/0.15)]',
               'disabled:cursor-not-allowed disabled:opacity-50',
-              error ? 'border-[var(--c-danger)]' : '',
+              error ? 'border-(--c-danger)' : '',
               className,
             ].filter(Boolean).join(' ')}
             aria-invalid={!!error}
@@ -47,16 +47,16 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           </select>
 
           <ChevronDown
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-3)]"
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-(--text-3)"
             aria-hidden
           />
         </div>
 
         {error && (
-          <p className="mt-1.5 text-xs font-medium text-[var(--c-danger)]">{error}</p>
+          <p className="mt-1.5 text-xs font-medium text-(--c-danger)">{error}</p>
         )}
         {hint && !error && (
-          <p className="mt-1.5 text-xs text-[var(--text-3)]">{hint}</p>
+          <p className="mt-1.5 text-xs text-(--text-3)">{hint}</p>
         )}
       </div>
     )

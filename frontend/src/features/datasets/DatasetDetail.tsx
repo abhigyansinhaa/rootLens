@@ -232,7 +232,7 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
   return (
     <div className="space-y-8 animate-fade-in-up">
       <Link
-        className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--text-3)] hover:text-brand-500 transition-colors"
+        className="inline-flex items-center gap-2 text-sm font-semibold text-(--text-3) hover:text-brand-500 transition-colors"
         to="/datasets"
       >
         <ArrowLeft className="h-4 w-4" /> Back to Datasets
@@ -294,22 +294,22 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
             <Settings2 className="h-5 w-5 text-brand-500" />
             <CardEyebrow>Run controls</CardEyebrow>
           </div>
-          <h2 className="text-xl font-black tracking-tight text-[var(--text-1)]">
+          <h2 className="text-xl font-black tracking-tight text-(--text-1)">
             Run Root-Cause Analysis
           </h2>
-          <p className="mt-2 text-sm leading-6 text-[var(--text-2)] max-w-2xl">
+          <p className="mt-2 text-sm leading-6 text-(--text-2) max-w-2xl">
             Select the target variable to explain. We'll train a robust model and use SHAP to extract global drivers and segment risks. Bind a value column to monetize the impact.
           </p>
 
           <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_1fr_auto]">
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-bold text-[var(--text-1)]">
+              <div className="flex items-center gap-2 text-sm font-bold text-(--text-1)">
                 <Target className="h-4 w-4 text-brand-500" /> Target Variable
               </div>
               <Select
                 id="target-col"
                 value={effectiveTarget}
-                className="bg-[var(--surface-1)] transition-colors focus:ring-brand-500 w-full"
+                className="bg-(--surface-1) transition-colors focus:ring-brand-500 w-full"
                 onChange={(e) => {
                   setTarget(e.target.value)
                   setValuePick('__auto__')
@@ -323,14 +323,14 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-bold text-[var(--text-1)]">
+              <div className="flex items-center gap-2 text-sm font-bold text-(--text-1)">
                 <Sparkles className="h-4 w-4 text-amber-500" /> Value Column (Optional)
               </div>
               <Select
                 id="value-col"
                 disabled={numericSelectable.length === 0}
                 value={valuePick}
-                className="bg-[var(--surface-1)] transition-colors focus:ring-amber-500 w-full"
+                className="bg-(--surface-1) transition-colors focus:ring-amber-500 w-full"
                 onChange={(e) => setValuePick(e.target.value)}
               >
                 <option value="__auto__">Auto ({suggestedValue || 'detect numeric column'})</option>
@@ -342,13 +342,13 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-bold text-[var(--text-1)]">
+              <div className="flex items-center gap-2 text-sm font-bold text-(--text-1)">
                 <Activity className="h-4 w-4 text-indigo-500" /> Time Split (Optional)
               </div>
               <Select
                 id="datetime-col"
                 value={datetimePick}
-                className="bg-[var(--surface-1)] transition-colors focus:ring-indigo-500 w-full"
+                className="bg-(--surface-1) transition-colors focus:ring-indigo-500 w-full"
                 onChange={(e) => setDatetimePick(e.target.value)}
               >
                 <option value="__none__">Standard randomized CV</option>
@@ -374,7 +374,7 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
             </div>
           )}
 
-          <div className="mt-8 pt-6 border-t border-[var(--border-subtle)] flex flex-wrap items-center justify-between gap-4">
+          <div className="mt-8 pt-6 border-t border-(--border-subtle) flex flex-wrap items-center justify-between gap-4">
             <Button
               type="button"
               className="bg-brand-500 text-white shadow-lg shadow-brand-500/20 hover:bg-brand-400 px-8 h-12 text-base font-bold transition-all"
@@ -392,9 +392,9 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
                 </>
               )}
             </Button>
-            <div className="flex items-center gap-2 text-sm text-[var(--text-3)] font-medium">
+            <div className="flex items-center gap-2 text-sm text-(--text-3) font-medium">
               <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-              Test split: <span className="font-bold text-[var(--text-1)]">20%</span>
+              Test split: <span className="font-bold text-(--text-1)">20%</span>
             </div>
           </div>
         </div>
@@ -407,15 +407,15 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
             title="Schema Readiness"
             description="Review columns and quality before running."
           />
-          <Card padding="lg" className="border-t-4 border-t-[var(--c-success)]">
+          <Card padding="lg" className="border-t-4 border-t-(--c-success)">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm font-semibold text-[var(--text-2)]">Dataset Health</p>
-                <p className="text-3xl font-black text-[var(--text-1)] tabular-nums">{healthScore}/100</p>
+                <p className="text-sm font-semibold text-(--text-2)">Dataset Health</p>
+                <p className="text-3xl font-black text-(--text-1) tabular-nums">{healthScore}/100</p>
               </div>
-              <Activity className="h-8 w-8 text-[var(--c-success)] opacity-80" />
+              <Activity className="h-8 w-8 text-(--c-success) opacity-80" />
             </div>
-            <p className="text-xs text-[var(--text-3)] leading-relaxed">
+            <p className="text-xs text-(--text-3) leading-relaxed">
               Based on missing values, column variance, and type distribution. 
               {healthScore < 80 ? ' Consider imputing or dropping high-null columns.' : ' Ready for analysis.'}
             </p>
@@ -435,28 +435,28 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
               title="Data Preview"
               description="First rows of the dataset."
             />
-            <Card padding="none" tone="strong" className="overflow-hidden border border-[var(--border-subtle)]">
+            <Card padding="none" tone="strong" className="overflow-hidden border border-(--border-subtle)">
               <div className="max-h-[500px] overflow-auto custom-scrollbar">
                 <table className="min-w-full text-left text-xs border-collapse">
-                  <thead className="sticky top-0 z-10 bg-[var(--surface-3)]/90 backdrop-blur-sm shadow-sm text-[10px] font-black uppercase tracking-[0.16em] text-[var(--text-3)]">
+                  <thead className="sticky top-0 z-10 bg-(--surface-3)/90 backdrop-blur-sm shadow-sm text-[10px] font-black uppercase tracking-[0.16em] text-(--text-3)">
                     <tr>
                       {preview.columns.map((col) => (
-                        <th key={col} className={`whitespace-nowrap px-4 py-3 font-bold border-b border-[var(--border-subtle)] ${col === effectiveTarget ? 'text-brand-600 bg-brand-500/5 dark:text-brand-400' : ''}`}>
+                        <th key={col} className={`whitespace-nowrap px-4 py-3 font-bold border-b border-(--border-subtle) ${col === effectiveTarget ? 'text-brand-600 bg-brand-500/5 dark:text-brand-400' : ''}`}>
                           {col}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[var(--border-subtle)]">
+                  <tbody className="divide-y divide-(--border-subtle)">
                     {preview.rows.map((row, i) => (
-                      <tr key={i} className="hover:bg-[var(--surface-2)] transition-colors group">
+                      <tr key={i} className="hover:bg-(--surface-2) transition-colors group">
                         {preview.columns.map((col) => (
                           <td
                             key={col}
                             className={`max-w-[200px] truncate px-4 py-2 font-mono text-[11px] tabular-nums ${
                               col === effectiveTarget 
                                 ? 'text-brand-700 bg-brand-500/5 dark:text-brand-300 font-medium group-hover:bg-brand-500/10' 
-                                : 'text-[var(--text-2)]'
+                                : 'text-(--text-2)'
                             }`}
                             title={row[col] ?? ''}
                           >
@@ -473,7 +473,7 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
         )}
       </div>
 
-      <div className="pt-8 mt-8 border-t border-[var(--border-subtle)]">
+      <div className="pt-8 mt-8 border-t border-(--border-subtle)">
         <DatasetKpiDashboard datasetId={datasetId} datasetName={ds.name} />
       </div>
     </div>

@@ -166,7 +166,7 @@ export function Dashboard() {
   return (
     <div className="space-y-8">
       {/* ── Hero banner ── */}
-      <div className="relative overflow-hidden rounded-[var(--radius-xl)] border border-[var(--border-subtle)] bg-[var(--surface-1)] p-6 sm:p-8 animate-fade-in-up">
+      <div className="relative overflow-hidden rounded-xl border border-(--border-subtle) bg-(--surface-1) p-6 sm:p-8 animate-fade-in-up">
         {/* Ambient glow */}
         <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full opacity-20"
           style={{ background: 'radial-gradient(circle, var(--brand) 0%, transparent 70%)' }} />
@@ -175,13 +175,13 @@ export function Dashboard() {
 
         <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--brand)] mb-1">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-(--brand) mb-1">
               Workspace Overview
             </p>
-            <h1 className="text-2xl font-bold tracking-tight text-[var(--text-1)] sm:text-3xl">
+            <h1 className="text-2xl font-bold tracking-tight text-(--text-1) sm:text-3xl">
               {getGreeting()}, operator.
             </h1>
-            <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--text-2)]">
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-(--text-2)">
               {actionQueue.length > 0
                 ? `${actionQueue.length} dataset${actionQueue.length > 1 ? 's' : ''} need${actionQueue.length === 1 ? 's' : ''} attention. ${completed} completed ${completed === 1 ? 'analysis' : 'analyses'} ready for review.`
                 : `All datasets are up to date. ${completed} completed ${completed === 1 ? 'analysis' : 'analyses'} ready for review.`
@@ -199,18 +199,18 @@ export function Dashboard() {
         {kpis.map((kpi, i) => (
           <div
             key={kpi.label}
-            className={`relative overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--surface-1)] p-5 transition-all duration-[var(--duration-normal)] hover:border-[var(--border-default)] hover:bg-[var(--surface-2)] animate-spring-up delay-${(i+1)*75}`}
+            className={`relative overflow-hidden rounded-lg border border-(--border-subtle) bg-(--surface-1) p-5 transition-all duration-(--duration-normal) hover:border-(--border-default) hover:bg-(--surface-2) animate-spring-up delay-${(i+1)*75}`}
           >
             {/* Left accent bar */}
             <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-r-full" style={{ background: kpi.color }} />
 
             <div className="flex items-start justify-between pl-3">
               <div className="min-w-0">
-                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--text-3)]">{kpi.label}</p>
-                <p className="mt-2 text-3xl font-bold tabular-nums text-[var(--text-1)] tracking-tight leading-none font-[var(--font-mono)]">
+                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-(--text-3)">{kpi.label}</p>
+                <p className="mt-2 text-3xl font-bold tabular-nums text-(--text-1) tracking-tight leading-none font-mono">
                   <Counter value={kpi.value} />
                 </p>
-                <p className="mt-1.5 text-xs text-[var(--text-2)]">{kpi.hint}</p>
+                <p className="mt-1.5 text-xs text-(--text-2)">{kpi.hint}</p>
               </div>
               <Sparkline values={kpi.spark} color={kpi.color} />
             </div>
@@ -224,31 +224,31 @@ export function Dashboard() {
         <div className="space-y-6 min-w-0">
           {/* Action items */}
           <Card padding="lg" className="animate-fade-in-up delay-200">
-            <div className="flex items-center justify-between mb-5 pb-4 border-b border-[var(--border-subtle)]">
+            <div className="flex items-center justify-between mb-5 pb-4 border-b border-(--border-subtle)">
               <div>
-                <h2 className="text-base font-bold text-[var(--text-1)]">Action Items</h2>
-                <p className="text-sm text-[var(--text-2)] mt-0.5">Priority queue requiring attention</p>
+                <h2 className="text-base font-bold text-(--text-1)">Action Items</h2>
+                <p className="text-sm text-(--text-2) mt-0.5">Priority queue requiring attention</p>
               </div>
-              <AlertCircle className="h-4 w-4 text-[var(--text-3)]" />
+              <AlertCircle className="h-4 w-4 text-(--text-3)" />
             </div>
 
             {actionQueue.length ? (
-              <div className="relative space-y-4 pl-5 before:absolute before:left-1.5 before:top-3 before:bottom-3 before:w-px before:bg-[var(--border-subtle)]">
+              <div className="relative space-y-4 pl-5 before:absolute before:left-1.5 before:top-3 before:bottom-3 before:w-px before:bg-(--border-subtle)">
                 {actionQueue.map(({ dataset, reason, tone, icon: Icon }, i) => {
                   const dotColor =
-                    tone === 'risk'    ? 'bg-[var(--c-danger)]'  :
-                    tone === 'warning' ? 'bg-[var(--c-warning)]' :
-                                         'bg-[var(--c-info)]'
+                    tone === 'risk'    ? 'bg-(--c-danger)'  :
+                    tone === 'warning' ? 'bg-(--c-warning)' :
+                                         'bg-(--c-info)'
 
                   return (
                     <div key={dataset.id} className={`relative animate-slide-in-left delay-${(i+1)*100}`}>
-                      <span aria-hidden className={`absolute -left-[19px] top-3 h-3 w-3 rounded-full border-2 border-[var(--surface-1)] ${dotColor}`} />
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4 transition-colors hover:border-[var(--border-default)]">
+                      <span aria-hidden className={`absolute -left-[19px] top-3 h-3 w-3 rounded-full border-2 border-(--surface-1) ${dotColor}`} />
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-md border border-(--border-subtle) bg-(--surface-2) p-4 transition-colors hover:border-(--border-default)">
                         <div className="flex min-w-0 flex-1 items-start gap-2.5">
-                          <Icon className={`h-4 w-4 shrink-0 mt-0.5 ${tone === 'risk' ? 'text-[var(--c-danger)]' : tone === 'warning' ? 'text-[var(--c-warning)]' : 'text-[var(--c-info)]'}`} />
+                          <Icon className={`h-4 w-4 shrink-0 mt-0.5 ${tone === 'risk' ? 'text-(--c-danger)' : tone === 'warning' ? 'text-(--c-warning)' : 'text-(--c-info)'}`} />
                           <div className="min-w-0">
-                            <h3 className="text-sm font-semibold text-[var(--text-1)] truncate">{dataset.name}</h3>
-                            <p className="text-xs text-[var(--text-2)] mt-0.5">{reason}</p>
+                            <h3 className="text-sm font-semibold text-(--text-1) truncate">{dataset.name}</h3>
+                            <p className="text-xs text-(--text-2) mt-0.5">{reason}</p>
                           </div>
                         </div>
                         <Button
@@ -265,24 +265,24 @@ export function Dashboard() {
                 })}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-[var(--radius-lg)] border border-dashed border-[var(--border-subtle)] bg-[var(--surface-2)]/40 py-10 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--c-success-bg)] border border-[var(--c-success-border)] mb-3">
-                  <CheckCircle2 className="h-5 w-5 text-[var(--c-success)]" />
+              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-(--border-subtle) bg-(--surface-2)/40 py-10 text-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-(--c-success-bg) border border-(--c-success-border) mb-3">
+                  <CheckCircle2 className="h-5 w-5 text-(--c-success)" />
                 </div>
-                <p className="text-sm font-semibold text-[var(--text-1)]">Inbox zero</p>
-                <p className="mt-1 text-xs text-[var(--text-2)]">All datasets have recent successful analyses.</p>
+                <p className="text-sm font-semibold text-(--text-1)">Inbox zero</p>
+                <p className="mt-1 text-xs text-(--text-2)">All datasets have recent successful analyses.</p>
               </div>
             )}
           </Card>
 
           {/* Recent datasets */}
           <Card padding="lg" className="animate-fade-in-up delay-300">
-            <div className="flex items-center justify-between mb-5 pb-4 border-b border-[var(--border-subtle)]">
+            <div className="flex items-center justify-between mb-5 pb-4 border-b border-(--border-subtle)">
               <div>
-                <h2 className="text-base font-bold text-[var(--text-1)]">Recent Datasets</h2>
-                <p className="text-sm text-[var(--text-2)] mt-0.5">Inventory of uploaded data tables</p>
+                <h2 className="text-base font-bold text-(--text-1)">Recent Datasets</h2>
+                <p className="text-sm text-(--text-2) mt-0.5">Inventory of uploaded data tables</p>
               </div>
-              <Link to="/datasets" className="text-xs font-semibold text-[var(--brand)] hover:brightness-110 transition-all flex items-center gap-1">
+              <Link to="/datasets" className="text-xs font-semibold text-(--brand) hover:brightness-110 transition-all flex items-center gap-1">
                 View all <ArrowUpRight className="h-3 w-3" />
               </Link>
             </div>
@@ -302,14 +302,14 @@ export function Dashboard() {
                   <Link
                     key={dataset.id}
                     to={`/datasets/${dataset.id}`}
-                    className={`group relative overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--surface-2)] p-4 transition-all duration-[var(--duration-normal)] hover:-translate-y-0.5 hover:border-[var(--border-brand)] hover:shadow-[var(--shadow-md)] animate-spring-up delay-${Math.min((i+3)*75, 500)}`}
+                    className={`group relative overflow-hidden rounded-lg border border-(--border-subtle) bg-(--surface-2) p-4 transition-all duration-(--duration-normal) hover:-translate-y-0.5 hover:border-(--border-brand) hover:shadow-(--shadow-md) animate-spring-up delay-${Math.min((i+3)*75, 500)}`}
                   >
                     {/* Top accent */}
                     <div className="absolute top-0 left-0 right-0 h-[2px] transition-transform origin-left scale-x-0 group-hover:scale-x-100"
                       style={{ background: accentColor }} />
 
                     <div className="flex items-start justify-between gap-2 mb-3">
-                      <h3 className="text-sm font-semibold text-[var(--text-1)] truncate min-w-0 group-hover:text-[var(--brand)] transition-colors">
+                      <h3 className="text-sm font-semibold text-(--text-1) truncate min-w-0 group-hover:text-(--brand) transition-colors">
                         {dataset.name}
                       </h3>
                       {latest && (
@@ -320,7 +320,7 @@ export function Dashboard() {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-4 text-xs text-[var(--text-3)] font-[var(--font-mono)]">
+                    <div className="flex items-center gap-4 text-xs text-(--text-3) font-mono">
                       <span>{dataset.rows.toLocaleString()} rows</span>
                       <span>{dataset.cols} cols</span>
                       <span className="flex items-center gap-1 ml-auto">
@@ -337,8 +337,8 @@ export function Dashboard() {
         {/* Right column — Activity feed */}
         <div className="space-y-4 animate-fade-in-up delay-400">
           <div>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--text-3)]">Activity Feed</h2>
-            <p className="text-xs text-[var(--text-3)] mt-0.5">Latest analysis runs</p>
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-(--text-3)">Activity Feed</h2>
+            <p className="text-xs text-(--text-3) mt-0.5">Latest analysis runs</p>
           </div>
 
           <div className="relative space-y-2 max-h-[520px] overflow-y-auto pr-1"
@@ -348,22 +348,22 @@ export function Dashboard() {
                 <Link
                   key={run.id}
                   to={`/analyses/${run.id}`}
-                  className={`block rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--surface-1)] p-3 transition-all hover:border-[var(--border-brand)] hover:bg-[var(--surface-2)] animate-slide-in-right delay-${(i+1)*75}`}
+                  className={`block rounded-md border border-(--border-subtle) bg-(--surface-1) p-3 transition-all hover:border-(--border-brand) hover:bg-(--surface-2) animate-slide-in-right delay-${(i+1)*75}`}
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <StatusBadge tone={statusTone(run.status)} dot={IN_FLIGHT.has(run.status)} pulse={IN_FLIGHT.has(run.status)} className="text-[9px]">
                       {run.status}
                     </StatusBadge>
-                    <span className="text-[10px] text-[var(--text-3)]">{timeAgo(run.created_at)}</span>
+                    <span className="text-[10px] text-(--text-3)">{timeAgo(run.created_at)}</span>
                   </div>
-                  <p className="truncate text-sm font-semibold text-[var(--text-1)]">{run.dataset_name}</p>
-                  <p className="mt-0.5 truncate text-[11px] text-[var(--text-3)]">
-                    target: <span className="text-[var(--brand)]">{run.target}</span>
+                  <p className="truncate text-sm font-semibold text-(--text-1)">{run.dataset_name}</p>
+                  <p className="mt-0.5 truncate text-[11px] text-(--text-3)">
+                    target: <span className="text-(--brand)">{run.target}</span>
                   </p>
                 </Link>
               ))
             ) : (
-              <p className="text-xs text-[var(--text-3)] py-4 text-center">No recent activity.</p>
+              <p className="text-xs text-(--text-3) py-4 text-center">No recent activity.</p>
             )}
           </div>
         </div>

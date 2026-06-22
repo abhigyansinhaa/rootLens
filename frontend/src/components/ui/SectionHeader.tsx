@@ -13,13 +13,13 @@ export function SectionHeader({ eyebrow, title, description, actions, className 
     <div className={`flex items-start justify-between gap-4 ${className}`}>
       <div>
         {eyebrow && (
-          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--brand)]">
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-(--brand)">
             {eyebrow}
           </p>
         )}
-        <h2 className="text-lg font-bold tracking-tight text-[var(--text-1)]">{title}</h2>
+        <h2 className="text-lg font-bold tracking-tight text-(--text-1)">{title}</h2>
         {description && (
-          <p className="mt-1 max-w-xl text-sm text-[var(--text-2)]">{description}</p>
+          <p className="mt-1 max-w-xl text-sm text-(--text-2)">{description}</p>
         )}
       </div>
       {actions && <div className="shrink-0">{actions}</div>}
