@@ -7,19 +7,19 @@ import { DatasetKpiDashboard } from './DatasetKpiDashboard'
 import {
   Button,
   Card,
-  CardEyebrow,
   ConfirmModal,
   DatasetColumnCard,
-  LoadingState,
   PageHeader,
   SectionHeader,
   Select,
   Stat,
   StatusBadge,
   useToast,
+  ShinyText,
 } from '../../components/ui'
 import { PlayCircle, Trash2, ArrowLeft, Activity, Target, Settings2, Sparkles, CheckCircle2 } from 'lucide-react'
 import type { Analysis, ColumnSchema, Dataset } from '../../types'
+import { DatasetDetailSkeleton } from '../../components/PageSkeletons'
 
 function fallbackColumnName(columns: ColumnSchema[]): string {
   const named = columns.find((c) => c.name?.trim())?.name
@@ -31,11 +31,11 @@ function pickDefaultTarget(columns: ColumnSchema[]): string {
   const names = columns.map((c) => c.name)
   const preferred = ['churned', 'churn', 'target', 'label', 'outcome', 'y']
   for (const p of preferred) {
-    const hit = names.find((n) => n.toLowerCase() === p)
+    const hit = names.find((n) => n.toLowerootLensse() === p)
     if (hit) return hit
   }
   const fb = fallbackColumnName(columns)
-  if (fb.toLowerCase() === 'customer_id' || fb.toLowerCase().endsWith('_id')) {
+  if (fb.toLowerootLensse() === 'customer_id' || fb.toLowerootLensse().endsWith('_id')) {
     const last = names[names.length - 1]
     if (last && last !== fb) return last
   }
@@ -66,7 +66,7 @@ function inferTaskHint(col: { dtype: string; n_unique: number }) {
 }
 
 function isNumericColumn(c: ColumnSchema) {
-  const dt = String(c.dtype).toLowerCase()
+  const dt = String(c.dtype).toLowerootLensse()
   return (
     dt.includes('float') ||
     dt.includes('int') ||
@@ -80,7 +80,7 @@ function pickDefaultValueColumn(columns: ColumnSchema[], target: string): string
   const candidates = columns.filter((c) => isNumericColumn(c) && c.name !== target)
   if (!candidates.length) return ''
 
-  const lower = candidates.map((c) => ({ name: c.name, lc: c.name.toLowerCase().replace(/\s+/g, '') }))
+  const lower = candidates.map((c) => ({ name: c.name, lc: c.name.toLowerootLensse().replace(/\s+/g, '') }))
   const preferred = [
     'monthly_charges',
     'monthlycharges',
@@ -110,6 +110,7 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
   const [valuePick, setValuePick] = useState<string>('__auto__')
   const [datetimePick, setDatetimePick] = useState<string>('__none__')
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
+  const [advancedMode, setAdvancedMode] = useState(false)
 
   const { data: ds, isLoading } = useQuery({
     queryKey: ['dataset', datasetId],
@@ -198,7 +199,7 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
   )
 
   if (isLoading || !ds) {
-    return <LoadingState rows={2} message="Loading dataset…" />
+    return <DatasetDetailSkeleton />
   }
 
   const effectiveTarget = target.trim() || defaultTarget
@@ -241,7 +242,7 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
       <PageHeader
         eyebrow="Dataset Workbench"
         title={ds.name}
-        description={`${ds.rows.toLocaleString()} rows · ${ds.cols} columns · ${ds.file_format.toUpperCase()}`}
+        description={`${ds.rows.toLocaleString()} rows · ${ds.cols} columns · ${ds.file_format.toUpperootLensse()}`}
         meta={
           <>
             <StatusBadge tone="info" dot>Step 2 of 3 · Configure</StatusBadge>
@@ -283,119 +284,158 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
           value={`${(avgNullRatio * 100).toFixed(1)}%`}
           tone={avgNullRatio < 0.05 ? 'success' : avgNullRatio < 0.2 ? 'warning' : 'risk'}
         />
-        <Stat label="Format" value={ds.file_format.toUpperCase()} hint="Native parser" />
+        <Stat label="Format" value={ds.file_format.toUpperootLensse()} hint="Native parser" />
       </section>
 
-      {/* Glassmorphism Config Panel */}
-      <Card padding="none" elevated className="glass overflow-hidden border-t-brand-500 border-t-2 relative">
-        <div className="absolute top-0 right-0 -mt-16 -mr-16 h-64 w-64 rounded-full bg-brand-500/10 blur-3xl pointer-events-none" />
+      {/* Configuration Panel */}
+      <Card padding="none" className="overflow-hidden border border-(--border-subtle) bg-(--surface-1)">
+        <div className="flex items-center justify-between border-b border-(--border-subtle) px-6 py-4 bg-(--surface-2)">
+          <div className="flex items-center gap-3">
+            <Settings2 className="h-5 w-5 text-(--text-2)" />
+            <h2 className="text-base font-bold text-(--text-1)">Analysis Configuration</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-(--text-3)">Mode:</span>
+            <div className="flex rounded-md border border-(--border-subtle) bg-(--surface-1) p-0.5">
+              <button
+                onClick={() => setAdvancedMode(false)}
+                className={`px-3 py-1 text-xs font-bold rounded-sm transition-colors ${!advancedMode ? 'bg-(--surface-3) text-(--text-1) shadow-sm' : 'text-(--text-3) hover:text-(--text-1)'}`}
+              >
+                Standard
+              </button>
+              <button
+                onClick={() => setAdvancedMode(true)}
+                className={`px-3 py-1 text-xs font-bold rounded-sm transition-colors flex items-center gap-1 ${advancedMode ? 'bg-(--surface-3) text-(--text-1) shadow-sm' : 'text-(--text-3) hover:text-(--text-1)'}`}
+              >
+                Advanced
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="p-6 sm:p-8">
-          <div className="flex items-center gap-2 mb-2">
-            <Settings2 className="h-5 w-5 text-brand-500" />
-            <CardEyebrow>Run controls</CardEyebrow>
-          </div>
-          <h2 className="text-xl font-black tracking-tight text-(--text-1)">
-            Run Root-Cause Analysis
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-(--text-2) max-w-2xl">
-            Select the target variable to explain. We'll train a robust model and use SHAP to extract global drivers and segment risks. Bind a value column to monetize the impact.
-          </p>
-
-          <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_1fr_auto]">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-bold text-(--text-1)">
-                <Target className="h-4 w-4 text-brand-500" /> Target Variable
+          <div className="grid gap-8 lg:grid-cols-[1fr_auto]">
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm font-bold text-(--text-1)">
+                  <Target className="h-4 w-4 text-(--c-info)" /> Target Variable
+                  <span className="text-[10px] upperootLensse tracking-wider text-(--text-3) font-semibold ml-2 bg-(--surface-2) px-1.5 py-0.5 rounded">Required</span>
+                </div>
+                <Select
+                  id="target-col"
+                  value={effectiveTarget}
+                  className="bg-(--surface-0) border-(--border-default) transition-colors focus:ring-(--c-info) w-full max-w-md shadow-sm"
+                  onChange={(e) => {
+                    setTarget(e.target.value)
+                    setValuePick('__auto__')
+                    setDatetimePick('__none__')
+                  }}
+                >
+                  {ds.columns.map((c) => (
+                    <option key={c.name} value={c.name}>{c.name}</option>
+                  ))}
+                </Select>
+                <p className="text-xs text-(--text-3)">The business outcome you want to explain or predict (e.g., Churn, Conversion).</p>
               </div>
-              <Select
-                id="target-col"
-                value={effectiveTarget}
-                className="bg-(--surface-1) transition-colors focus:ring-brand-500 w-full"
-                onChange={(e) => {
-                  setTarget(e.target.value)
-                  setValuePick('__auto__')
-                  setDatetimePick('__none__')
-                }}
-              >
-                {ds.columns.map((c) => (
-                  <option key={c.name} value={c.name}>{c.name}</option>
-                ))}
-              </Select>
+
+              {advancedMode && (
+                <div className="space-y-6 pt-4 border-t border-(--border-subtle) animate-fade-in-up delay-75">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-bold text-(--text-1)">
+                      <Sparkles className="h-4 w-4 text-(--c-warning)" /> Value Column (Monetization Overlay)
+                    </div>
+                    <Select
+                      id="value-col"
+                      disabled={numericSelectable.length === 0}
+                      value={valuePick}
+                      className="bg-(--surface-0) border-(--border-default) transition-colors focus:ring-(--c-warning) w-full max-w-md shadow-sm"
+                      onChange={(e) => setValuePick(e.target.value)}
+                    >
+                      <option value="__auto__">Auto ({suggestedValue || 'detect numeric column'})</option>
+                      <option value="__none__">Skip revenue/value overlay</option>
+                      {numericSelectable.map((c) => (
+                        <option key={c.name} value={c.name}>{c.name}</option>
+                      ))}
+                    </Select>
+                    <p className="text-xs text-(--text-3)">Used to calculate ROI and financial impact of drivers.</p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-bold text-(--text-1)">
+                      <Activity className="h-4 w-4 text-(--c-success)" /> Time Split Column
+                    </div>
+                    <Select
+                      id="datetime-col"
+                      value={datetimePick}
+                      className="bg-(--surface-0) border-(--border-default) transition-colors focus:ring-(--c-success) w-full max-w-md shadow-sm"
+                      onChange={(e) => setDatetimePick(e.target.value)}
+                    >
+                      <option value="__none__">Standard randomized CV</option>
+                      {datetimeSelectable.map((c) => (
+                        <option key={c.name} value={c.name}>{c.name} ({c.dtype})</option>
+                      ))}
+                    </Select>
+                    <p className="text-xs text-(--text-3)">Use chronological splitting instead of random holdout for time-series data.</p>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-bold text-(--text-1)">
-                <Sparkles className="h-4 w-4 text-amber-500" /> Value Column (Optional)
-              </div>
-              <Select
-                id="value-col"
-                disabled={numericSelectable.length === 0}
-                value={valuePick}
-                className="bg-(--surface-1) transition-colors focus:ring-amber-500 w-full"
-                onChange={(e) => setValuePick(e.target.value)}
-              >
-                <option value="__auto__">Auto ({suggestedValue || 'detect numeric column'})</option>
-                <option value="__none__">Skip revenue/value overlay</option>
-                {numericSelectable.map((c) => (
-                  <option key={c.name} value={c.name}>{c.name}</option>
-                ))}
-              </Select>
-            </div>
+            <div className="bg-(--surface-2) rounded-lg border border-(--border-subtle) p-4 w-full lg:w-72 space-y-4 shrink-0 self-start">
+              <h3 className="text-xs font-bold text-(--text-1) upperootLensse tracking-widest border-b border-(--border-subtle) pb-2">Analysis Context</h3>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm font-bold text-(--text-1)">
-                <Activity className="h-4 w-4 text-indigo-500" /> Time Split (Optional)
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-(--text-3)">Task Type</span>
+                  <span className="font-semibold text-(--text-1)">{taskHint || 'Unknown'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-(--text-3)">Test Split</span>
+                  <span className="font-semibold text-(--text-1)">20% (Holdout)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-(--text-3)">Optimization</span>
+                  <span className="font-semibold text-(--text-1)">{taskHint === 'Classification' ? 'Log Loss' : 'RMSE'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-(--text-3)">Value Column</span>
+                  <span className="font-semibold text-(--text-1)">{resolvedValueCol || 'None'}</span>
+                </div>
               </div>
-              <Select
-                id="datetime-col"
-                value={datetimePick}
-                className="bg-(--surface-1) transition-colors focus:ring-indigo-500 w-full"
-                onChange={(e) => setDatetimePick(e.target.value)}
-              >
-                <option value="__none__">Standard randomized CV</option>
-                {datetimeSelectable.map((c) => (
-                  <option key={c.name} value={c.name}>{c.name} ({c.dtype})</option>
-                ))}
-              </Select>
-            </div>
-          </div>
 
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            {taskHint && <StatusBadge tone="success" dot className="bg-emerald-500/10">Inferred {taskHint}</StatusBadge>}
-            {numericSelectable.length === 0 ? (
-              <StatusBadge tone="warning">No value overlay available</StatusBadge>
-            ) : (
-              <StatusBadge tone="info" className="bg-blue-500/10">{numericSelectable.length} numeric columns</StatusBadge>
-            )}
+              <div className="pt-3 border-t border-(--border-subtle)">
+                <div className="flex items-start gap-2 text-xs text-(--text-3)">
+                  <CheckCircle2 className="h-4 w-4 text-(--c-success) shrink-0 mt-0.5" />
+                  <span>SHAP tree explainer will be automatically fitted to the final model.</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {runMutation.isError && (
-            <div className="mt-6 flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400">
+            <div className="mt-6 flex items-center gap-3 rounded-md border border-(--c-danger-border) bg-(--c-danger-bg) px-4 py-3 text-sm text-(--c-danger)">
               <span className="font-bold">Error:</span> {formatStartError(runMutation.error)}
             </div>
           )}
 
-          <div className="mt-8 pt-6 border-t border-(--border-subtle) flex flex-wrap items-center justify-between gap-4">
+          <div className="mt-8 pt-6 border-t border-(--border-subtle) flex items-center justify-between">
             <Button
               type="button"
-              className="bg-brand-500 text-white shadow-lg shadow-brand-500/20 hover:bg-brand-400 px-8 h-12 text-base font-bold transition-all"
+              className="bg-(--brand) text-white shadow-sm hover:brightness-110 px-8 h-10 text-sm font-bold transition-all"
               disabled={runMutation.isPending || !effectiveTarget}
               onClick={() => runMutation.mutate()}
             >
               {runMutation.isPending ? (
                 <>
-                  <span className="h-5 w-5 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Starting Analysis…
+                  <span className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Initializing Pipeline…
                 </>
               ) : (
                 <>
-                  <PlayCircle className="h-5 w-5 mr-2" /> Start Analysis
+                  <PlayCircle className="h-4 w-4 mr-2" /> Start Analysis
                 </>
               )}
             </Button>
-            <div className="flex items-center gap-2 text-sm text-(--text-3) font-medium">
-              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-              Test split: <span className="font-bold text-(--text-1)">20%</span>
-            </div>
           </div>
         </div>
       </Card>
@@ -411,16 +451,18 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-sm font-semibold text-(--text-2)">Dataset Health</p>
-                <p className="text-3xl font-black text-(--text-1) tabular-nums">{healthScore}/100</p>
+                <p className="text-3xl font-black text-(--text-1) tabular-nums">
+                  <ShinyText text={`${healthScore}/100`} className="inline-block" speed={3} />
+                </p>
               </div>
               <Activity className="h-8 w-8 text-(--c-success) opacity-80" />
             </div>
             <p className="text-xs text-(--text-3) leading-relaxed">
-              Based on missing values, column variance, and type distribution. 
+              Based on missing values, column variance, and type distribution.
               {healthScore < 80 ? ' Consider imputing or dropping high-null columns.' : ' Ready for analysis.'}
             </p>
           </Card>
-          
+
           <div className="grid gap-3 max-h-[500px] overflow-auto custom-scrollbar pr-2">
             {ds.columns.map(c => (
               <DatasetColumnCard key={c.name} col={c} />
@@ -438,7 +480,7 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
             <Card padding="none" tone="strong" className="overflow-hidden border border-(--border-subtle)">
               <div className="max-h-[500px] overflow-auto custom-scrollbar">
                 <table className="min-w-full text-left text-xs border-collapse">
-                  <thead className="sticky top-0 z-10 bg-(--surface-3)/90 backdrop-blur-sm shadow-sm text-[10px] font-black uppercase tracking-[0.16em] text-(--text-3)">
+                  <thead className="sticky top-0 z-10 bg-(--surface-3)/90 backdrop-blur-sm shadow-sm text-[10px] font-black upperootLensse tracking-[0.16em] text-(--text-3)">
                     <tr>
                       {preview.columns.map((col) => (
                         <th key={col} className={`whitespace-nowrap px-4 py-3 font-bold border-b border-(--border-subtle) ${col === effectiveTarget ? 'text-brand-600 bg-brand-500/5 dark:text-brand-400' : ''}`}>
@@ -453,11 +495,10 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
                         {preview.columns.map((col) => (
                           <td
                             key={col}
-                            className={`max-w-[200px] truncate px-4 py-2 font-mono text-[11px] tabular-nums ${
-                              col === effectiveTarget 
-                                ? 'text-brand-700 bg-brand-500/5 dark:text-brand-300 font-medium group-hover:bg-brand-500/10' 
+                            className={`max-w-[200px] truncate px-4 py-2 font-mono text-[11px] tabular-nums ${col === effectiveTarget
+                                ? 'text-brand-700 bg-brand-500/5 dark:text-brand-300 font-medium group-hover:bg-brand-500/10'
                                 : 'text-(--text-2)'
-                            }`}
+                              }`}
                             title={row[col] ?? ''}
                           >
                             {row[col] ?? ''}

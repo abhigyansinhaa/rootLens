@@ -100,9 +100,9 @@ def training_work_frame(
         valid_ratio = float(ts.notna().mean()) if len(work) else 0.0
         if len(work) >= 10 and valid_ratio >= 0.85:
             work = (
-                work.assign(__rca_ts=ts)
-                .sort_values("__rca_ts", kind="mergesort")
-                .drop(columns=["__rca_ts"])
+                work.assign(__rootLens_ts=ts)
+                .sort_values("__rootLens_ts", kind="mergesort")
+                .drop(columns=["__rootLens_ts"])
                 .reset_index(drop=True)
             )
             temporal_ordered = True

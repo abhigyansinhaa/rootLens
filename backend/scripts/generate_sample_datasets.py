@@ -1,4 +1,4 @@
-"""Generate 3 synthetic datasets with clear causal signal for the RCA platform.
+"""Generate 3 synthetic datasets with clear causal signal for the rootLens platform.
 
 Outputs (relative to repo root):
   data/samples/customer_churn.csv          - binary classification (churned)
@@ -261,7 +261,7 @@ def make_equipment_failure(n: int = 5000) -> pd.DataFrame:
       - last_maintenance_days_ago, maintenance_type_last
       - asset_type (motor/pump/compressor), plant_site, criticality (A/B/C)
 
-    Strong drivers of failure (what the RCA should surface):
+    Strong drivers of failure (what the rootLens should surface):
       - high vibration_rms_mm_s                (dominant)
       - high bearing_temp_c / motor_winding_temp_c
       - high oil_particle_count_iso4406        (contamination)

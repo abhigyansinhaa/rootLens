@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""E2E stress test against a running RCA stack (see project plan).
+"""E2E stress test against a running rootLens stack (see project plan).
 
 Requires: pip install requests
 """
@@ -336,7 +336,7 @@ def print_report(label: str, row: dict) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="RCA e2e stress test against Docker stack")
+    parser = argparse.ArgumentParser(description="rootLens e2e stress test against Docker stack")
     parser.add_argument(
         "--reuse-dataset",
         type=int,

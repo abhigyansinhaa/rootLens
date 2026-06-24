@@ -39,7 +39,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <AlertOctagon className="h-7 w-7 text-(--c-danger)" />
           </div>
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.12em] text-(--c-danger) mb-1">
+            <p className="text-sm font-bold upperootLensse tracking-[0.12em] text-(--c-danger) mb-1">
               {this.props.label ?? 'Something went wrong'}
             </p>
             <p className="text-base font-bold text-(--text-1) mb-2">

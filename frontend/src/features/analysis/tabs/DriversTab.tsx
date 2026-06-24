@@ -2,7 +2,6 @@ import { useMemo, useState, useRef, useCallback } from 'react'
 import {
   Bar,
   BarChart,
-  CartesianGrid,
   Cell,
   ResponsiveContainer,
   Tooltip,
@@ -10,12 +9,8 @@ import {
   YAxis,
 } from 'recharts'
 import type { AnalysisKpis, Analysis } from '../../../types'
-import {
-  DriverImpactCard,
-  ReliabilityBadge,
-  RiskSegmentsChart,
-} from '../../../components/kpi'
-import { Card, SectionHeader } from '../../../components/ui'
+import { DriverImpactCard, ReliabilityBadge, RiskSegmentsChart } from '../../../components/kpi'
+import { ChartTooltip, chartTooltipStyle } from '../../../components/ui'
 import { formatDriverLabel } from '../../../lib/driverLabels'
 
 interface DriversTabProps {
@@ -24,6 +19,10 @@ interface DriversTabProps {
   directionByFeature: Record<string, string>
   rawColumnNames: string[]
   revenueReady: boolean
+  highlightedDriver?: string | null
+  onDriverHover?: (feature: string | null) => void
+  onHighlightChange?: (feature: string | null) => void
+  driverSearchRef?: React.RefObject<HTMLInputElement | null>
 }
 
 interface ChartRow {
@@ -33,21 +32,19 @@ interface ChartRow {
   feature: string
 }
 
-/* ─── Custom Tooltip ────────────────────────────────────────────────────── */
 function ShapTooltip({ active, payload }: { active?: boolean; payload?: { payload: ChartRow }[] }) {
   if (!active || !payload?.length) return null
   const d = payload[0].payload
   return (
-    <div className="rounded-lg border border-(--border-default) bg-(--surface-2) px-4 py-3 shadow-(--shadow-lg) text-sm">
-      <p className="font-bold text-(--text-1) mb-1">{d.full}</p>
-      <p className="text-(--text-3) text-xs">
-        Mean |SHAP|: <span className="font-mono font-bold text-(--brand)">{d.importance.toFixed(4)}</span>
-      </p>
-    </div>
+    <ChartTooltip
+      active
+      title={d.full}
+      value={d.importance.toFixed(4)}
+      context="Mean |SHAP|"
+    />
   )
 }
 
-/* ─── Interactive SHAP Bar Chart ────────────────────────────────────────── */
 function InteractiveShapChart({
   chartData,
   selectedFeature,
@@ -58,12 +55,12 @@ function InteractiveShapChart({
   onSelectFeature: (feature: string | null) => void
 }) {
   return (
-    <div className="h-96 w-full" role="img" aria-label="Feature importance bar chart showing mean absolute SHAP values">
+    <div className="h-96 w-full" role="img" aria-label="Feature importance by mean absolute SHAP">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}
           layout="vertical"
-          margin={{ left: 8, right: 24, top: 4, bottom: 4 }}
+          margin={{ left: 8, right: 32, top: 4, bottom: 4 }}
           onClick={(state) => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const s = state as any
@@ -73,89 +70,52 @@ function InteractiveShapChart({
             }
           }}
         >
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke="var(--border-subtle)"
-            className="opacity-40"
-            horizontal={false}
-          />
           <XAxis
             type="number"
             tick={{ fill: 'var(--text-3)', fontSize: 11 }}
-            axisLine={{ stroke: 'var(--border-subtle)' }}
+            axisLine={false}
             tickLine={false}
           />
           <YAxis
             type="category"
             dataKey="name"
             width={148}
-            tick={{ fontSize: 11, fill: 'var(--text-2)', fontWeight: 600 }}
+            tick={{ fontSize: 11, fill: 'var(--text-2)', fontWeight: 500 }}
             tickLine={false}
             axisLine={false}
-            cursor="pointer"
           />
-          <Tooltip content={<ShapTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-          <defs>
-            <linearGradient id="shapGradientActive" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="hsl(214 100% 59%)" />
-              <stop offset="100%" stopColor="hsl(258 80% 68%)" />
-            </linearGradient>
-            <linearGradient id="shapGradientDim" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="hsl(214 100% 59% / 0.35)" />
-              <stop offset="100%" stopColor="hsl(258 80% 68% / 0.25)" />
-            </linearGradient>
-          </defs>
+          <Tooltip content={<ShapTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} contentStyle={chartTooltipStyle} />
           <Bar dataKey="importance" radius={[0, 6, 6, 0]} cursor="pointer">
             {chartData.map((entry) => {
               const isSelected = selectedFeature === null || selectedFeature === entry.feature
               return (
                 <Cell
                   key={entry.feature}
-                  fill={isSelected ? 'url(#shapGradientActive)' : 'url(#shapGradientDim)'}
-                  style={{ transition: 'fill 0.2s ease' }}
+                  fill="var(--chart-primary)"
+                  fillOpacity={isSelected ? 1 : 0.25}
                 />
               )
             })}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-
-      {/* Screen-reader accessible summary table (visually hidden) */}
-      <div className="sr-only">
-        <table>
-          <caption>Feature importance rankings by mean absolute SHAP value</caption>
-          <thead>
-            <tr>
-              <th scope="col">Rank</th>
-              <th scope="col">Feature</th>
-              <th scope="col">Mean |SHAP|</th>
-            </tr>
-          </thead>
-          <tbody>
-            {chartData.map((row, i) => (
-              <tr key={row.feature}>
-                <td>{i + 1}</td>
-                <td>{row.full}</td>
-                <td>{row.importance.toFixed(4)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   )
 }
 
-/* ─── Drivers Tab ───────────────────────────────────────────────────────── */
 export function DriversTab({
   data,
   kpis,
   directionByFeature,
   rawColumnNames,
   revenueReady,
+  highlightedDriver,
+  onDriverHover,
+  onHighlightChange,
+  driverSearchRef,
 }: DriversTabProps) {
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null)
-  const driverCardRef = useRef<HTMLDivElement>(null)
+  const driverootLensrdRef = useRef<HTMLDivElement>(null)
 
   const chartData: ChartRow[] = useMemo(() => {
     const fi = data.feature_importance
@@ -174,73 +134,53 @@ export function DriversTab({
       })
   }, [data.feature_importance, rawColumnNames])
 
-  const handleSelectFeature = useCallback((feature: string | null) => {
-    setSelectedFeature(feature)
-    if (feature && driverCardRef.current) {
-      setTimeout(() => {
-        driverCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }, 80)
-    }
-  }, [])
+  const handleSelectFeature = useCallback(
+    (feature: string | null) => {
+      setSelectedFeature(feature)
+      onHighlightChange?.(feature)
+      if (feature && driverootLensrdRef.current) {
+        setTimeout(() => driverootLensrdRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80)
+      }
+    },
+    [onHighlightChange],
+  )
+
+  const activeHighlight = selectedFeature || highlightedDriver
 
   return (
-    <div className="space-y-8 print:block animate-fade-in-up">
-      <SectionHeader
-        eyebrow="2. Why it is happening"
-        title="Drivers, Segments, and Reliability"
-        description="Feature lift, segment concentration, and reliability signals for where to intervene first."
-      />
-
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+    <div className="space-y-12 print:block">
+      <div className="grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
         <RiskSegmentsChart kpis={kpis} hasValue={revenueReady} />
         <ReliabilityBadge kpis={kpis} />
       </div>
 
-      {/* Interactive SHAP chart */}
       {chartData.length > 0 && (
-        <div className="pt-2">
+        <div id="drivers-section" className="scroll-mt-28">
           <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
-            <SectionHeader
-              eyebrow="Drivers"
-              title="Feature Importance"
-              description="Mean absolute SHAP values rank the strongest explanatory drivers. Click a bar to highlight the corresponding driver card."
-            />
+            <div>
+              <h3 className="text-base font-semibold text-(--text-1)">Feature importance</h3>
+              <p className="text-sm text-(--text-3) mt-0.5">Mean |SHAP| — click a bar to highlight the driver row</p>
+            </div>
             {selectedFeature && (
               <button
-                onClick={() => setSelectedFeature(null)}
-                className="text-xs font-semibold text-(--brand) hover:underline shrink-0 pb-1"
+                onClick={() => handleSelectFeature(null)}
+                className="text-xs font-medium text-(--brand) hover:underline"
               >
-                Clear selection ×
+                Clear selection
               </button>
             )}
           </div>
-          <Card
-            padding="lg"
-            tone="strong"
-            elevated
-            className="border border-(--border-subtle) bg-(--surface-1)/50 backdrop-blur"
-          >
+          <div className="rounded-lg bg-(--surface-1) p-4" style={{ boxShadow: 'var(--shadow-surface)' }}>
             <InteractiveShapChart
               chartData={chartData}
               selectedFeature={selectedFeature}
               onSelectFeature={handleSelectFeature}
             />
-          </Card>
-
-          {selectedFeature && (
-            <p className="mt-3 text-xs text-(--text-3) text-center animate-fade-in">
-              Showing driver card for{' '}
-              <span className="font-semibold text-(--brand)">
-                {formatDriverLabel(selectedFeature, rawColumnNames)}
-              </span>{' '}
-              — scroll down to see it highlighted
-            </p>
-          )}
+          </div>
         </div>
       )}
 
-      {/* Driver impact cards — scroll target */}
-      <div ref={driverCardRef}>
+      <div ref={driverootLensrdRef}>
         <DriverImpactCard
           kpis={kpis}
           directionByFeature={directionByFeature}
@@ -248,7 +188,12 @@ export function DriversTab({
           rawColumns={rawColumnNames}
           shapSummaryUrl={data.shap_summary_image_url}
           shapBeeswarmUrl={data.shap_beeswarm_image_url}
-          highlightFeature={selectedFeature}
+          highlightFeature={activeHighlight}
+          onHighlightChange={(f) => {
+            onHighlightChange?.(f)
+            onDriverHover?.(f)
+          }}
+          searchInputRef={driverSearchRef}
         />
       </div>
     </div>

@@ -135,7 +135,7 @@ def profile_dataset_for_target(
 
     if health["duplicate_row_ratio"] > 0.3:
         warnings.append(
-            f"High duplicate row ratio ({health['duplicate_row_ratio']:.0%}); consider deduplicating for cleaner RCA."
+            f"High duplicate row ratio ({health['duplicate_row_ratio']:.0%}); consider deduplicating for cleaner rootLens."
         )
 
     y = work[target]

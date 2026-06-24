@@ -1,4 +1,4 @@
-# RCA ML Platform — Architecture & Scalability
+# rootLens ML Platform — Architecture & Scalability
 
 **Document scope:** End-to-end frontend, backend, and ML architecture; technology stack; and future scalability directions. Aligned with the codebase as of the document date.
 
@@ -20,7 +20,7 @@
 
 ## 1. Product overview
 
-The **RCA ML Platform (MVP)** is a web application for **tabular root-cause-style analysis**. Users **register and log in**, **upload CSV or Parquet** datasets, select a **target column**, and receive:
+The **rootLens ML Platform (MVP)** is a web application for **tabular root-cause-style analysis**. Users **register and log in**, **upload CSV or Parquet** datasets, select a **target column**, and receive:
 
 - Model **metrics** (classification or regression)
 - **Feature importance** and **SHAP-style explanations**
@@ -223,7 +223,7 @@ Status lifecycle (**queued → running → completed/failed**), plus JSON fields
 
 | Area | Items |
 |------|--------|
-| **Product** | Tabular ML, RCA-style (associative) analysis, classification/regression, feature importance, SHAP, recommendations, profiling, hold-out, cross-validation, imbalance, leakage hints |
+| **Product** | Tabular ML, rootLens-style (associative) analysis, classification/regression, feature importance, SHAP, recommendations, profiling, hold-out, cross-validation, imbalance, leakage hints |
 | **Frontend** | React, TypeScript, Vite, Tailwind CSS 4, React Router, TanStack Query, Axios, JWT in localStorage, Recharts, ESLint |
 | **Backend** | FastAPI, Uvicorn, Pydantic, SQLAlchemy, MySQL/PyMySQL, REST, multipart, JWT, CORS, static files, RQ, Redis, BackgroundTasks |
 | **ML** | pandas, NumPy, scikit-learn (pipelines, preprocessing, CV, RF, linear models, permutation importance), XGBoost, SHAP, matplotlib |

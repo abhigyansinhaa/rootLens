@@ -10,38 +10,38 @@ const FEATURES = [
   {
     icon: Zap,
     color: 'var(--c-warning)',
-    bg:    'var(--c-warning-bg)',
-    border:'var(--c-warning-border)',
+    bg: 'var(--c-warning-bg)',
+    border: 'var(--c-warning-border)',
     title: 'Instant SHAP Analysis',
-    desc:  'XGBoost + LightGBM trained automatically. SHAP-based driver ranking with no config required.',
+    desc: 'XGBoost + LightGBM trained automatically. SHAP-based driver ranking with no config required.',
   },
   {
     icon: BarChart3,
     color: 'var(--brand)',
-    bg:    'var(--brand-dim)',
-    border:'var(--border-brand)',
+    bg: 'var(--brand-dim)',
+    border: 'var(--border-brand)',
     title: 'Decision-Ready KPIs',
-    desc:  'Monetized risk segments, counterfactuals, and concentration analysis — all in one report.',
+    desc: 'Monetized risk segments, counterfactuals, and concentration analysis — all in one report.',
   },
   {
     icon: Shield,
     color: 'var(--c-success)',
-    bg:    'var(--c-success-bg)',
-    border:'var(--c-success-border)',
+    bg: 'var(--c-success-bg)',
+    border: 'var(--c-success-border)',
     title: 'Governance & Audit',
-    desc:  'Reliability scores, fairness flags, and full model lineage exported with every run.',
+    desc: 'Reliability scores, fairness flags, and full model lineage exported with every run.',
   },
 ]
 
 export function Upload() {
   const navigate = useNavigate()
-  const qc       = useQueryClient()
+  const qc = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [name,         setName]         = useState('')
-  const [loading,      setLoading]      = useState(false)
-  const [success,      setSuccess]      = useState(false)
-  const [err,          setErr]          = useState<string | null>(null)
-  const [drag,         setDrag]         = useState(false)
+  const [name, setName] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+  const [drag, setDrag] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   const uploadFile = useCallback(
@@ -62,8 +62,8 @@ export function Upload() {
         setLoading(false)
         const detail =
           e && typeof e === 'object' && 'response' in e &&
-          e.response && typeof e.response === 'object' && 'data' in e.response &&
-          typeof (e.response as { data?: { detail?: string } }).data?.detail === 'string'
+            e.response && typeof e.response === 'object' && 'data' in e.response &&
+            typeof (e.response as { data?: { detail?: string } }).data?.detail === 'string'
             ? (e.response as { data: { detail: string } }).data.detail
             : 'Upload failed.'
         setErr(detail)
@@ -148,31 +148,20 @@ export function Upload() {
         </div>
       </div>
 
-      {/* Drop zone */}
       <div
         onDragEnter={e => { e.preventDefault(); setDrag(true) }}
         onDragOver={e => e.preventDefault()}
         onDragLeave={() => setDrag(false)}
         onDrop={onDrop}
         className={[
-          'relative flex flex-col items-center justify-center rounded-xl',
-          'min-h-[280px] transition-all duration-(--duration-normal)',
-          'border-2 border-dashed',
+          'relative flex flex-col items-center justify-center rounded-lg',
+          'min-h-[240px] transition-all duration-200',
+          'border border-dashed',
           drag
-            ? 'border-(--brand) bg-(--brand-dim) scale-[1.01] shadow-(--shadow-glow)'
-            : 'border-(--border-default) bg-(--surface-1) hover:border-(--border-brand) hover:bg-(--brand-dimmer)',
-          'animate-fade-in-up delay-150',
+            ? 'border-(--brand) bg-(--brand-dim)'
+            : 'border-(--border-subtle) bg-(--surface-1) hover:border-(--border-default) hover:bg-(--surface-2)',
         ].join(' ')}
       >
-        {/* Ambient glow */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-[calc(var(--radius-xl)-2px)] transition-opacity duration-500"
-          style={{
-            background: 'radial-gradient(ellipse 60% 40% at 50% 0%, hsl(214 100% 59% / 0.08) 0%, transparent 70%)',
-            opacity: drag ? 1 : 0,
-          }}
-        />
 
         {loading && (
           <div className="relative z-10 flex flex-col items-center gap-5 animate-spring-in">
@@ -204,16 +193,16 @@ export function Upload() {
 
             <div className={[
               'flex h-16 w-16 items-center justify-center rounded-xl',
-              'border border-(--border-brand) bg-(--brand-dim)',
-              'text-(--brand) transition-transform',
-              drag ? 'scale-110 animate-bounce' : 'animate-float',
+              'border border-(--border-subtle) bg-(--surface-2)',
+              'text-(--text-2) transition-transform',
+              drag ? 'scale-110' : '',
             ].join(' ')}>
               <UploadCloud className="h-8 w-8" />
             </div>
 
             <div>
               <p className="text-lg font-bold text-(--text-1)">
-                {drag ? 'Release to upload' : 'Drop your file here'}
+                {drag ? 'Release to upload' : 'Select a file to upload'}
               </p>
               <p className="mt-1.5 text-sm text-(--text-2)">
                 or{' '}
@@ -245,7 +234,7 @@ export function Upload() {
             <p className="text-xs text-(--text-2) mt-0.5">
               {(selectedFile.size / 1024).toFixed(1)} KB
               {selectedFile.type && (
-                <span className="ml-2 capitalize">{selectedFile.type.split('/').pop()?.toUpperCase()}</span>
+                <span className="ml-2 capitalize">{selectedFile.type.split('/').pop()?.toUpperootLensse()}</span>
               )}
             </p>
           </div>
@@ -265,14 +254,14 @@ export function Upload() {
 
       {/* Feature cards */}
       <div>
-        <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-(--text-3)">
+        <p className="mb-4 text-[11px] font-bold upperootLensse tracking-[0.16em] text-(--text-3)">
           What happens after upload
         </p>
         <div className="grid gap-4 sm:grid-cols-3">
           {FEATURES.map((f, i) => (
             <div
               key={f.title}
-              className={`flex gap-4 rounded-lg border p-4 transition-colors hover:border-(--border-default) animate-spring-up delay-${(i+2)*100}`}
+              className={`flex gap-4 rounded-lg border p-4 transition-colors hover:border-(--border-default) animate-spring-up delay-${(i + 2) * 100}`}
               style={{ borderColor: f.border, background: f.bg }}
             >
               <div

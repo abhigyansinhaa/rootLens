@@ -1,4 +1,4 @@
-"""Generate a synthetic SaaS-churn dataset designed to stress test the RCA platform.
+"""Generate a synthetic SaaS-churn dataset designed to stress test the rootLens platform.
 
 The output exercises most of the pipeline's edge cases at once:
 

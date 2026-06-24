@@ -14,14 +14,14 @@ export function PageHeader({ eyebrow, title, description, meta, actions, gradien
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between animate-fade-in-up">
       <div className="min-w-0 flex-1">
         {eyebrow && (
-          <p className="mb-1.5 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-(--brand)">
+          <p className="mb-1.5 flex items-center gap-2 text-xs font-medium text-(--brand)">
             <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-(--brand)" />
             {eyebrow}
           </p>
         )}
         <h1
           className={[
-            'text-2xl sm:text-3xl font-bold tracking-tight leading-tight',
+            'text-2xl sm:text-3xl font-semibold tracking-tight leading-tight',
             gradient
               ? 'text-gradient-brand'
               : 'text-(--text-1)',

@@ -6,7 +6,7 @@ import re
 
 
 def _normalize_key(value: str) -> str:
-    """Snake-case key for matching: camelCase, spaces, hyphens → lowercase tokens."""
+    """Snake-case key for matching: camelCase, spaces, hyphens → lowerootLensse tokens."""
     s = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", str(value))
     s = re.sub(r"[\s\-\.]+", "_", s)
     return s.lower().strip("_")

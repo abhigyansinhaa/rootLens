@@ -1,32 +1,8 @@
-import { type FormEvent, useState, useEffect } from 'react'
+import { type FormEvent, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from './AuthContext'
 import { Button, Input } from '../../components/ui'
-import { Activity, ShieldCheck, Zap, Eye, EyeOff } from 'lucide-react'
-
-type FloatingStatProps = {
-  title: string
-  value: string
-  icon:  React.ElementType
-  style: React.CSSProperties
-}
-
-function FloatingStat({ title, value, icon: Icon, style }: FloatingStatProps) {
-  return (
-    <div
-      className="absolute hidden lg:flex glass-2 rounded-lg px-4 py-3 gap-3 items-center shadow-(--shadow-xl) border border-(--border-default) animate-float"
-      style={style}
-    >
-      <div className="flex h-9 w-9 items-center justify-center rounded-md bg-(--brand-dim) border border-(--border-brand) text-(--brand)">
-        <Icon className="h-4 w-4" />
-      </div>
-      <div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3)">{title}</p>
-        <p className="text-base font-bold text-(--text-1) font-mono tabular-nums">{value}</p>
-      </div>
-    </div>
-  )
-}
+import { ShieldCheck, Server, Lock, Eye, EyeOff, Activity } from 'lucide-react'
 
 export function Login() {
   const { login } = useAuth()
@@ -39,16 +15,6 @@ export function Login() {
   const [showPw,   setShowPw]   = useState(false)
   const [err,      setErr]      = useState<string | null>(null)
   const [busy,     setBusy]     = useState(false)
-  const [mouse,    setMouse]    = useState({ x: 0, y: 0 })
-
-  useEffect(() => {
-    const move = (e: MouseEvent) => setMouse({
-      x: (e.clientX / window.innerWidth  - 0.5) * 18,
-      y: (e.clientY / window.innerHeight - 0.5) * 18,
-    })
-    window.addEventListener('mousemove', move)
-    return () => window.removeEventListener('mousemove', move)
-  }, [])
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -65,137 +31,137 @@ export function Login() {
   }
 
   return (
-    <div className="flex min-h-screen">
-      {/* ── Left Panel — Brand ── */}
-      <div className="relative hidden w-1/2 overflow-hidden bg-(--surface-1) lg:flex lg:flex-col lg:items-center lg:justify-center border-r border-(--border-subtle)">
-        {/* Mesh gradient */}
-        <div className="absolute inset-0 z-0" aria-hidden>
-          <div className="absolute -left-[15%] top-[-15%] h-[55%] w-[55%] rounded-full bg-(--brand) opacity-[0.08] blur-[100px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] h-[50%] w-[50%] rounded-full bg-purple-600 opacity-[0.07] blur-[100px]" />
-          <div className="absolute left-[30%] top-[60%] h-[35%] w-[35%] rounded-full bg-cyan-500 opacity-[0.05] blur-[80px]" />
-        </div>
+    <div className="flex min-h-screen bg-(--app-bg)">
+      {/* ── Left Panel: Enterprise Value Props ── */}
+      <div className="relative hidden w-1/2 flex-col justify-between border-r border-(--border-subtle) bg-(--surface-1) p-12 lg:flex xl:p-20">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--brand-dim) border border-(--border-brand)">
+               <Activity className="h-5 w-5 text-(--brand)" />
+            </div>
+            <span className="text-xl font-bold tracking-tight text-(--text-1)">RootLens</span>
+          </div>
 
-        {/* Grid lines */}
-        <svg className="absolute inset-0 w-full h-full opacity-[0.04]" aria-hidden>
-          <defs>
-            <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
-              <path d="M 48 0 L 0 0 0 48" fill="none" stroke="white" strokeWidth="0.5" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
+          <div className="mt-16 max-w-md">
+            <h1 className="text-3xl font-bold tracking-tight text-(--text-1) leading-tight">
+              Enterprise root-cause intelligence, ready for deployment.
+            </h1>
+            <p className="mt-4 text-base leading-relaxed text-(--text-2)">
+              Upload your datasets, identify core business drivers, and quantify risk instantly without configuring complex ML pipelines.
+            </p>
+          </div>
 
-        {/* Floating stat cards (parallax) */}
-        <div
-          className="absolute inset-0 z-10"
-          style={{ transform: `translate(${mouse.x}px, ${mouse.y}px)`, transition: 'transform 0.7s ease-out' }}
-        >
-          <FloatingStat title="Churn Detected"  value="12.4%"         icon={Activity}    style={{ top: '22%', left: '12%', animationDelay: '0s' }} />
-          <FloatingStat title="Key Drivers"     value="3 Found"       icon={Zap}         style={{ top: '62%', right: '10%', animationDelay: '0.8s' }} />
-          <FloatingStat title="Model Integrity" value="98.2% AUC"     icon={ShieldCheck} style={{ top: '42%', left: '8%', animationDelay: '1.6s' }} />
-        </div>
-
-        {/* Center brand lockup */}
-        <div className="relative z-20 flex flex-col items-center text-center animate-spring-in">
-          <div className="glass-2 rounded-2xl p-10 shadow-(--shadow-2xl) border border-(--border-default)">
-            <div className="mb-6 flex justify-center">
-              <div className="rounded-xl bg-white p-5 shadow-(--shadow-lg)">
-                <img src="/logo.png" alt="RootLens" className="h-16 w-auto object-contain" />
+          <div className="mt-12 space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-(--c-info-bg) border border-(--c-info-border)">
+                <ShieldCheck className="h-4 w-4 text-(--c-info)" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-(--text-1)">SOC2 Ready & Audit Friendly</h3>
+                <p className="mt-1 text-sm text-(--text-3)">All models include full lineage tracking, fairness metrics, and SHAP-based explainability by default.</p>
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-(--text-1) tracking-tight">
-              Root-Cause Intelligence
-            </h1>
-            <p className="mt-3 max-w-[280px] text-sm leading-relaxed text-(--text-2)">
-              Upload your data. Identify root causes. Quantify risk and act with confidence.
-            </p>
-
-            {/* Animated separator */}
-            <div className="mt-6 flex items-center gap-3">
-              <div className="h-px flex-1 bg-(--border-subtle)" />
-              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-4)">Powered by SHAP</span>
-              <div className="h-px flex-1 bg-(--border-subtle)" />
+            <div className="flex items-start gap-4">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-(--c-success-bg) border border-(--c-success-border)">
+                <Server className="h-4 w-4 text-(--c-success)" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-(--text-1)">End-to-End Encryption</h3>
+                <p className="mt-1 text-sm text-(--text-3)">Data is encrypted in transit and at rest. Strict role-based access controls for enterprise teams.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-(--brand-dim) border border-(--border-brand)">
+                <Lock className="h-4 w-4 text-(--brand)" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-(--text-1)">Private Cloud Deployable</h3>
+                <p className="mt-1 text-sm text-(--text-3)">Run RootLens in your own VPC. No data leaves your secure perimeter.</p>
+              </div>
             </div>
           </div>
+        </div>
+
+        <div className="flex items-center gap-4 text-sm text-(--text-3)">
+          <span>© {new Date().getFullYear()} RootLens Inc.</span>
+          <span className="h-1 w-1 rounded-full bg-(--text-4)" />
+          <a href="#" className="hover:text-(--text-1) transition-colors">Privacy</a>
+          <span className="h-1 w-1 rounded-full bg-(--text-4)" />
+          <a href="#" className="hover:text-(--text-1) transition-colors">Terms</a>
         </div>
       </div>
 
-      {/* ── Right Panel — Auth Form ── */}
-      <div className="flex w-full flex-col items-center justify-center px-4 sm:px-8 lg:w-1/2 lg:px-16 xl:px-24">
-        {/* Mobile logo */}
-        <div className="mb-8 lg:hidden">
-          <img src="/logo.png" alt="RootLens" className="h-10 w-auto object-contain" />
+      {/* ── Right Panel: Auth Form ── */}
+      <div className="flex w-full flex-col justify-center px-6 sm:px-12 lg:w-1/2 lg:px-16 xl:px-24 bg-(--surface-0)">
+        <div className="mb-8 lg:hidden flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-(--brand-dim) border border-(--border-brand)">
+            <Activity className="h-4 w-4 text-(--brand)" />
+          </div>
+          <span className="text-lg font-bold text-(--text-1)">RootLens</span>
         </div>
 
-        <div className="w-full max-w-sm animate-spring-up">
-          {/* Header */}
-          <div className="mb-8 text-center">
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-(--brand)">Welcome back</p>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-(--text-1)">Sign in to workspace</h2>
+        <div className="w-full max-w-sm mx-auto lg:mx-0">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold tracking-tight text-(--text-1)">Sign in to workspace</h2>
             <p className="mt-1.5 text-sm text-(--text-3)">Enter your credentials to continue</p>
           </div>
 
-          {/* Form card */}
-          <div className="rounded-xl border border-(--border-default) bg-(--surface-1) p-6 shadow-(--shadow-xl)">
-            <form onSubmit={onSubmit} className="space-y-4">
-              <div className="animate-slide-in-left delay-50">
-                <Input
-                  label="Email address"
-                  type="email"
-                  required
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@company.com"
-                />
+          <form onSubmit={onSubmit} className="space-y-4">
+            <div>
+              <Input
+                label="Work email address"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="jane@company.com"
+              />
+            </div>
+
+            <div>
+              <Input
+                label="Password"
+                type={showPw ? 'text' : 'password'}
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                rightIcon={
+                  <button
+                    type="button"
+                    onClick={() => setShowPw(!showPw)}
+                    className="flex items-center text-(--text-3) hover:text-(--text-1) transition-colors"
+                    aria-label={showPw ? 'Hide password' : 'Show password'}
+                  >
+                    {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                }
+              />
+            </div>
+
+            {err && (
+              <div className="flex items-center gap-2 rounded-md border border-(--c-danger-border) bg-(--c-danger-bg) px-3 py-2.5 text-sm font-medium text-(--c-danger)">
+                <ShieldCheck className="h-4 w-4 shrink-0" />
+                {err}
               </div>
+            )}
 
-              <div className="animate-slide-in-left delay-100">
-                <Input
-                  label="Password"
-                  type={showPw ? 'text' : 'password'}
-                  required
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  rightIcon={
-                    <button
-                      type="button"
-                      onClick={() => setShowPw(!showPw)}
-                      className="flex items-center text-(--text-3) hover:text-(--text-1) transition-colors"
-                      aria-label={showPw ? 'Hide password' : 'Show password'}
-                    >
-                      {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  }
-                />
-              </div>
+            <div className="pt-2">
+              <Button
+                type="submit"
+                loading={busy}
+                className="w-full h-10 text-sm font-semibold"
+              >
+                Sign in to workspace
+              </Button>
+            </div>
+          </form>
 
-              {err && (
-                <div className="rounded-md border border-(--c-danger-border) bg-(--c-danger-bg) px-4 py-3 text-sm font-medium text-(--c-danger) animate-spring-in">
-                  {err}
-                </div>
-              )}
-
-              <div className="pt-1 animate-slide-in-left delay-150">
-                <Button
-                  type="submit"
-                  loading={busy}
-                  className="w-full h-11 text-sm"
-                >
-                  Sign in to workspace
-                </Button>
-              </div>
-            </form>
-          </div>
-
-          <p className="mt-6 text-center text-sm text-(--text-3) animate-fade-in delay-300">
+          <p className="mt-6 text-sm text-(--text-3)">
             No workspace yet?{' '}
-            <Link
-              className="font-semibold text-(--brand) transition-colors hover:brightness-110"
-              to="/register"
-            >
+            <Link className="font-semibold text-(--brand) transition-colors hover:text-(--text-1)" to="/register">
               Create account
             </Link>
           </p>

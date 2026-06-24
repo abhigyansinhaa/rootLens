@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const TOKEN_KEY = 'rca_token'
+const TOKEN_KEY = 'rootLens_token'
 
 export const api = axios.create({
   baseURL: '/api',

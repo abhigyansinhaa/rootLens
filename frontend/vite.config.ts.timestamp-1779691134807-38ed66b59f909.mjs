@@ -1,7 +1,7 @@
 // vite.config.ts
-import tailwindcss from "file:///C:/Users/KIIT0001/Desktop/New%20folder/rca/frontend/node_modules/@tailwindcss/vite/dist/index.mjs";
-import react from "file:///C:/Users/KIIT0001/Desktop/New%20folder/rca/frontend/node_modules/@vitejs/plugin-react/dist/index.js";
-import { defineConfig, loadEnv } from "file:///C:/Users/KIIT0001/Desktop/New%20folder/rca/frontend/node_modules/vite/dist/node/index.js";
+import tailwindcss from "file:///C:/Users/KIIT0001/Desktop/New%20folder/rootLens/frontend/node_modules/@tailwindcss/vite/dist/index.mjs";
+import react from "file:///C:/Users/KIIT0001/Desktop/New%20folder/rootLens/frontend/node_modules/@vitejs/plugin-react/dist/index.js";
+import { defineConfig, loadEnv } from "file:///C:/Users/KIIT0001/Desktop/New%20folder/rootLens/frontend/node_modules/vite/dist/node/index.js";
 var vite_config_default = defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const target = env.VITE_BACKEND_URL || "http://127.0.0.1:8000";

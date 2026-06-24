@@ -10,18 +10,18 @@
   --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
   --font-serif: "Inter", ui-serif, Georgia, serif;
 
-  /* Brand — Electric Blue (HSL anchored) */
-  --color-brand-50:  hsl(214 100% 97%);
-  --color-brand-100: hsl(214 100% 93%);
-  --color-brand-200: hsl(214 100% 86%);
-  --color-brand-300: hsl(214 100% 76%);
-  --color-brand-400: hsl(214 100% 66%);
-  --color-brand-500: hsl(214 100% 59%);
-  --color-brand-600: hsl(214 100% 50%);
-  --color-brand-700: hsl(214 100% 42%);
-  --color-brand-800: hsl(214 100% 34%);
-  --color-brand-900: hsl(214 100% 26%);
-  --color-brand-950: hsl(214 100% 16%);
+  /* Brand — Indigo (decision intelligence) */
+  --color-brand-50:  hsl(239 100% 97%);
+  --color-brand-100: hsl(239 96% 93%);
+  --color-brand-200: hsl(239 96% 86%);
+  --color-brand-300: hsl(239 94% 76%);
+  --color-brand-400: hsl(239 91% 68%);
+  --color-brand-500: hsl(239 84% 67%);
+  --color-brand-600: hsl(239 76% 58%);
+  --color-brand-700: hsl(239 68% 50%);
+  --color-brand-800: hsl(239 60% 42%);
+  --color-brand-900: hsl(239 55% 34%);
+  --color-brand-950: hsl(239 50% 22%);
 
   /* Semantic palette aliases */
   --color-success-400: hsl(158 64% 52%);
@@ -42,8 +42,11 @@
   --shadow-lg:   0 8px 30px rgba(0,0,0,0.45), 0 4px 12px rgba(0,0,0,0.3);
   --shadow-xl:   0 16px 48px rgba(0,0,0,0.5), 0 8px 20px rgba(0,0,0,0.35);
   --shadow-2xl:  0 24px 64px rgba(0,0,0,0.6), 0 12px 28px rgba(0,0,0,0.4);
-  --shadow-glow: 0 0 0 1px hsl(214 100% 59% / 0.3), 0 0 20px hsl(214 100% 59% / 0.2);
-  --shadow-glow-lg: 0 0 0 1px hsl(214 100% 59% / 0.4), 0 0 40px hsl(214 100% 59% / 0.25);
+  --shadow-surface: 0 1px 2px rgba(0,0,0,0.24);
+  --shadow-raised:  0 4px 12px rgba(0,0,0,0.32);
+  --shadow-overlay: 0 16px 48px rgba(0,0,0,0.48);
+  --shadow-glow: 0 0 0 1px hsl(239 84% 67% / 0.3), 0 0 20px hsl(239 84% 67% / 0.15);
+  --shadow-glow-lg: 0 0 0 1px hsl(239 84% 67% / 0.4), 0 0 40px hsl(239 84% 67% / 0.2);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -53,31 +56,31 @@
   color-scheme: dark;
 
   /* ── Surfaces (5-level luminance stack) ── */
-  --app-bg:     #000000;     /* L: 0%  — absolute base */
-  --surface-0:  #000000;     /* alias for base */
-  --surface-1:  #0a0a0a;     /* L: 4%  — cards */
-  --surface-2:  #141414;     /* L: 8% — elevated cards */
-  --surface-3:  #1f1f1f;     /* L: 12% — inputs, rows */
-  --surface-4:  #292929;     /* L: 16% — active/selected */
-  --surface-5:  #333333;     /* L: 20% — hover highlights */
+  --app-bg:     #0B1020;     /* Deep slate navy */
+  --surface-0:  #0B1020;     /* alias for base */
+  --surface-1:  #111827;     /* cards */
+  --surface-2:  #1A2234;     /* elevated */
+  --surface-3:  #243044;     /* hover / selected rows */
+  --surface-4:  #4B5563;     /* L: 16% — active/selected */
+  --surface-5:  #6B7280;     /* L: 20% — hover highlights */
 
   /* ── Borders ── */
-  --border-subtle:  rgba(255,255,255,0.06);
-  --border-default: rgba(255,255,255,0.10);
-  --border-strong:  rgba(255,255,255,0.18);
-  --border-brand:   hsl(214 100% 59% / 0.4);
-  --border-focus:   hsl(214 100% 59% / 0.8);
+  --border-subtle:  rgba(255,255,255,0.03);
+  --border-default: rgba(255,255,255,0.06);
+  --border-strong:  rgba(255,255,255,0.12);
+  --border-brand:   hsl(239 84% 67% / 0.4);
+  --border-focus:   hsl(239 84% 67% / 0.8);
 
   /* ── Text ── */
-  --text-1: #fafafa;   /* primary */
-  --text-2: #a1a1aa;   /* secondary */
-  --text-3: #52525b;   /* tertiary/placeholder */
-  --text-4: #3f3f46;   /* disabled */
+  --text-1: #F1F5F9;   /* primary */
+  --text-2: #94A3B8;   /* secondary */
+  --text-3: #64748B;   /* tertiary */
+  --text-4: #4B5563;   /* disabled */
 
   /* ── Brand shortcuts ── */
-  --brand:          hsl(214 100% 59%);
-  --brand-dim:      hsl(214 100% 59% / 0.15);
-  --brand-dimmer:   hsl(214 100% 59% / 0.08);
+  --brand:          hsl(239 84% 67%);
+  --brand-dim:      hsl(239 84% 67% / 0.12);
+  --brand-dimmer:   hsl(239 84% 67% / 0.06);
 
   /* ── Semantic colors ── */
   --c-success:      hsl(158 64% 40%);
@@ -86,7 +89,7 @@
   --c-warning:      hsl(38 92% 50%);
   --c-warning-bg:   hsl(38 92% 50% / 0.12);
   --c-warning-border: hsl(38 92% 50% / 0.3);
-  --c-danger:       hsl(0 84% 60%);
+  --c-danger:       hsl(347 77% 60%);
   --c-danger-bg:    hsl(0 84% 60% / 0.12);
   --c-danger-border: hsl(0 84% 60% / 0.3);
   --c-info:         hsl(199 89% 55%);
@@ -94,7 +97,8 @@
   --c-info-border:  hsl(199 89% 55% / 0.3);
 
   /* ── Chart colors ── */
-  --chart-primary:  hsl(214 100% 59%);
+  --chart-primary:  hsl(239 84% 67%);
+  --chart-neutral:  hsl(215 16% 47%);
   --chart-success:  hsl(158 64% 46%);
   --chart-warning:  hsl(38 92% 55%);
   --chart-danger:   hsl(0 84% 60%);
@@ -102,16 +106,15 @@
   --chart-cyan:     hsl(190 100% 55%);
   --chart-grid:     rgba(255,255,255,0.05);
 
-  /* ── Glass surfaces ── */
-  --glass-1: rgba(13, 18, 32, 0.55);
-  --glass-2: rgba(19, 26, 46, 0.70);
-  --glass-3: rgba(26, 35, 64, 0.80);
+  /* ── Legacy Glass surfaces (removed for enterprise aesthetic) ── */
 
   /* ── Layout ── */
   --app-header-height: 60px;
   --sidebar-width: 256px;
   --sidebar-collapsed-width: 68px;
-  --page-max-width: 1320px;
+  --page-max-width: 1440px;
+  --text-display: 3rem;
+  --text-headline: 1.75rem;
   --page-padding: clamp(1rem, 3vw, 2rem);
 
   /* ── Typography scale ── */
@@ -158,8 +161,8 @@
   --border-subtle:  rgba(0,0,0,0.06);
   --border-default: rgba(0,0,0,0.10);
   --border-strong:  rgba(0,0,0,0.18);
-  --border-brand:   hsl(214 100% 59% / 0.4);
-  --border-focus:   hsl(214 100% 59% / 0.8);
+  --border-brand:   hsl(239 76% 58% / 0.4);
+  --border-focus:   hsl(239 76% 58% / 0.8);
 
   /* ── Text ── */
   --text-1: #0f172a;   /* primary */
@@ -168,12 +171,13 @@
   --text-4: #94a3b8;   /* disabled */
 
   /* ── Brand shortcuts ── */
-  --brand:          hsl(214 100% 45%);
-  --brand-dim:      hsl(214 100% 59% / 0.10);
-  --brand-dimmer:   hsl(214 100% 59% / 0.05);
+  --brand:          hsl(239 76% 58%);
+  --brand-dim:      hsl(239 84% 67% / 0.10);
+  --brand-dimmer:   hsl(239 84% 67% / 0.05);
 
   /* ── Chart colors ── */
-  --chart-primary:  hsl(214 100% 45%);
+  --chart-primary:  hsl(239 76% 58%);
+  --chart-neutral:  hsl(215 16% 47%);
   --chart-success:  hsl(158 64% 35%);
   --chart-warning:  hsl(38 92% 45%);
   --chart-danger:   hsl(0 84% 45%);
@@ -181,10 +185,7 @@
   --chart-cyan:     hsl(190 100% 40%);
   --chart-grid:     rgba(0,0,0,0.05);
 
-  /* ── Glass surfaces ── */
-  --glass-1: rgba(255, 255, 255, 0.70);
-  --glass-2: rgba(255, 255, 255, 0.85);
-  --glass-3: rgba(255, 255, 255, 0.95);
+  /* ── Legacy Glass surfaces (removed for enterprise aesthetic) ── */
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -214,12 +215,8 @@ body {
   color: var(--text-1);
   background-color: var(--app-bg);
 
-  /* Multi-layer mesh gradient background */
-  background-image:
-    radial-gradient(ellipse 80% 50% at 20% -5%, hsl(214 100% 59% / 0.10) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 85% 15%, hsl(258 80% 58% / 0.07) 0%, transparent 55%),
-    radial-gradient(ellipse 100% 60% at 50% 110%, hsl(214 100% 42% / 0.06) 0%, transparent 50%),
-    linear-gradient(180deg, #080c14 0%, #0a0f1e 100%);
+  /* Deep space solid background, no gradient */
+  background-image: none;
   background-attachment: fixed;
 }
 
@@ -232,7 +229,7 @@ body {
 
 /* ── Selection ── */
 ::selection {
-  background: hsl(214 100% 59% / 0.3);
+  background: hsl(239 84% 67% / 0.3);
   color: #fff;
 }
 
@@ -291,26 +288,10 @@ table,
    UTILITY CLASSES
    ───────────────────────────────────────────────────────────────────────────── */
 
-/* ── Glass variants ── */
-.glass {
-  background: var(--glass-1);
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+/* ── Glass variants (legacy) ── */
+.glass, .glass-2, .glass-strong {
+  background: var(--surface-1);
   border: 1px solid var(--border-subtle);
-}
-
-.glass-2 {
-  background: var(--glass-2);
-  backdrop-filter: blur(24px) saturate(1.5);
-  -webkit-backdrop-filter: blur(24px) saturate(1.5);
-  border: 1px solid var(--border-default);
-}
-
-.glass-strong {
-  background: var(--glass-3);
-  backdrop-filter: blur(32px) saturate(1.6);
-  -webkit-backdrop-filter: blur(32px) saturate(1.6);
-  border: 1px solid var(--border-strong);
 }
 
 /* ── Gradient text ── */
@@ -460,14 +441,29 @@ input[type='range']::-moz-range-thumb {
   body {
     background: white !important;
     background-image: none !important;
-    color: black !important;
+    color: #0f172a !important;
   }
 
   .print\:hidden { display: none !important; }
-  .sidebar, header { display: none !important; }
+  .sidebar, header, nav, [data-copilot], [data-trust-accordion] { display: none !important; }
 
   [data-analysis-result] {
     padding: 0 !important;
     max-width: none !important;
+  }
+
+  [data-print-tier="1"],
+  [data-print-tier="2"] {
+    display: block !important;
+    break-inside: avoid;
+  }
+
+  [data-print-tier="3"],
+  [data-print-tier="4"] {
+    display: none !important;
+  }
+
+  [data-decision-brief] {
+    display: block !important;
   }
 }

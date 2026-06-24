@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '../api/client'
 import type { AnalysisListItem } from '../types'
 
-const STORAGE_KEY = 'rca:notif_last_seen'
+const STORAGE_KEY = 'rootLens:notif_last_seen'
 const POLL_INTERVAL = 30_000  // 30s
 
 function getLastSeen(): number {
@@ -120,7 +120,7 @@ export function NotificationBell() {
           <div className="flex items-center justify-between border-b border-(--border-subtle) px-4 py-3 bg-(--surface-1)">
             <div className="flex items-center gap-2">
               <Bell className="h-3.5 w-3.5 text-(--brand)" />
-              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-(--text-2)">
+              <p className="text-[11px] font-bold upperootLensse tracking-[0.14em] text-(--text-2)">
                 Recent Completions
               </p>
             </div>

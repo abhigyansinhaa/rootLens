@@ -1,57 +1,54 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { Analysis, AnalysisKpis, KpiHistoryResponse } from '../../types'
-import { HelpTooltip, StatusBadge } from '../ui'
+import { StatusBadge } from '../ui'
 import { formatDriverLabel } from '../../lib/driverLabels'
 import { formatCompactMoney, formatNumber, formatPct01 } from './format'
-import { Activity, ShieldCheck, Target, TrendingUp, TrendingDown, ChevronDown, ChevronUp } from 'lucide-react'
 
-function primaryMetric(detail: Analysis, kpis: AnalysisKpis): { label: string; value: string } {
-  if (detail.task_type === 'regression') {
-    return {
-      label: 'Target baseline',
-      value:
-        kpis.target_level.target_mean !== undefined
-          ? formatNumber(kpis.target_level.target_mean, 4)
-          : 'No baseline',
-    }
-  }
-  return {
-    label: 'Churn / positive rate',
-    value:
-      kpis.target_level.target_rate !== undefined ? formatPct01(kpis.target_level.target_rate) : 'No baseline',
-  }
-}
+function stripMetrics(
+  detail: Analysis,
+  kpis: AnalysisKpis,
+  rawColumns?: string[],
+  history?: KpiHistoryResponse,
+) {
+  const isRegression = detail.task_type === 'regression'
+  const rate =
+    isRegression
+      ? kpis.target_level.target_mean
+      : (kpis.target_level.predicted_target_rate ?? kpis.target_level.target_rate)
 
-function vsPriorLine(history: KpiHistoryResponse | undefined, kpis: AnalysisKpis): { text: string; trend: 'up' | 'down' | 'neutral' } {
+  const rateLabel = isRegression ? 'Baseline' : 'Rate'
+  const rateStr =
+    rate != null
+      ? isRegression
+        ? formatNumber(rate, 4)
+        : formatPct01(rate)
+      : '—'
+
+  const revenue = kpis.impact_revenue?.revenue_at_risk
+  const topDriver = kpis.drivers[0]
+    ? formatDriverLabel(kpis.drivers[0].feature, rawColumns)
+    : '—'
+
+  const rel = kpis.reliability
+  const relTone: 'success' | 'warning' | 'risk' =
+    rel.tier === 'high' ? 'success' : rel.tier === 'medium' ? 'warning' : 'risk'
+
+  let vsPrior = '—'
   const pts = history?.points ?? []
-  if (pts.length < 2) return { text: '—', trend: 'neutral' }
-  const pickPred = (p: (typeof pts)[0]['kpis']) => p.predicted_target_rate ?? p.target_rate ?? null
-  const aPred = pickPred(pts[pts.length - 2].kpis)
-  const bPred = pickPred(pts[pts.length - 1].kpis)
-  if (
-    aPred != null &&
-    bPred != null &&
-    Number.isFinite(aPred) &&
-    Number.isFinite(bPred)
-  ) {
-    const d = bPred - aPred
-    return {
-      text: `${formatPct01(Math.abs(d))} predicted vs prior`,
-      trend: d < 0 ? 'down' : 'up'
+  if (pts.length >= 2) {
+    if (!isRegression) {
+      const pick = (p: (typeof pts)[0]['kpis']) => p.predicted_target_rate ?? p.target_rate ?? null
+      const a = pick(pts[pts.length - 2].kpis)
+      const b = pick(pts[pts.length - 1].kpis)
+      if (a != null && b != null) vsPrior = `${b >= a ? '↑' : '↓'}${formatPct01(Math.abs(b - a))}`
+    } else if (revenue != null) {
+      const a = pts[pts.length - 2].kpis.revenue_at_risk
+      const b = pts[pts.length - 1].kpis.revenue_at_risk
+      if (a != null && b != null) vsPrior = `${b >= a ? '↑' : '↓'}${formatCompactMoney(Math.abs(b - a))}`
     }
   }
-  if (kpis.impact_revenue) {
-    const a = pts[pts.length - 2].kpis.revenue_at_risk
-    const b = pts[pts.length - 1].kpis.revenue_at_risk
-    if (a != null && b != null && Number.isFinite(a) && Number.isFinite(b)) {
-      const d = b - a
-      return {
-        text: `${formatCompactMoney(Math.abs(d))} revenue vs prior`,
-        trend: d < 0 ? 'down' : 'up'
-      }
-    }
-  }
-  return { text: '—', trend: 'neutral' }
+
+  return { rateLabel, rateStr, revenue, topDriver, rel, relTone, vsPrior }
 }
 
 export function StickyExecutiveStrip({
@@ -59,128 +56,74 @@ export function StickyExecutiveStrip({
   kpis,
   history,
   rawColumns,
+  onExport,
 }: {
   detail: Analysis
   kpis: AnalysisKpis
   history?: KpiHistoryResponse
   rawColumns?: string[]
+  onExport?: () => void
 }) {
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const primary = useMemo(() => primaryMetric(detail, kpis), [detail, kpis])
-  const compare = useMemo(() => vsPriorLine(history, kpis), [history, kpis])
-  const r = kpis.reliability
-  const iv = kpis.intervention_confidence
-  const relTone = r.tier === 'high' ? 'success' : r.tier === 'medium' ? 'warning' : 'risk'
-  const topDriver = kpis.drivers[0]
-    ? formatDriverLabel(kpis.drivers[0].feature, rawColumns)
-    : '—'
+  const m = useMemo(
+    () => stripMetrics(detail, kpis, rawColumns, history),
+    [detail, kpis, rawColumns, history],
+  )
+
+  const items = [
+    { label: m.rateLabel, value: m.rateStr, extra: m.vsPrior !== '—' ? m.vsPrior : null },
+    {
+      label: 'Rev at risk',
+      value: m.revenue != null ? formatCompactMoney(m.revenue) : '—',
+      extra: null,
+    },
+    { label: 'Top driver', value: m.topDriver, extra: null, mono: true },
+    {
+      label: 'Confidence',
+      value: (
+        <StatusBadge tone={m.relTone} dot className="px-0 py-0 text-xs capitalize bg-transparent border-0">
+          {m.rel.tier}
+        </StatusBadge>
+      ),
+      extra: null,
+    },
+  ]
 
   return (
     <div
-      className="sticky z-40 -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-(--border-subtle) bg-(--app-bg)/80 backdrop-blur-xl shadow-sm transition-all print:shadow-none"
-      style={{ top: 'var(--app-header-height, 64px)' }}
+      className="sticky z-40 -mx-4 px-4 sm:mx-0 sm:px-0 bg-(--app-bg)/90 backdrop-blur-xl transition-all print:hidden"
+      style={{ top: 'var(--app-header-height, 60px)', boxShadow: 'var(--shadow-surface)' }}
     >
-      <div className="flex flex-col justify-center py-3">
-        <div className="flex items-center justify-between gap-4">
-          
-          <div className="flex-1 md:flex-[1.5] min-w-0">
-            <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-1">
-              <Activity className="h-3.5 w-3.5 text-brand-500" /> {primary.label}
-              <HelpTooltip title="Baseline target metric for this cohort on the completed run.">ⓘ</HelpTooltip>
-            </p>
-            <p className="truncate text-2xl md:text-3xl font-black tabular-nums tracking-tight text-(--text-1)">
-              {primary.value}
-            </p>
-          </div>
-
-          <div className="hidden md:flex flex-1 items-center justify-between gap-6">
-            
-            <div className="min-w-0">
-              <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-2">
-                <ShieldCheck className="h-3.5 w-3.5 text-(--text-2)" /> Reliability
-              </p>
-              <div className="flex items-center gap-2">
-                <StatusBadge tone={relTone} dot className="px-2 py-0.5 text-[10px]">
-                  {r.tier}
-                </StatusBadge>
-                <span className="text-sm font-bold tabular-nums text-(--text-1)">
-                  {formatNumber(r.headline_value)} <span className="font-medium text-(--text-3) text-xs">({r.headline_metric})</span>
-                </span>
-              </div>
-            </div>
-
-            <div className="min-w-0">
-              <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-2">
-                <Target className="h-3.5 w-3.5 text-(--text-2)" /> Top Driver
-              </p>
-              <p className="truncate font-mono text-sm font-bold text-brand-600 dark:text-brand-400" title={topDriver}>
-                {topDriver}
-              </p>
-            </div>
-
-            <div className="min-w-0 pr-4 border-r border-(--border-subtle)">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-2">
-                Vs Prior Run
-              </p>
-              <div className="flex items-center gap-1.5 text-sm font-bold tabular-nums text-(--text-1)">
-                {compare.trend === 'up' ? <TrendingUp className="h-4 w-4 text-red-500" /> : compare.trend === 'down' ? <TrendingDown className="h-4 w-4 text-emerald-500" /> : null}
-                {compare.text}
-              </div>
-            </div>
-
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-2">
-                Intervention
-              </p>
-              <StatusBadge
-                tone={
-                  iv?.tier === 'high' ? 'success' : iv?.tier === 'low' ? 'risk' : iv?.tier === 'medium' ? 'warning' : 'default'
-                }
-                dot
-                className="px-2 py-0.5 text-[10px]"
+      <div className="flex items-center gap-4 sm:gap-6 overflow-x-auto whitespace-nowrap no-scrollbar py-2.5">
+        {items.map((item, i) => (
+          <div key={item.label} className="flex items-center gap-4 shrink-0">
+            {i > 0 && <div className="h-4 w-px bg-white/[0.06] hidden sm:block" aria-hidden />}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-(--text-3)">{item.label}</span>
+              <span
+                className={[
+                  'text-sm font-semibold tabular-nums text-(--text-1)',
+                  item.mono ? 'font-mono text-xs max-w-[140px] truncate' : '',
+                ].join(' ')}
+                title={typeof item.value === 'string' ? item.value : undefined}
               >
-                {iv?.tier ?? 'unknown'}
-              </StatusBadge>
+                {item.value}
+              </span>
+              {item.extra && (
+                <span className="text-xs font-medium text-(--text-3) tabular-nums">{item.extra}</span>
+              )}
             </div>
-
           </div>
-
-          <button
-            type="button"
-            className="md:hidden shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-(--surface-2) text-(--text-2)"
-            aria-expanded={mobileOpen}
-            onClick={() => setMobileOpen((v) => !v)}
-          >
-            {mobileOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-          </button>
-        </div>
-
-        {mobileOpen && (
-          <div className="md:hidden mt-4 pt-4 border-t border-(--border-subtle) grid grid-cols-2 gap-4 animate-fade-in-up">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-1">Reliability</p>
-              <div className="flex items-center gap-2">
-                <StatusBadge tone={relTone} dot className="px-2 py-0.5 text-[10px]">{r.tier}</StatusBadge>
-              </div>
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-1">Intervention</p>
-              <StatusBadge
-                tone={iv?.tier === 'high' ? 'success' : iv?.tier === 'low' ? 'risk' : iv?.tier === 'medium' ? 'warning' : 'default'}
-                dot
-                className="px-2 py-0.5 text-[10px]"
-              >
-                {iv?.tier ?? 'unknown'}
-              </StatusBadge>
-            </div>
-            <div className="col-span-2">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-1">Top Driver</p>
-              <p className="font-mono text-sm font-bold text-brand-600 truncate">{topDriver}</p>
-            </div>
-            <div className="col-span-2">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--text-3) mb-1">Vs Prior Run</p>
-              <p className="text-sm font-bold">{compare.text}</p>
-            </div>
+        ))}
+        
+        {onExport && (
+          <div className="ml-auto pl-4 border-l border-white/[0.06] hidden sm:block">
+            <button
+              onClick={onExport}
+              className="flex items-center gap-1.5 rounded-md bg-(--surface-2) px-2.5 py-1 text-xs font-semibold text-(--text-2) transition-colors hover:bg-(--surface-3) hover:text-(--text-1)"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+              Export
+            </button>
           </div>
         )}
       </div>

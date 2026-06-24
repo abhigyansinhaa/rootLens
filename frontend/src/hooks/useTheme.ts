@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 
 export type Theme = 'dark' | 'light'
 
-const STORAGE_KEY = 'rca:theme'
+const STORAGE_KEY = 'rootLens:theme'
 
 function getInitialTheme(): Theme {
   try {

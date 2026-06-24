@@ -307,6 +307,21 @@ def get_analysis(
     return AnalysisOut.model_validate(_analysis_to_out(a))
 
 
+@router.get("/analyses/{analysis_id}/narrative")
+def analysis_narrative(
+    analysis_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> dict[str, Any]:
+    from app.decisioning.narrative import build_narrative
+
+    a, _ = _owned_analysis(db, analysis_id, current_user.id)
+    if a.status not in ("completed", "completed_with_warnings"):
+        raise HTTPException(status_code=400, detail="Analysis is not complete")
+    rep = json.loads(a.report_json) if a.report_json else None
+    return build_narrative(rep, a.target)
+
+
 @router.get("/analyses/{analysis_id}/kpi-history")
 def analysis_kpi_history(
     analysis_id: int,

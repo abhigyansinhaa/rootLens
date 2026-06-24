@@ -113,10 +113,10 @@ export function WhatIfSimulator({ kpis, rawColumns }: WhatIfSimulatorProps) {
   const projectedHighRisk = Math.max(0, baseHighRiskShare - projectedLift * baseHighRiskShare)
   const projectedRevRecov = baseRevAtRisk != null
     ? top3.reduce((acc, d) => {
-        const r = d.revenueRecoverable
-        if (r == null) return acc
-        return acc + Math.abs(r) * (reductions[d.feature] ?? 0)
-      }, 0)
+      const r = d.revenueRecoverable
+      if (r == null) return acc
+      return acc + Math.abs(r) * (reductions[d.feature] ?? 0)
+    }, 0)
     : null
 
   const COLORS = [
@@ -142,7 +142,7 @@ export function WhatIfSimulator({ kpis, rawColumns }: WhatIfSimulatorProps) {
             <Sliders className="h-4 w-4 text-(--brand)" />
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-(--brand)">
+            <p className="text-[10px] font-bold upperootLensse tracking-[0.16em] text-(--brand)">
               What-If Simulator
             </p>
             <h2 className="text-base font-bold text-(--text-1)">
@@ -191,7 +191,7 @@ export function WhatIfSimulator({ kpis, rawColumns }: WhatIfSimulatorProps) {
 
         {/* Right — projected outcomes */}
         <div className="p-6 space-y-5 bg-(--surface-2)/50 border-t border-(--border-subtle) lg:border-t-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-(--text-3)">
+          <p className="text-[10px] font-bold upperootLensse tracking-[0.16em] text-(--text-3)">
             Projected outcome
           </p>
 
@@ -223,7 +223,7 @@ export function WhatIfSimulator({ kpis, rawColumns }: WhatIfSimulatorProps) {
           {/* Revenue recovery */}
           {projectedRevRecov != null && (
             <div className="rounded-lg border border-(--c-success-border) bg-(--c-success-bg) p-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--c-success) mb-1">
+              <p className="text-[10px] font-bold upperootLensse tracking-[0.14em] text-(--c-success) mb-1">
                 Potential revenue recovery
               </p>
               <p className="text-2xl font-bold tabular-nums text-(--c-success)">
@@ -237,7 +237,7 @@ export function WhatIfSimulator({ kpis, rawColumns }: WhatIfSimulatorProps) {
 
           {/* Combined lift */}
           <div className="rounded-lg border border-(--border-default) bg-(--surface-1) p-4">
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3) mb-1">
+            <p className="text-[10px] font-bold upperootLensse tracking-[0.14em] text-(--text-3) mb-1">
               Combined lift
             </p>
             <p className="text-2xl font-bold tabular-nums text-(--brand)">

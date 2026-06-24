@@ -1,18 +1,18 @@
-import { useMemo, useState, useEffect, useRef } from 'react'
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { api } from '../../api/client'
 import { formatPct01 } from '../../components/kpi/format'
 import {
   Button,
-  Card,
   EmptyState,
   ErrorState,
-  LoadingState,
   StatusBadge,
+  NumberTicker,
 } from '../../components/ui'
+import { DashboardSkeleton } from '../../components/PageSkeletons'
 import {
-  ArrowRight, CheckCircle2, Clock, PlayCircle,
+  ArrowRight, Clock, PlayCircle,
   PlusCircle, AlertCircle, ArrowUpRight,
   Database, BarChart3, Activity,
 } from 'lucide-react'
@@ -23,9 +23,9 @@ function timeAgo(iso: string) {
   try {
     const diff = Date.now() - new Date(iso).getTime()
     const m = Math.floor(diff / 60_000)
-    if (m < 60)  return `${m}m ago`
+    if (m < 60) return `${m}m ago`
     const h = Math.floor(m / 60)
-    if (h < 24)  return `${h}h ago`
+    if (h < 24) return `${h}h ago`
     return `${Math.floor(h / 24)}d ago`
   } catch { return iso }
 }
@@ -37,37 +37,15 @@ function getGreeting() {
   return 'Good evening'
 }
 
-const IN_FLIGHT  = new Set(['queued','running','profiling','training','explaining','decisioning'])
-const TERMINAL_OK = new Set(['completed','completed_with_warnings'])
+const IN_FLIGHT = new Set(['queued', 'running', 'profiling', 'training', 'explaining', 'decisioning'])
+const TERMINAL_OK = new Set(['completed', 'completed_with_warnings'])
 
-function statusTone(status: string): 'default'|'info'|'success'|'warning'|'risk' {
-  if (status === 'completed')               return 'success'
+function statusTone(status: string): 'default' | 'info' | 'success' | 'warning' | 'risk' {
+  if (status === 'completed') return 'success'
   if (status === 'completed_with_warnings') return 'warning'
-  if (status === 'failed')                  return 'risk'
-  if (IN_FLIGHT.has(status))               return 'warning'
+  if (status === 'failed') return 'risk'
+  if (IN_FLIGHT.has(status)) return 'warning'
   return 'default'
-}
-
-/* ─── Animated KPI counter ─── */
-function Counter({ value }: { value: number | string }) {
-  const [display, setDisplay] = useState<number | string>(typeof value === 'number' ? 0 : value)
-  const rafRef = useRef<number | null>(null)
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (typeof value !== 'number') { setDisplay(value); return }
-    const end = value, start = performance.now(), dur = 1000
-    const tick = (now: number) => {
-      const t = Math.min((now - start) / dur, 1)
-      const e = 1 - Math.pow(1 - t, 3)
-      setDisplay(Math.round(e * end))
-      if (t < 1) rafRef.current = requestAnimationFrame(tick)
-    }
-    rafRef.current = requestAnimationFrame(tick)
-    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }
-  }, [value])
-
-  return <>{typeof display === 'number' ? display.toLocaleString() : display}</>
 }
 
 /* ─── Micro sparkline ─── */
@@ -93,20 +71,20 @@ function Sparkline({ values, color }: { values: number[]; color: string }) {
 export function Dashboard() {
   const datasetsQuery = useQuery({
     queryKey: ['datasets'],
-    queryFn:  async () => { const { data } = await api.get<Dataset[]>('/datasets', { params: { limit: 500 } }); return data },
+    queryFn: async () => { const { data } = await api.get<Dataset[]>('/datasets', { params: { limit: 500 } }); return data },
   })
   const analysesQuery = useQuery({
     queryKey: ['analyses'],
-    queryFn:  async () => { const { data } = await api.get<AnalysisListItem[]>('/analyses', { params: { limit: 200 } }); return data },
+    queryFn: async () => { const { data } = await api.get<AnalysisListItem[]>('/analyses', { params: { limit: 200 } }); return data },
   })
 
-  const datasets  = useMemo(() => datasetsQuery.data ?? [], [datasetsQuery.data])
-  const analyses  = useMemo(() => analysesQuery.data ?? [], [analysesQuery.data])
+  const datasets = useMemo(() => datasetsQuery.data ?? [], [datasetsQuery.data])
+  const analyses = useMemo(() => analysesQuery.data ?? [], [analysesQuery.data])
   const completed = analyses.filter(a => TERMINAL_OK.has(a.status)).length
   const totalRows = datasets.reduce((s, d) => s + d.rows, 0)
 
   const recent = useMemo(
-    () => [...datasets].sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 6),
+    () => [...datasets].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 6),
     [datasets],
   )
 
@@ -121,15 +99,15 @@ export function Dashboard() {
   }, [analyses])
 
   const recentRuns = useMemo(
-    () => [...analyses].sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 6),
+    () => [...analyses].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 6),
     [analyses],
   )
 
   const actionQueue = useMemo(() => {
-    const items: { dataset: Dataset; reason: string; tone: 'risk'|'warning'|'info'; icon: React.ElementType }[] = []
+    const items: { dataset: Dataset; reason: string; tone: 'risk' | 'warning' | 'info'; icon: React.ElementType }[] = []
     for (const ds of datasets) {
       const latest = latestByDataset.get(ds.id)
-      if (!latest)                       items.push({ dataset: ds, reason: 'Requires initial analysis', tone: 'warning', icon: AlertCircle })
+      if (!latest) items.push({ dataset: ds, reason: 'Requires initial analysis', tone: 'warning', icon: AlertCircle })
       else if (latest.status === 'failed') items.push({ dataset: ds, reason: 'Last run failed — review needed', tone: 'risk', icon: AlertCircle })
       else if (IN_FLIGHT.has(latest.status)) items.push({ dataset: ds, reason: 'Analysis in progress', tone: 'info', icon: PlayCircle })
     }
@@ -137,7 +115,7 @@ export function Dashboard() {
   }, [datasets, latestByDataset])
 
   if (datasetsQuery.isLoading || analysesQuery.isLoading)
-    return <LoadingState rows={4} message="Loading workspace…" />
+    return <DashboardSkeleton />
 
   if (datasetsQuery.error || analysesQuery.error)
     return <ErrorState message="We couldn't load workspace data. Retry after confirming login and API uptime." onRetry={() => { datasetsQuery.refetch(); analysesQuery.refetch() }} />
@@ -157,58 +135,52 @@ export function Dashboard() {
     )
 
   const kpis = [
-    { label: 'Indexed Datasets',  value: datasets.length,  hint: `${totalRows.toLocaleString()} rows total`, color: 'var(--brand)',      spark: [2,4,3,6,8,12,datasets.length], icon: Database },
-    { label: 'Total Analyses',    value: analyses.length,  hint: `${completed} completed`,                    color: 'var(--c-info)',      spark: [1,3,5,4,7,9,analyses.length], icon: BarChart3 },
-    { label: 'Completion Rate',   value: analyses.length ? formatPct01(completed / analyses.length, 0) : '—', hint: 'Across all runs',   color: 'var(--c-success)',  spark: [90,85,95,92,98,100], icon: Activity },
-    { label: 'Awaiting Action',   value: actionQueue.length, hint: 'Action items pending',                  color: actionQueue.length ? 'var(--c-warning)' : 'var(--c-success)', spark: [5,4,6,2,3,actionQueue.length], icon: AlertCircle },
+    { label: 'Indexed Datasets', value: datasets.length, hint: `${totalRows.toLocaleString()} rows total`, color: 'var(--brand)', spark: [2, 4, 3, 6, 8, 12, datasets.length], icon: Database },
+    { label: 'Total Analyses', value: analyses.length, hint: `${completed} completed`, color: 'var(--c-info)', spark: [1, 3, 5, 4, 7, 9, analyses.length], icon: BarChart3 },
+    { label: 'Completion Rate', value: analyses.length ? formatPct01(completed / analyses.length, 0) : '—', hint: 'Across all runs', color: 'var(--c-success)', spark: [90, 85, 95, 92, 98, 100], icon: Activity },
+    { label: 'Awaiting Action', value: actionQueue.length, hint: 'Action items pending', color: actionQueue.length ? 'var(--c-warning)' : 'var(--c-success)', spark: [5, 4, 6, 2, 3, actionQueue.length], icon: AlertCircle },
   ]
 
   return (
-    <div className="space-y-8">
-      {/* ── Hero banner ── */}
-      <div className="relative overflow-hidden rounded-xl border border-(--border-subtle) bg-(--surface-1) p-6 sm:p-8 animate-fade-in-up">
-        {/* Ambient glow */}
-        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full opacity-20"
-          style={{ background: 'radial-gradient(circle, var(--brand) 0%, transparent 70%)' }} />
-        <div aria-hidden className="pointer-events-none absolute -left-12 bottom-0 h-48 w-48 rounded-full opacity-10"
-          style={{ background: 'radial-gradient(circle, var(--color-purple-500) 0%, transparent 70%)' }} />
-
-        <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-(--brand) mb-1">
-              Workspace Overview
-            </p>
-            <h1 className="text-2xl font-bold tracking-tight text-(--text-1) sm:text-3xl">
-              {getGreeting()}, operator.
-            </h1>
-            <p className="mt-2 max-w-xl text-sm leading-relaxed text-(--text-2)">
-              {actionQueue.length > 0
-                ? `${actionQueue.length} dataset${actionQueue.length > 1 ? 's' : ''} need${actionQueue.length === 1 ? 's' : ''} attention. ${completed} completed ${completed === 1 ? 'analysis' : 'analyses'} ready for review.`
-                : `All datasets are up to date. ${completed} completed ${completed === 1 ? 'analysis' : 'analyses'} ready for review.`
-              }
-            </p>
+    <div className="space-y-6">
+      {/* ── Top Header & KPI strip ── */}
+      <div className="flex items-center justify-between pb-2 border-b border-(--border-subtle)">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full bg-(--c-success-bg) border border-(--c-success-border) px-2.5 py-1 text-[10px] font-bold upperootLensse tracking-[0.16em] text-(--c-success) mb-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-(--c-success) opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-(--c-success)"></span>
+            </span>
+            System Online
           </div>
-          <Button to="/upload" className="shrink-0">
+          <h1 className="text-2xl font-bold tracking-tight text-(--text-1)">
+            {getGreeting()}, operator.
+          </h1>
+          <p className="mt-1 text-sm text-(--text-3)">
+            {actionQueue.length > 0
+              ? `${actionQueue.length} dataset${actionQueue.length > 1 ? 's' : ''} require${actionQueue.length === 1 ? 's' : ''} your attention.`
+              : `All systems nominal.`
+            }
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button to="/upload" className="h-9 shadow-sm shadow-(--brand-dim)">
             <PlusCircle className="h-4 w-4" /> New Dataset
           </Button>
         </div>
       </div>
 
-      {/* ── KPI strip ── */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {kpis.map((kpi, i) => (
-          <div
-            key={kpi.label}
-            className={`relative overflow-hidden rounded-lg border border-(--border-subtle) bg-(--surface-1) p-5 transition-all duration-(--duration-normal) hover:border-(--border-default) hover:bg-(--surface-2) animate-spring-up delay-${(i+1)*75}`}
-          >
+        {kpis.map((kpi) => (
+          <div key={kpi.label} className={`relative overflow-hidden rounded-md border border-(--border-subtle) bg-(--surface-1) p-4 transition-all duration-200 hover:border-(--border-default) hover:bg-(--surface-2)`}>
             {/* Left accent bar */}
             <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-r-full" style={{ background: kpi.color }} />
 
             <div className="flex items-start justify-between pl-3">
               <div className="min-w-0">
-                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-(--text-3)">{kpi.label}</p>
-                <p className="mt-2 text-3xl font-bold tabular-nums text-(--text-1) tracking-tight leading-none font-mono">
-                  <Counter value={kpi.value} />
+                <p className="text-[11px] font-bold upperootLensse tracking-[0.12em] text-(--text-3)">{kpi.label}</p>
+                <p className="mt-2 text-3xl font-bold text-(--text-1) tracking-tight leading-none font-mono">
+                  {typeof kpi.value === 'number' ? <NumberTicker value={kpi.value} /> : kpi.value}
                 </p>
                 <p className="mt-1.5 text-xs text-(--text-2)">{kpi.hint}</p>
               </div>
@@ -222,93 +194,40 @@ export function Dashboard() {
       <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
         {/* Left column */}
         <div className="space-y-6 min-w-0">
-          {/* Action items */}
-          <Card padding="lg" className="animate-fade-in-up delay-200">
-            <div className="flex items-center justify-between mb-5 pb-4 border-b border-(--border-subtle)">
-              <div>
-                <h2 className="text-base font-bold text-(--text-1)">Action Items</h2>
-                <p className="text-sm text-(--text-2) mt-0.5">Priority queue requiring attention</p>
-              </div>
-              <AlertCircle className="h-4 w-4 text-(--text-3)" />
-            </div>
-
-            {actionQueue.length ? (
-              <div className="relative space-y-4 pl-5 before:absolute before:left-1.5 before:top-3 before:bottom-3 before:w-px before:bg-(--border-subtle)">
-                {actionQueue.map(({ dataset, reason, tone, icon: Icon }, i) => {
-                  const dotColor =
-                    tone === 'risk'    ? 'bg-(--c-danger)'  :
-                    tone === 'warning' ? 'bg-(--c-warning)' :
-                                         'bg-(--c-info)'
-
-                  return (
-                    <div key={dataset.id} className={`relative animate-slide-in-left delay-${(i+1)*100}`}>
-                      <span aria-hidden className={`absolute -left-[19px] top-3 h-3 w-3 rounded-full border-2 border-(--surface-1) ${dotColor}`} />
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-md border border-(--border-subtle) bg-(--surface-2) p-4 transition-colors hover:border-(--border-default)">
-                        <div className="flex min-w-0 flex-1 items-start gap-2.5">
-                          <Icon className={`h-4 w-4 shrink-0 mt-0.5 ${tone === 'risk' ? 'text-(--c-danger)' : tone === 'warning' ? 'text-(--c-warning)' : 'text-(--c-info)'}`} />
-                          <div className="min-w-0">
-                            <h3 className="text-sm font-semibold text-(--text-1) truncate">{dataset.name}</h3>
-                            <p className="text-xs text-(--text-2) mt-0.5">{reason}</p>
-                          </div>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant={tone === 'risk' ? 'danger' : 'secondary'}
-                          to={`/datasets/${dataset.id}`}
-                          className="shrink-0"
-                        >
-                          Resolve <ArrowRight className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-(--border-subtle) bg-(--surface-2)/40 py-10 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-(--c-success-bg) border border-(--c-success-border) mb-3">
-                  <CheckCircle2 className="h-5 w-5 text-(--c-success)" />
-                </div>
-                <p className="text-sm font-semibold text-(--text-1)">Inbox zero</p>
-                <p className="mt-1 text-xs text-(--text-2)">All datasets have recent successful analyses.</p>
-              </div>
-            )}
-          </Card>
 
           {/* Recent datasets */}
-          <Card padding="lg" className="animate-fade-in-up delay-300">
-            <div className="flex items-center justify-between mb-5 pb-4 border-b border-(--border-subtle)">
+          <div>
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-(--border-subtle)">
               <div>
-                <h2 className="text-base font-bold text-(--text-1)">Recent Datasets</h2>
-                <p className="text-sm text-(--text-2) mt-0.5">Inventory of uploaded data tables</p>
+                <h2 className="text-sm font-bold text-(--text-1) upperootLensse tracking-widest">Recent Datasets</h2>
               </div>
-              <Link to="/datasets" className="text-xs font-semibold text-(--brand) hover:brightness-110 transition-all flex items-center gap-1">
+              <Link to="/datasets" className="text-xs font-semibold text-(--brand) hover:text-(--text-1) transition-colors flex items-center gap-1">
                 View all <ArrowUpRight className="h-3 w-3" />
               </Link>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              {recent.map((dataset, i) => {
+              {recent.map((dataset) => {
                 const latest = latestByDataset.get(dataset.id)
-                const tone   = latest ? statusTone(latest.status) : 'default'
+                const tone = latest ? statusTone(latest.status) : 'default'
                 const accentColor =
                   tone === 'success' ? 'var(--c-success)' :
-                  tone === 'risk'    ? 'var(--c-danger)'  :
-                  tone === 'warning' ? 'var(--c-warning)' :
-                  tone === 'info'    ? 'var(--c-info)'    :
-                                       'var(--border-default)'
+                    tone === 'risk' ? 'var(--c-danger)' :
+                      tone === 'warning' ? 'var(--c-warning)' :
+                        tone === 'info' ? 'var(--c-info)' :
+                          'var(--border-default)'
 
                 return (
                   <Link
                     key={dataset.id}
                     to={`/datasets/${dataset.id}`}
-                    className={`group relative overflow-hidden rounded-lg border border-(--border-subtle) bg-(--surface-2) p-4 transition-all duration-(--duration-normal) hover:-translate-y-0.5 hover:border-(--border-brand) hover:shadow-(--shadow-md) animate-spring-up delay-${Math.min((i+3)*75, 500)}`}
+                    className="group relative overflow-hidden rounded-md border border-(--border-subtle) bg-(--surface-1) p-4 transition-colors hover:border-(--border-default) hover:bg-(--surface-2)"
                   >
                     {/* Top accent */}
-                    <div className="absolute top-0 left-0 right-0 h-[2px] transition-transform origin-left scale-x-0 group-hover:scale-x-100"
+                    <div className="absolute top-0 left-0 bottom-0 w-1 transition-transform"
                       style={{ background: accentColor }} />
 
-                    <div className="flex items-start justify-between gap-2 mb-3">
+                    <div className="flex items-start justify-between gap-2 mb-2 pl-2">
                       <h3 className="text-sm font-semibold text-(--text-1) truncate min-w-0 group-hover:text-(--brand) transition-colors">
                         {dataset.name}
                       </h3>
@@ -320,7 +239,7 @@ export function Dashboard() {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-4 text-xs text-(--text-3) font-mono">
+                    <div className="flex items-center gap-4 text-xs text-(--text-3) font-mono pl-2">
                       <span>{dataset.rows.toLocaleString()} rows</span>
                       <span>{dataset.cols} cols</span>
                       <span className="flex items-center gap-1 ml-auto">
@@ -331,24 +250,63 @@ export function Dashboard() {
                 )
               })}
             </div>
-          </Card>
+          </div>
+
+          {/* Action items */}
+          <div>
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-(--border-subtle)">
+              <div>
+                <h2 className="text-sm font-bold text-(--text-1) upperootLensse tracking-widest flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" /> Action Items
+                </h2>
+              </div>
+            </div>
+
+            {actionQueue.length ? (
+              <div className="space-y-3">
+                {actionQueue.map(({ dataset, reason, tone, icon: Icon }) => {
+                  return (
+                    <div key={dataset.id} className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-md border border-(--border-subtle) bg-(--surface-1) p-3 transition-colors hover:border-(--border-default)">
+                      <div className="flex min-w-0 flex-1 items-start gap-2.5">
+                        <Icon className={`h-4 w-4 shrink-0 mt-0.5 ${tone === 'risk' ? 'text-(--c-danger)' : tone === 'warning' ? 'text-(--c-warning)' : 'text-(--c-info)'}`} />
+                        <div className="min-w-0">
+                          <h3 className="text-sm font-semibold text-(--text-1) truncate">{dataset.name}</h3>
+                          <p className="text-xs text-(--text-2) mt-0.5">{reason}</p>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant={tone === 'risk' ? 'danger' : 'secondary'}
+                        to={`/datasets/${dataset.id}`}
+                        className="shrink-0 h-8"
+                      >
+                        Resolve <ArrowRight className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center rounded-md border border-dashed border-(--border-subtle) bg-(--surface-1) py-8 text-center">
+                <p className="text-sm text-(--text-3)">All datasets have recent successful analyses.</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right column — Activity feed */}
-        <div className="space-y-4 animate-fade-in-up delay-400">
-          <div>
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-(--text-3)">Activity Feed</h2>
-            <p className="text-xs text-(--text-3) mt-0.5">Latest analysis runs</p>
+        <div className="space-y-4">
+          <div className="pb-2 border-b border-(--border-subtle)">
+            <h2 className="text-sm font-bold text-(--text-1) upperootLensse tracking-widest">Activity Feed</h2>
           </div>
 
-          <div className="relative space-y-2 max-h-[520px] overflow-y-auto pr-1"
-            style={{ maskImage: 'linear-gradient(to bottom, black 85%, transparent 100%)' }}>
+          <div className="relative space-y-2 max-h-[600px] overflow-y-auto pr-1">
             {recentRuns.length ? (
-              recentRuns.map((run, i) => (
+              recentRuns.map((run) => (
                 <Link
                   key={run.id}
                   to={`/analyses/${run.id}`}
-                  className={`block rounded-md border border-(--border-subtle) bg-(--surface-1) p-3 transition-all hover:border-(--border-brand) hover:bg-(--surface-2) animate-slide-in-right delay-${(i+1)*75}`}
+                  className="block rounded-md border border-(--border-subtle) bg-(--surface-1) p-3 transition-all hover:border-(--border-default) hover:bg-(--surface-2)"
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <StatusBadge tone={statusTone(run.status)} dot={IN_FLIGHT.has(run.status)} pulse={IN_FLIGHT.has(run.status)} className="text-[9px]">
@@ -358,7 +316,7 @@ export function Dashboard() {
                   </div>
                   <p className="truncate text-sm font-semibold text-(--text-1)">{run.dataset_name}</p>
                   <p className="mt-0.5 truncate text-[11px] text-(--text-3)">
-                    target: <span className="text-(--brand)">{run.target}</span>
+                    target: <span className="text-(--text-2)">{run.target}</span>
                   </p>
                 </Link>
               ))

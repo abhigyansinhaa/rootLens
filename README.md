@@ -1,4 +1,4 @@
-# RCA ML Platform (MVP)
+# rootLens ML Platform (MVP)
 
 Web app for uploading tabular datasets, choosing a target variable, and getting **root-cause-style insights**, **feature importance**, **SHAP explanations**, and **rule-based business recommendations**.
 
@@ -58,7 +58,7 @@ Set **`SECRET_KEY`** and **`DATABASE_URL`** in `backend/.env` (see [backend/.env
 Example database URL:
 
 ```bash
-set DATABASE_URL=mysql+pymysql://rca_user:rca_pass@127.0.0.1:3306/rca_db
+set DATABASE_URL=mysql+pymysql://rootLens_user:rootLens_pass@127.0.0.1:3306/rootLens_db
 ```
 
 Then run MySQL separately (or with Docker compose). Uploads and artifacts are stored under `data/`.

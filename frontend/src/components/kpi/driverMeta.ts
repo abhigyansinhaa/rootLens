@@ -5,7 +5,7 @@ const partial = /partner|region|gender|marital|dependents|paperless/i
 const controllable = /contract|monthly|charges|payment|paperless|service|internet|phone|support|addon|plan|price|discount|offer/i
 
 export function controllabilityForFeature(featureName: string): Controllability {
-  const s = featureName.toLowerCase()
+  const s = featureName.toLowerootLensse()
   if (observational.test(s)) return 'observational'
   if (controllable.test(s)) return 'controllable'
   if (partial.test(s)) return 'partial'
@@ -13,7 +13,7 @@ export function controllabilityForFeature(featureName: string): Controllability 
 }
 
 export function categoryForDriver(featureName: string): string {
-  const s = featureName.toLowerCase()
+  const s = featureName.toLowerootLensse()
   if (/charge|bill|payment|monthly|total|balance|fee/.test(s)) return 'Billing'
   if (/internet|phone|streaming|service|fiber|dsl|online/.test(s)) return 'Product'
   if (/contract|commitment|term/.test(s)) return 'Contract'

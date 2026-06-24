@@ -9,9 +9,9 @@ services:
     image: mysql:8.4
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: rca_db
-      MYSQL_USER: rca_user
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-rca_pass}
+      MYSQL_DATABASE: rootLens_db
+      MYSQL_USER: rootLens_user
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-rootLens_pass}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_pass}
     ports:
       - "3307:3306"
@@ -22,7 +22,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent && mysql -uroot -p$$MYSQL_ROOT_PASSWORD -e 'SELECT 1' rca_db",
+          "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent && mysql -uroot -p$$MYSQL_ROOT_PASSWORD -e 'SELECT 1' rootLens_db",
         ]
       interval: 10s
       timeout: 5s
@@ -37,7 +37,7 @@ services:
       - ./data:/data
     environment:
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env — see env.example}
-      DATABASE_URL: mysql+pymysql://rca_user:${MYSQL_PASSWORD:-rca_pass}@mysql:3306/rca_db
+      DATABASE_URL: mysql+pymysql://rootLens_user:${MYSQL_PASSWORD:-rootLens_pass}@mysql:3306/rootLens_db
       REDIS_URL: redis://redis:6379/0
       ANALYSIS_TIMEOUT_S: ${ANALYSIS_TIMEOUT_S:-1800}
     command:
@@ -69,7 +69,7 @@ services:
       - ./data:/data
     environment:
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env — see env.example}
-      DATABASE_URL: mysql+pymysql://rca_user:${MYSQL_PASSWORD:-rca_pass}@mysql:3306/rca_db
+      DATABASE_URL: mysql+pymysql://rootLens_user:${MYSQL_PASSWORD:-rootLens_pass}@mysql:3306/rootLens_db
       REDIS_URL: redis://redis:6379/0
       ANALYSIS_TIMEOUT_S: ${ANALYSIS_TIMEOUT_S:-1800}
     depends_on:

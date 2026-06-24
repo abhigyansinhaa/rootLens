@@ -14,24 +14,23 @@ export function Breadcrumbs() {
         <Home className="h-4 w-4" />
         <span className="sr-only">Home</span>
       </Link>
-      
+
       {pathnames.map((value, index) => {
         const last = index === pathnames.length - 1
         const to = `/${pathnames.slice(0, index + 1).join('/')}`
-        
+
         // Capitalize and format value
-        const formattedValue = value.charAt(0).toUpperCase() + value.slice(1).replace(/-/g, ' ')
+        const formattedValue = value.charAt(0).toUpperootLensse() + value.slice(1).replace(/-/g, ' ')
 
         return (
           <div key={to} className="flex items-center">
             <ChevronRight className="h-4 w-4 flex-shrink-0 text-(--border-strong)" />
             <Link
               to={last ? '#' : to}
-              className={`ml-1 sm:ml-2 text-sm font-medium ${
-                last
+              className={`ml-1 sm:ml-2 text-sm font-medium ${last
                   ? 'text-(--text-1) pointer-events-none'
                   : 'text-(--text-3) hover:text-(--text-1) transition-colors'
-              }`}
+                }`}
               aria-current={last ? 'page' : undefined}
             >
               {formattedValue}

@@ -75,6 +75,19 @@
   100% { transform: translateY(0px);   }
 }
 
+.section-highlight {
+  animation: sectionPulse 600ms var(--ease-out);
+}
+
+@keyframes sectionPulse {
+  0%   { background-color: hsl(239 84% 67% / 0.12); }
+  100% { background-color: transparent; }
+}
+
+.section-anchor {
+  scroll-margin-top: calc(var(--app-header-height) + 56px);
+}
+
 @keyframes ripple {
   0%   { transform: scale(0);   opacity: 0.5; }
   100% { transform: scale(2.5); opacity: 0;   }
@@ -112,6 +125,16 @@
 @keyframes toast-progress {
   from { width: 100%; }
   to   { width: 0%; }
+}
+
+@keyframes aurora {
+  from { background-position: 50% 50%, 50% 50%; }
+  to { background-position: 350% 50%, 350% 50%; }
+}
+
+@keyframes shine {
+  0% { background-position: 100%; }
+  100% { background-position: -100%; }
 }
 
 /* ─── Utility Classes ──────────────────────────── */
@@ -177,6 +200,14 @@
 
 .animate-number-tick {
   animation: numberTick 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-aurora {
+  animation: aurora 120s linear infinite;
+}
+
+.animate-shine {
+  animation: shine 5s linear infinite;
 }
 
 /* ─── Delay Utilities ──────────────────────────── */

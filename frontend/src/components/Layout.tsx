@@ -1,38 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import { Sidebar } from './Sidebar'
+import { Navbar } from './Navbar'
 import { Breadcrumbs } from './Breadcrumbs'
+import { CommandPalette } from './CommandPalette'
 import { ToastProvider } from './ui'
-import { Menu } from 'lucide-react'
-import { NotificationBell } from './NotificationBell'
-import { ThemeToggle } from './ThemeToggle'
 
-/** Derive initials from an email address for the avatar */
-function emailInitials(email: string): string {
-  const local = email.split('@')[0] ?? ''
-  const parts = local.split(/[._-]/).filter(Boolean)
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
-  return local.slice(0, 2).toUpperCase()
-}
+
 
 export function Layout() {
   const { user, logout } = useAuth()
   const location = useLocation()
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    const saved = localStorage.getItem('rca:sidebar_collapsed')
-    return saved === 'true'
-  })
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
-  // Persist sidebar state
-  useEffect(() => {
-    localStorage.setItem('rca:sidebar_collapsed', sidebarCollapsed.toString())
-  }, [sidebarCollapsed])
-
-  // Close mobile menu on navigation
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setMobileMenuOpen(false) }, [location.pathname])
 
   useEffect(() => {
     document.documentElement.style.setProperty('--app-header-height', '60px')
@@ -85,66 +63,32 @@ export function Layout() {
     )
   }
 
-  const initials = emailInitials(user.email)
+
 
   /* ── Authenticated Cockpit Layout ── */
   return (
     <ToastProvider>
-    <div className="flex min-h-screen bg-(--app-bg)">
-      <Sidebar
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        user={user}
-        onLogout={logout}
-        isOpenOnMobile={mobileMenuOpen}
-        onCloseMobile={() => setMobileMenuOpen(false)}
-      />
+    <div className="flex min-h-screen flex-col bg-(--app-bg)">
+      {/* ── Top Navbar ── */}
+      <Navbar user={user} onLogout={logout} />
 
-      <div
-        className={`flex flex-1 flex-col min-w-0 transition-all duration-300 ${
-          sidebarCollapsed
-            ? 'md:ml-(--sidebar-collapsed-width)'
-            : 'md:ml-(--sidebar-width)'
-        }`}
-      >
-        {/* ── Top Header ── */}
-        <header className="sticky top-0 z-30 flex h-(--app-header-height) items-center justify-between border-b border-(--border-subtle) glass px-4 sm:px-6">
-          <div className="flex items-center gap-3">
-            {/* Mobile hamburger */}
-            <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden -ml-1 rounded-md p-2 text-(--text-2) hover:bg-(--surface-2) hover:text-(--text-1) transition-colors"
-              aria-label="Open navigation"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-            <Breadcrumbs />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <NotificationBell />
-
-            {/* User avatar */}
-            <div
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-(--brand-dim) border border-(--border-brand) text-(--brand) text-xs font-bold cursor-default select-none"
-              title={user.email}
-            >
-              {initials}
-            </div>
-          </div>
-        </header>
-
-        {/* ── Main Content ── */}
-        <main id="main-content" className="flex-1 overflow-hidden">
-          <div
-            className="mx-auto max-w-(--page-max-width) px-4 sm:px-6 lg:px-8 py-6 sm:py-8 animate-fade-in-up"
-            key={location.pathname}
-          >
-            <Outlet />
-          </div>
-        </main>
+      {/* ── Breadcrumbs ── */}
+      <div className="mx-auto w-full max-w-(--page-max-width) px-4 sm:px-6 lg:px-8 py-3">
+        <Breadcrumbs />
       </div>
+
+      {/* ── Main Content ── */}
+      <main id="main-content" className="flex-1 overflow-x-hidden">
+        <div
+          className="mx-auto max-w-(--page-max-width) px-4 sm:px-6 lg:px-8 pb-12 animate-fade-in-up"
+          key={location.pathname}
+        >
+          <Outlet />
+        </div>
+      </main>
+
+      {/* ── Global Utilities ── */}
+      <CommandPalette />
     </div>
     </ToastProvider>
   )

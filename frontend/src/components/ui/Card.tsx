@@ -17,17 +17,17 @@ type CardProps = {
 }
 
 const toneStyles: Record<CardTone, string> = {
-  default: 'bg-(--surface-1) border-(--border-subtle)',
-  strong:  'bg-(--surface-2) border-(--border-default)',
-  risk:    'bg-(--c-danger-bg) border-(--c-danger-border)',
-  success: 'bg-(--c-success-bg) border-(--c-success-border)',
-  warning: 'bg-(--c-warning-bg) border-(--c-warning-border)',
-  info:    'bg-(--c-info-bg) border-(--c-info-border)',
+  default: 'bg-(--surface-1)',
+  strong:  'bg-(--surface-2)',
+  risk:    'bg-(--c-danger-bg)',
+  success: 'bg-(--c-success-bg)',
+  warning: 'bg-(--c-warning-bg)',
+  info:    'bg-(--c-info-bg)',
 }
 
 const variantStyles: Record<CardVariant, string> = {
-  default: 'border',
-  glass:   'border backdrop-blur-[20px]',
+  default: 'border-0',
+  glass:   'backdrop-blur-[20px]',
   solid:   'border-0',
   flat:    'border-0 bg-transparent',
 }
@@ -56,7 +56,7 @@ export function Card({
     : ''
 
   const hoverCls = hover
-    ? 'transition-all duration-(--duration-normal) hover:-translate-y-0.5 hover:shadow-[var(--shadow-lg),0_0_30px_hsl(214_100%_59%/0.08)] hover:border-(--border-brand)'
+    ? 'transition-all duration-(--duration-normal) hover:-translate-y-0.5 hover:shadow-(--shadow-lg) hover:bg-(--surface-2)'
     : ''
 
   const glassBase = variant === 'glass'
@@ -67,7 +67,7 @@ export function Card({
     <div
       className={[
         'relative overflow-hidden rounded-lg',
-        variant !== 'glass' ? toneStyles[tone] : `border ${toneStyles[tone].split(' ').find(c => c.startsWith('border-[')) ?? ''}`,
+        variant !== 'glass' ? toneStyles[tone] : '',
         variant === 'glass' ? glassBase : '',
         variantStyles[variant],
         paddingStyles[padding],
@@ -101,7 +101,7 @@ export function Card({
 
 export function CardEyebrow({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <p className={`text-[11px] font-bold uppercase tracking-[0.14em] text-(--text-3) ${className}`}>
+    <p className={`text-xs font-medium text-(--text-3) ${className}`}>
       {children}
     </p>
   )

@@ -1,0 +1,41 @@
+import { Outlet, useParams, useLocation } from 'react-router-dom'
+import { Datasets } from './DatasetsList'
+import { ErrorBoundary } from '../../components/ErrorBoundary'
+import { Suspense } from 'react'
+import { DatasetDetailSkeleton } from '../../components/PageSkeletons'
+
+export function DatasetsLayout() {
+  const { id } = useParams()
+  const location = useLocation()
+
+  const isDetailView = !!id
+
+  return (
+    <div className={`flex w-full overflow-hidden transition-all duration-300 ${isDetailView ? 'gap-6 h-[calc(100vh-var(--app-header-height)-100px)]' : 'flex-col'}`}>
+      
+      {/* ── Left Pane (Master List) ── */}
+      <div 
+        className={`transition-all duration-300 ease-(--ease-spring) flex flex-col ${
+          isDetailView 
+            ? 'w-80 shrink-0 border-r border-(--border-subtle) pr-6 hidden lg:flex' 
+            : 'w-full flex-1'
+        }`}
+      >
+        <div className={isDetailView ? "h-full overflow-y-auto pr-2 custom-scrollbar" : ""}>
+          <Datasets compact={isDetailView} />
+        </div>
+      </div>
+
+      {/* ── Right Pane (Detail View) ── */}
+      {isDetailView && (
+        <div className="flex-1 overflow-y-auto rounded-xl border border-(--border-subtle) bg-(--surface-1) shadow-xl relative animate-fade-in-up custom-scrollbar">
+           <ErrorBoundary label="Dataset detail error">
+             <Suspense fallback={<DatasetDetailSkeleton />}>
+               <Outlet key={location.pathname} />
+             </Suspense>
+           </ErrorBoundary>
+        </div>
+      )}
+    </div>
+  )
+}

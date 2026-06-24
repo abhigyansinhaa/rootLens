@@ -6,25 +6,25 @@ import {
   EmptyState,
   ErrorState,
   PageHeader,
-  SkeletonGroup,
-  SkeletonRow,
   StatusBadge,
+  AnimatedList,
 } from '../../components/ui'
+import { AnalysesListSkeleton } from '../../components/PageSkeletons'
 import { BarChart3, ArrowRight, Clock, Search, X } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { KpiSparkline } from './KpiSparkline'
 import type { AnalysisListItem } from '../../types'
 
-const IN_FLIGHT  = new Set(['queued','running','profiling','training','explaining','decisioning'])
-const TERMINAL_OK = new Set(['completed','completed_with_warnings'])
+const IN_FLIGHT = new Set(['queued', 'running', 'profiling', 'training', 'explaining', 'decisioning'])
+const TERMINAL_OK = new Set(['completed', 'completed_with_warnings'])
 
 type StatusFilter = 'all' | 'running' | 'completed' | 'failed'
 
-function statusTone(status: string): 'default'|'info'|'success'|'warning'|'risk' {
-  if (status === 'completed')               return 'success'
+function statusTone(status: string): 'default' | 'info' | 'success' | 'warning' | 'risk' {
+  if (status === 'completed') return 'success'
   if (status === 'completed_with_warnings') return 'warning'
-  if (status === 'failed')                  return 'risk'
-  if (IN_FLIGHT.has(status))               return 'info'
+  if (status === 'failed') return 'risk'
+  if (IN_FLIGHT.has(status)) return 'info'
   return 'default'
 }
 
@@ -32,22 +32,22 @@ function timeAgo(iso: string) {
   try {
     const diff = Date.now() - new Date(iso).getTime()
     const m = Math.floor(diff / 60_000)
-    if (m < 60)  return `${m}m ago`
+    if (m < 60) return `${m}m ago`
     const h = Math.floor(m / 60)
-    if (h < 24)  return `${h}h ago`
+    if (h < 24) return `${h}h ago`
     return `${Math.floor(h / 24)}d ago`
   } catch { return iso }
 }
 
 const STATUS_CHIPS: { label: string; value: StatusFilter }[] = [
-  { label: 'All',       value: 'all'       },
-  { label: 'Running',   value: 'running'   },
+  { label: 'All', value: 'all' },
+  { label: 'Running', value: 'running' },
   { label: 'Completed', value: 'completed' },
-  { label: 'Failed',    value: 'failed'    },
+  { label: 'Failed', value: 'failed' },
 ]
 
 export function AnalysesList() {
-  const [search, setSearch]           = useState('')
+  const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
   const { data, isLoading, error, refetch } = useQuery({
@@ -65,36 +65,29 @@ export function AnalysesList() {
 
   const analyses = useMemo(() => data ?? [], [data])
   const completed = analyses.filter(a => TERMINAL_OK.has(a.status)).length
-  const inFlight  = analyses.filter(a => IN_FLIGHT.has(a.status)).length
+  const inFlight = analyses.filter(a => IN_FLIGHT.has(a.status)).length
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
+    const q = search.trim().toLowerootLensse()
     return analyses
       .slice()
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .filter(a => {
         const matchSearch = !q ||
-          a.dataset_name.toLowerCase().includes(q) ||
-          a.target.toLowerCase().includes(q)
+          a.dataset_name.toLowerootLensse().includes(q) ||
+          a.target.toLowerootLensse().includes(q)
         const matchStatus =
-          statusFilter === 'all'       ? true :
-          statusFilter === 'running'   ? IN_FLIGHT.has(a.status) :
-          statusFilter === 'completed' ? TERMINAL_OK.has(a.status) :
-          statusFilter === 'failed'    ? a.status === 'failed' :
-          true
+          statusFilter === 'all' ? true :
+            statusFilter === 'running' ? IN_FLIGHT.has(a.status) :
+              statusFilter === 'completed' ? TERMINAL_OK.has(a.status) :
+                statusFilter === 'failed' ? a.status === 'failed' :
+                  true
         return matchSearch && matchStatus
       })
   }, [analyses, search, statusFilter])
 
   if (isLoading) {
-    return (
-      <div className="space-y-8 animate-fade-in-up">
-        <PageHeader eyebrow="Workspace" title="All Analyses" description="Loading…" />
-        <SkeletonGroup label="Loading analyses…">
-          {Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)}
-        </SkeletonGroup>
-      </div>
-    )
+    return <AnalysesListSkeleton />
   }
 
   if (error) return <ErrorState message="Could not load analyses." onRetry={() => void refetch()} />
@@ -154,7 +147,7 @@ export function AnalysesList() {
               onClick={() => setStatusFilter(chip.value)}
               aria-pressed={statusFilter === chip.value}
               className={[
-                'rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest transition-all',
+                'rounded-full px-3 py-1.5 text-[11px] font-bold upperootLensse tracking-widest transition-all',
                 statusFilter === chip.value
                   ? 'bg-(--brand-dim) border border-(--border-brand) text-(--brand)'
                   : 'border border-(--border-subtle) bg-(--surface-2) text-(--text-3) hover:text-(--text-1) hover:border-(--border-default)',
@@ -186,8 +179,8 @@ export function AnalysesList() {
           No analyses match your search.
         </div>
       ) : (
-        <div className="grid gap-2">
-          {filtered.map((run, i) => {
+        <AnimatedList className="w-full items-stretch gap-2" delay={50}>
+          {filtered.map((run) => {
             const tone = statusTone(run.status)
             const running = IN_FLIGHT.has(run.status)
             return (
@@ -199,17 +192,16 @@ export function AnalysesList() {
                   'border border-(--border-subtle) bg-(--surface-1)',
                   'p-4 transition-all duration-(--duration-normal)',
                   'hover:border-(--border-brand) hover:bg-(--surface-2) hover:-translate-y-px hover:shadow-(--shadow-md)',
-                  `animate-slide-in-right delay-${Math.min((i + 1) * 30, 300)}`,
                 ].join(' ')}
               >
                 {/* Status dot */}
                 <div className={[
                   'h-2.5 w-2.5 shrink-0 rounded-full',
                   tone === 'success' ? 'bg-(--c-success)' :
-                  tone === 'risk'    ? 'bg-(--c-danger)'  :
-                  tone === 'warning' ? 'bg-(--c-warning)' :
-                  tone === 'info'    ? 'bg-(--c-info)'    :
-                  'bg-(--text-4)',
+                    tone === 'risk' ? 'bg-(--c-danger)' :
+                      tone === 'warning' ? 'bg-(--c-warning)' :
+                        tone === 'info' ? 'bg-(--c-info)' :
+                          'bg-(--text-4)',
                   running ? 'animate-pulse' : '',
                 ].join(' ')} />
 
@@ -245,10 +237,10 @@ export function AnalysesList() {
                 {/* KPI Sparkline (only for completed analyses) */}
                 {(run.status === 'completed' || run.status === 'completed_with_warnings') && (
                   <div className="ml-2 pl-4 border-l border-(--border-subtle) hidden sm:block">
-                    <KpiSparkline 
-                      datasetId={run.dataset_id} 
-                      target={run.target} 
-                      kpiSummary={run.kpi_summary} 
+                    <KpiSparkline
+                      datasetId={run.dataset_id}
+                      target={run.target}
+                      kpiSummary={run.kpi_summary}
                     />
                   </div>
                 )}
@@ -257,7 +249,7 @@ export function AnalysesList() {
               </Link>
             )
           })}
-        </div>
+        </AnimatedList>
       )}
     </div>
   )

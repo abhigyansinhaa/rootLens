@@ -9,18 +9,12 @@ interface DiagnosticsTabProps {
 
 export function DiagnosticsTab({ data }: DiagnosticsTabProps) {
   return (
-    <div className="space-y-8 print:block animate-fade-in-up">
-      <SectionHeader
-        eyebrow="3. Trust Center"
-        title="Confidence & Governance"
-        description="Model reliability metrics, quality alerts, and dataset governance."
-      />
-
+    <div className="space-y-8 print:block">
       <GovernancePanel governance={data.report?.governance} />
 
       {data.report?.quality_signals && data.report.quality_signals.length > 0 && (
         <div className="rounded-lg border border-(--border-subtle) bg-(--surface-1) p-5">
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-(--text-3) mb-4">
+          <p className="text-[11px] font-bold upperootLensse tracking-[0.14em] text-(--text-3) mb-4">
             Quality Alerts
           </p>
           <div className="flex flex-col gap-3" role="list" aria-label="Quality alerts">
@@ -28,19 +22,19 @@ export function DiagnosticsTab({ data }: DiagnosticsTabProps) {
               const t =
                 s.severity === 'critical'
                   ? {
-                      bg: 'var(--c-danger-bg)',
-                      border: 'var(--c-danger-border)',
-                      text: 'var(--c-danger)',
-                      icon: AlertCircle,
-                    }
+                    bg: 'var(--c-danger-bg)',
+                    border: 'var(--c-danger-border)',
+                    text: 'var(--c-danger)',
+                    icon: AlertCircle,
+                  }
                   : s.severity === 'info'
-                  ? {
+                    ? {
                       bg: 'var(--c-info-bg)',
                       border: 'var(--c-info-border)',
                       text: 'var(--c-info)',
                       icon: CheckCircle2,
                     }
-                  : {
+                    : {
                       bg: 'var(--c-warning-bg)',
                       border: 'var(--c-warning-border)',
                       text: 'var(--c-warning)',
@@ -61,7 +55,7 @@ export function DiagnosticsTab({ data }: DiagnosticsTabProps) {
                   />
                   <div>
                     <p
-                      className="text-[10px] font-bold uppercase tracking-[0.14em] mb-0.5"
+                      className="text-[10px] font-bold upperootLensse tracking-[0.14em] mb-0.5"
                       style={{ color: t.text }}
                     >
                       {s.scope}
@@ -91,7 +85,7 @@ export function DiagnosticsTab({ data }: DiagnosticsTabProps) {
               .map(([k, v]) => (
                 <Stat
                   key={k}
-                  label={k.toUpperCase()}
+                  label={k.toUpperootLensse()}
                   value={(v as number).toFixed(4)}
                   tone="info"
                 />
@@ -102,7 +96,7 @@ export function DiagnosticsTab({ data }: DiagnosticsTabProps) {
 
       {/* Interpretation guide */}
       <div className="rounded-lg border border-(--border-subtle) bg-(--surface-1) p-5">
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-(--text-3) mb-4">
+        <p className="text-[11px] font-bold upperootLensse tracking-[0.14em] text-(--text-3) mb-4">
           How to read this report
         </p>
         <div className="grid gap-3 sm:grid-cols-3">

@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback, useRef, useEffect } from 'react'
 import type { AnalysisKpis } from '../../types'
-import { Card, CardEyebrow, StatusBadge } from '../ui'
+import { CardEyebrow, StatusBadge } from '../ui'
 import { directionForFeature, formatDriverLabel } from '../../lib/driverLabels'
 import { categoryForDriver, controllabilityBadgeLabel, controllabilityForFeature } from './driverMeta'
 import { formatPct01 } from './format'
@@ -13,7 +13,7 @@ type Row = AnalysisKpis['driver_impact']['per_driver'][0] & {
 
 function dirLabel(direction: string | undefined): string {
   if (!direction) return '—'
-  return direction === 'decreases' ? '↓ churn risk' : '↑ churn risk'
+  return direction === 'decreases' ? '↓ lowers risk' : '↑ raises risk'
 }
 
 export function DriverImpactCard({
@@ -24,6 +24,8 @@ export function DriverImpactCard({
   shapSummaryUrl,
   shapBeeswarmUrl,
   highlightFeature,
+  onHighlightChange,
+  searchInputRef,
 }: {
   kpis: AnalysisKpis
   directionByFeature?: Record<string, string>
@@ -32,6 +34,8 @@ export function DriverImpactCard({
   shapSummaryUrl?: string | null
   shapBeeswarmUrl?: string | null
   highlightFeature?: string | null
+  onHighlightChange?: (feature: string | null) => void
+  searchInputRef?: React.RefObject<HTMLInputElement | null>
 }) {
   const rows: Row[] = useMemo(() => {
     const byFeat = Object.fromEntries((kpis.drivers ?? []).map((d) => [d.feature, d.share]))
@@ -45,14 +49,14 @@ export function DriverImpactCard({
   const [evidenceFeature, setEvidenceFeature] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [ctrlFilter, setCtrlFilter] = useState<'all' | 'controllable' | 'observational' | 'mixed'>('all')
+  const [focusedIndex, setFocusedIndex] = useState(0)
+  const rowRefs = useRef<Map<string, HTMLTableRowElement>>(new Map())
 
   const sorted = useMemo(() => {
     const copy = [...rows]
     copy.sort((a, b) => {
       if (sortBy === 'revenue') {
-        const ra = Math.abs(a.revenue_recoverable ?? 0)
-        const rb = Math.abs(b.revenue_recoverable ?? 0)
-        return rb - ra
+        return Math.abs(b.revenue_recoverable ?? 0) - Math.abs(a.revenue_recoverable ?? 0)
       }
       return Math.abs(b.delta_target_rate) - Math.abs(a.delta_target_rate)
     })
@@ -60,13 +64,12 @@ export function DriverImpactCard({
   }, [rows, sortBy])
 
   const filtered = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase()
-    return sorted.filter(r => {
-      const label = formatDriverLabel(r.feature, rawColumns).toLowerCase()
-      const matchesSearch = !q || label.includes(q) || r.feature.toLowerCase().includes(q)
+    const q = searchQuery.trim().toLowerootLensse()
+    return sorted.filter((r) => {
+      const label = formatDriverLabel(r.feature, rawColumns).toLowerootLensse()
+      const matchesSearch = !q || label.includes(q) || r.feature.toLowerootLensse().includes(q)
       const ctrl = controllabilityForFeature(r.feature)
-      const matchesCtrl = ctrlFilter === 'all' || ctrl === ctrlFilter
-      return matchesSearch && matchesCtrl
+      return matchesSearch && (ctrlFilter === 'all' || ctrl === ctrlFilter)
     })
   }, [sorted, searchQuery, ctrlFilter, rawColumns])
 
@@ -74,181 +77,181 @@ export function DriverImpactCard({
   const [showAllDrivers, setShowAllDrivers] = useState(false)
   const displayed = showAllDrivers ? filtered : filtered.slice(0, MAX_ROWS)
 
-  if (!sorted.length) {
-    return null
-  }
+  useEffect(() => {
+    if (highlightFeature) {
+      const idx = displayed.findIndex((r) => r.feature === highlightFeature)
+      if (idx >= 0 && idx !== focusedIndex) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setFocusedIndex(idx)
+      }
+    }
+  }, [highlightFeature, displayed, focusedIndex])
 
-  const sortBtn = (key: 'revenue' | 'delta', label: string) => (
-    <button
-      type="button"
-      onClick={() => setSortBy(key)}
-      className={`rounded-lg px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] transition-colors ${
-        sortBy === key
-          ? 'bg-brand-600 text-white shadow-sm'
-          : 'border border-(--border-1) bg-(--surface-2) text-(--text-2) hover:border-(--border-2)'
-      }`}
-    >
-      {label}
-    </button>
+  const selectRow = useCallback(
+    (feature: string) => {
+      onHighlightChange?.(feature)
+      rowRefs.current.get(feature)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    },
+    [onHighlightChange],
   )
 
+  if (!sorted.length) return null
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-4" data-print-tier="2">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <CardEyebrow>Driver impact scenario</CardEyebrow>
-          <h2 className="mt-2 text-lg font-bold text-(--text-1)">Top drivers, ranked by lift or revenue</h2>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-(--text-2)">
-            Review the actionable drivers below. Rollups show the combined effect of neutralizing each top driver.
+          <CardEyebrow>Driver impact</CardEyebrow>
+          <h2 className="mt-1 text-lg font-semibold text-(--text-1)">Ranked root causes</h2>
+          <p className="mt-1 max-w-xl text-sm text-(--text-2)">
+            Actionable drivers ranked by revenue or lift. Press j/k to navigate rows.
           </p>
         </div>
         <div className="flex gap-2">
-          {sortBtn('revenue', 'Revenue')}
-          {sortBtn('delta', 'Delta')}
+          {(['revenue', 'delta'] as const).map((key) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setSortBy(key)}
+              className={[
+                'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+                sortBy === key
+                  ? 'bg-(--brand) text-white'
+                  : 'bg-(--surface-2) text-(--text-2) hover:bg-(--surface-3)',
+              ].join(' ')}
+            >
+              {key === 'revenue' ? 'By revenue' : 'By lift'}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Search + filter bar */}
       <div className="flex flex-wrap items-center gap-3">
-        {/* Search box */}
         <div className="relative flex-1 min-w-[200px] max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-(--text-3)" aria-hidden />
           <input
+            ref={searchInputRef}
             type="search"
             placeholder="Search drivers…"
             value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className={[
-              'w-full rounded-md border border-(--border-default)',
-              'bg-(--surface-2) pl-8 pr-3 py-2 text-sm text-(--text-1)',
-              'placeholder:text-(--text-3) outline-none',
-              'focus:border-(--border-brand) focus:ring-1 focus:ring-(--border-brand)',
-              'transition-colors',
-            ].join(' ')}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-md bg-(--surface-2) pl-8 pr-3 py-2 text-sm text-(--text-1) placeholder:text-(--text-3) outline-none focus:ring-2 focus:ring-(--brand)/40 transition-shadow"
             aria-label="Search drivers"
           />
         </div>
-
-        {/* Controllability filter chips */}
         <div className="flex items-center gap-1.5" role="group" aria-label="Filter by controllability">
           <Filter className="h-3.5 w-3.5 text-(--text-3) shrink-0" aria-hidden />
-          {(['all', 'controllable', 'observational', 'mixed'] as const).map(c => (
+          {(['all', 'controllable', 'observational', 'mixed'] as const).map((c) => (
             <button
               key={c}
               type="button"
               onClick={() => setCtrlFilter(c)}
               aria-pressed={ctrlFilter === c}
               className={[
-                'rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] transition-colors',
+                'rounded-full px-3 py-1 text-xs font-medium transition-colors capitalize',
                 ctrlFilter === c
-                  ? 'bg-(--brand) text-white shadow-sm'
-                  : 'border border-(--border-subtle) bg-(--surface-2) text-(--text-3) hover:border-(--border-default) hover:text-(--text-2)',
+                  ? 'bg-(--brand) text-white'
+                  : 'bg-(--surface-2) text-(--text-3) hover:bg-(--surface-3) hover:text-(--text-2)',
               ].join(' ')}
             >
               {c === 'all' ? 'All' : c}
             </button>
           ))}
         </div>
-
-        {/* Result count */}
-        {(searchQuery || ctrlFilter !== 'all') && (
-          <span className="text-xs text-(--text-3) ml-auto">
-            {filtered.length} of {sorted.length} drivers
-            {(searchQuery || ctrlFilter !== 'all') && (
-              <button
-                onClick={() => { setSearchQuery(''); setCtrlFilter('all') }}
-                className="ml-2 text-(--brand) hover:underline font-semibold"
-              >
-                Clear ×
-              </button>
-            )}
-          </span>
-        )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {displayed.map((r) => {
-          const direction = directionForFeature(r.feature, directionByFeature)
-          const ctrl = controllabilityForFeature(r.feature)
-          const tier = r.confidence_tier
+      <div className="rounded-lg bg-(--surface-1) overflow-hidden" style={{ boxShadow: 'var(--shadow-surface)' }}>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs font-medium text-(--text-3) bg-(--surface-2)/50">
+                <th className="px-4 py-3 w-10">#</th>
+                <th className="px-4 py-3">Driver</th>
+                <th className="px-4 py-3 hidden sm:table-cell">Direction</th>
+                <th className="px-4 py-3 text-right">Lift</th>
+                <th className="px-4 py-3 text-right hidden md:table-cell">Revenue</th>
+                <th className="px-4 py-3 hidden lg:table-cell">Confidence</th>
+                <th className="px-4 py-3 w-10" aria-label="Evidence" />
+              </tr>
+            </thead>
+            <tbody>
+              {displayed.map((r, idx) => {
+                const direction = directionForFeature(r.feature, directionByFeature)
+                const ctrl = controllabilityForFeature(r.feature)
+                const selected = highlightFeature === r.feature
+                const dimmed = highlightFeature && !selected
 
-          return (
-            <Card
-              key={r.feature}
-              padding="lg"
-              tone="strong"
-              elevated
-              className={[
-                'flex flex-col border transition-all duration-300 scroll-mt-24',
-                highlightFeature === r.feature
-                  ? 'border-(--brand) shadow-(--shadow-glow-lg) bg-(--surface-2)'
-                  : 'border-(--border-subtle) bg-(--surface-1) hover:bg-(--surface-2)',
-              ].join(' ')}
-            >
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-(--text-3)">
-                  {categoryForDriver(r.feature)}
-                </span>
-                <StatusBadge tone={ctrl === 'controllable' ? 'success' : ctrl === 'observational' ? 'default' : 'warning'}>
-                  {controllabilityBadgeLabel(ctrl)}
-                </StatusBadge>
-              </div>
-              
-              <h3 className="text-lg font-bold text-brand-600 dark:text-brand-400 mb-1 line-clamp-2" title={formatDriverLabel(r.feature, rawColumns)}>
-                {formatDriverLabel(r.feature, rawColumns)}
-              </h3>
-              <p className="text-sm font-medium text-(--text-1) mb-6">
-                {dirLabel(direction)}
-              </p>
-              
-              <div className="mt-auto grid grid-cols-2 gap-4 border-t border-(--border-soft) pt-4">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-(--text-3) mb-1">Lift (Δ target)</p>
-                  <p className="font-bold tabular-nums text-(--text-1)">{formatPct01(Math.abs(r.delta_target_rate))}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-(--text-3) mb-1">Revenue Shift</p>
-                  <p className="font-bold tabular-nums text-(--text-1)">
-                    {r.revenue_recoverable != null ? `$${Math.abs(r.revenue_recoverable).toLocaleString(undefined, { maximumFractionDigits: 0 })}` : '-'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-(--text-3) mb-1">Confidence</p>
-                  <p className="font-bold uppercase text-(--text-1)">{tier ?? '—'}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-(--text-3) mb-1">Importance</p>
-                  <p className="font-bold tabular-nums text-(--text-1)">{r.importance_share != null ? formatPct01(r.importance_share, 2) : '-'}</p>
-                </div>
-              </div>
-              
-              <div className="-mx-6 -mb-6 mt-6 border-t border-(--border-soft)">
-                <button 
-                  onClick={() => setEvidenceFeature(r.feature)}
-                  className="w-full flex items-center justify-center gap-2 py-3 text-xs font-bold text-(--text-2) hover:text-brand-600 hover:bg-brand-500/5 transition-colors rounded-b-xl"
-                >
-                  View Evidence <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
-            </Card>
-          )
-        })}
+                return (
+                  <tr
+                    key={r.feature}
+                    ref={(el) => {
+                      if (el) rowRefs.current.set(r.feature, el)
+                      else rowRefs.current.delete(r.feature)
+                    }}
+                    data-driver-row={r.feature}
+                    data-focused={focusedIndex === idx}
+                    onClick={() => selectRow(r.feature)}
+                    onMouseEnter={() => onHighlightChange?.(r.feature)}
+                    onMouseLeave={() => onHighlightChange?.(null)}
+                    className={[
+                      'cursor-pointer transition-colors duration-120 border-l-[3px]',
+                      selected
+                        ? 'bg-(--surface-3) border-l-(--brand)'
+                        : 'border-l-transparent hover:bg-(--surface-2)/80',
+                      dimmed ? 'opacity-50' : 'opacity-100',
+                      focusedIndex === idx && !selected ? 'bg-(--surface-2)/60' : '',
+                    ].join(' ')}
+                  >
+                    <td className="px-4 py-3 tabular-nums text-(--text-3)">{idx + 1}</td>
+                    <td className="px-4 py-3 min-w-[160px]">
+                      <p className="font-semibold text-(--text-1) truncate">{formatDriverLabel(r.feature, rawColumns)}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-(--text-3)">{categoryForDriver(r.feature)}</span>
+                        <StatusBadge tone={ctrl === 'controllable' ? 'success' : ctrl === 'observational' ? 'default' : 'warning'} className="px-1 py-0 text-[10px] bg-transparent border-0">
+                          {controllabilityBadgeLabel(ctrl)}
+                        </StatusBadge>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 hidden sm:table-cell text-(--text-2) text-xs">{dirLabel(direction)}</td>
+                    <td className="px-4 py-3 text-right font-semibold tabular-nums">{formatPct01(Math.abs(r.delta_target_rate))}</td>
+                    <td className="px-4 py-3 text-right font-semibold tabular-nums hidden md:table-cell">
+                      {r.revenue_recoverable != null
+                        ? `$${Math.abs(r.revenue_recoverable).toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+                        : '—'}
+                    </td>
+                    <td className="px-4 py-3 hidden lg:table-cell capitalize text-(--text-2)">{r.confidence_tier ?? '—'}</td>
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setEvidenceFeature(r.feature)
+                        }}
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-(--surface-2) text-(--text-3) hover:text-(--brand) hover:bg-(--surface-3) transition-colors"
+                        title="View evidence"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* No results */}
       {filtered.length === 0 && (
-        <div className="py-10 text-center text-sm text-(--text-3)">
+        <div className="py-8 text-center text-sm text-(--text-3)">
           No drivers match your search.
-          <button onClick={() => { setSearchQuery(''); setCtrlFilter('all') }} className="ml-2 text-(--brand) hover:underline font-semibold">Clear filters</button>
         </div>
       )}
 
-      {/* Show all toggle */}
       {filtered.length > MAX_ROWS && (
-        <div className="mt-6 flex justify-center print:hidden">
+        <div className="flex justify-center print:hidden">
           <button
             type="button"
-            className="rounded-lg border border-(--border-subtle) bg-(--surface-2) px-6 py-2.5 text-[11px] font-bold uppercase tracking-wider text-(--text-2) hover:bg-(--surface-3) transition-colors shadow-sm"
+            className="rounded-md bg-(--surface-2) px-5 py-2 text-xs font-medium text-(--text-2) hover:bg-(--surface-3) transition-colors"
             onClick={() => setShowAllDrivers((v) => !v)}
           >
             {showAllDrivers ? 'Show top drivers only' : `Show all ${filtered.length} drivers`}
@@ -256,70 +259,47 @@ export function DriverImpactCard({
         </div>
       )}
 
-
-      {roiAssumptions ? (
-        <div className="mt-8 rounded-xl border border-(--border-soft) bg-(--surface-2)/40 p-5">
-          <p className="text-(length:--font-label-xs) font-black uppercase tracking-[0.14em] text-(--text-3)">
-            ROI assumptions
-          </p>
-          <p className="mt-2 text-(length:--font-body-md) leading-relaxed text-(--text-2)">{roiAssumptions}</p>
+      {roiAssumptions && (
+        <div className="rounded-lg bg-(--surface-2)/60 p-4">
+          <p className="text-xs font-medium text-(--text-3) mb-1">ROI assumptions</p>
+          <p className="text-sm text-(--text-2) leading-relaxed">{roiAssumptions}</p>
         </div>
-      ) : null}
+      )}
 
-      {/* Evidence Drawer */}
       {evidenceFeature && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-sm animate-fade-in" onClick={() => setEvidenceFeature(null)} />
-          <div className="relative w-full max-w-2xl bg-(--app-bg) h-full shadow-2xl overflow-y-auto animate-slide-in-right border-l border-(--border-strong)">
-            <div className="sticky top-0 z-10 flex justify-between items-center bg-(--app-bg)/80 backdrop-blur-xl border-b border-(--border-subtle) p-6">
+        <div className="fixed inset-0 z-50 flex justify-end print:hidden">
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-fade-in" onClick={() => setEvidenceFeature(null)} />
+          <div className="relative w-full max-w-2xl bg-(--app-bg) h-full shadow-(--shadow-overlay) overflow-y-auto animate-slide-in-right">
+            <div className="sticky top-0 z-10 flex justify-between items-center bg-(--app-bg)/90 backdrop-blur-xl p-6">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-brand-500 mb-1">Evidence Drawer</p>
-                <h2 className="text-xl font-bold leading-tight text-(--text-1) pr-8">{formatDriverLabel(evidenceFeature, rawColumns)}</h2>
+                <p className="text-xs font-medium text-(--brand) mb-1">Evidence</p>
+                <h2 className="text-xl font-semibold text-(--text-1) pr-8">{formatDriverLabel(evidenceFeature, rawColumns)}</h2>
               </div>
-              <button 
-                onClick={() => setEvidenceFeature(null)} 
-                className="absolute top-6 right-6 flex h-8 w-8 items-center justify-center rounded-full bg-(--surface-2) text-(--text-2) hover:bg-(--surface-3) hover:text-(--text-1) transition-colors"
+              <button
+                onClick={() => setEvidenceFeature(null)}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-(--surface-2) text-(--text-2) hover:bg-(--surface-3)"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
-            
-            <div className="p-6 space-y-8">
-              <div className="rounded-xl bg-brand-500/10 border border-brand-500/20 p-5">
-                <p className="text-sm font-medium text-brand-800 dark:text-brand-300 leading-relaxed">
-                  SHAP (SHapley Additive exPlanations) values show the marginal contribution of each feature to the model's prediction. 
-                  The plots below visualize these effects globally across the dataset.
-                </p>
-              </div>
-              
-              {shapSummaryUrl ? (
-                <Card padding="lg" tone="strong" elevated>
-                  <CardEyebrow>Summary Plot</CardEyebrow>
-                  <p className="mt-1 text-xs text-(--text-2) mb-4">Shows feature importance and the direction of the relationship.</p>
-                  <AuthenticatedApiImage 
-                    apiPath={shapSummaryUrl} 
-                    alt="SHAP summary" 
-                    className="max-w-full rounded-lg border border-(--border-subtle) bg-white mix-blend-luminosity hover:mix-blend-normal transition-all duration-300" 
-                  />
-                </Card>
-              ) : null}
-              
-              {shapBeeswarmUrl ? (
-                <Card padding="lg" tone="strong" elevated>
-                  <CardEyebrow>Beeswarm Plot</CardEyebrow>
-                  <p className="mt-1 text-xs text-(--text-2) mb-4">Reveals the distribution of SHAP values for top drivers, showing exactly how high and low feature values impact predictions.</p>
-                  <AuthenticatedApiImage 
-                    apiPath={shapBeeswarmUrl} 
-                    alt="SHAP beeswarm" 
-                    className="max-w-full rounded-lg border border-(--border-subtle) bg-white mix-blend-luminosity hover:mix-blend-normal transition-all duration-300" 
-                  />
-                </Card>
-              ) : null}
-
-              {!shapSummaryUrl && !shapBeeswarmUrl && (
-                <div className="py-12 text-center text-(--text-3)">
-                  <p>No visual evidence available for this run.</p>
+            <div className="p-6 space-y-6">
+              <p className="text-sm text-(--text-2) leading-relaxed">
+                SHAP values show each feature&apos;s marginal contribution to the model prediction across this cohort.
+              </p>
+              {shapSummaryUrl && (
+                <div className="rounded-lg bg-(--surface-1) p-4">
+                  <CardEyebrow>Summary plot</CardEyebrow>
+                  <AuthenticatedApiImage apiPath={shapSummaryUrl} alt="SHAP summary" className="max-w-full rounded-md mt-3 bg-white" />
                 </div>
+              )}
+              {shapBeeswarmUrl && (
+                <div className="rounded-lg bg-(--surface-1) p-4">
+                  <CardEyebrow>Beeswarm plot</CardEyebrow>
+                  <AuthenticatedApiImage apiPath={shapBeeswarmUrl} alt="SHAP beeswarm" className="max-w-full rounded-md mt-3 bg-white" />
+                </div>
+              )}
+              {!shapSummaryUrl && !shapBeeswarmUrl && (
+                <p className="text-sm text-(--text-3) text-center py-8">No visual evidence for this run.</p>
               )}
             </div>
           </div>
@@ -327,4 +307,10 @@ export function DriverImpactCard({
       )}
     </div>
   )
+}
+
+export type DriverTableHandle = {
+  focusSearch: () => void
+  moveFocus: (dir: 1 | -1) => void
+  getDisplayedFeatures: () => string[]
 }

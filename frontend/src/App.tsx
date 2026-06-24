@@ -11,10 +11,18 @@ import {
   AuthSkeleton,
   CompareAnalysesSkeleton,
   DashboardSkeleton,
-  DatasetDetailSkeleton,
-  DatasetsListSkeleton,
   UploadSkeleton,
 } from './components/PageSkeletons'
+
+const DatasetsLayoutSkeleton = () => (
+  <div className="flex w-full h-[calc(100vh-60px)] gap-6">
+    <div className="w-80 shrink-0 border-r border-(--border-subtle) pr-6 hidden lg:flex flex-col gap-4">
+      <div className="h-8 w-1/3 rounded bg-(--surface-2) animate-pulse" />
+      <div className="flex-1 rounded-xl bg-(--surface-2) animate-pulse" />
+    </div>
+    <div className="flex-1 rounded-xl bg-(--surface-2) animate-pulse" />
+  </div>
+)
 
 /* ─── Lazy-loaded page components ──────────────────────────────────────────
    Each import() creates a separate JS chunk that is only fetched when the
@@ -22,7 +30,7 @@ import {
    content-shaped skeleton while the chunk is being downloaded + parsed.
    ─────────────────────────────────────────────────────────────────────── */
 const Dashboard       = lazy(() => import('./features/dashboard/Dashboard').then(m => ({ default: m.Dashboard })))
-const Datasets        = lazy(() => import('./features/datasets/DatasetsList').then(m => ({ default: m.Datasets })))
+const DatasetsLayout  = lazy(() => import('./features/datasets/DatasetsLayout').then(m => ({ default: m.DatasetsLayout })))
 const DatasetDetail   = lazy(() => import('./features/datasets/DatasetDetail').then(m => ({ default: m.DatasetDetail })))
 const Upload          = lazy(() => import('./features/datasets/Upload').then(m => ({ default: m.Upload })))
 const AnalysesList    = lazy(() => import('./features/analysis/AnalysesList').then(m => ({ default: m.AnalysesList })))
@@ -83,13 +91,16 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <ErrorBoundary label="Datasets error">
-                      <Suspense fallback={<DatasetsListSkeleton />}>
-                        <Datasets />
+                      <Suspense fallback={<DatasetsLayoutSkeleton />}>
+                        <DatasetsLayout />
                       </Suspense>
                     </ErrorBoundary>
                   </ProtectedRoute>
                 }
-              />
+              >
+                <Route index element={null} />
+                <Route path=":id" element={<DatasetDetail />} />
+              </Route>
               <Route
                 path="/upload"
                 element={
@@ -97,18 +108,6 @@ export default function App() {
                     <ErrorBoundary label="Upload error">
                       <Suspense fallback={<UploadSkeleton />}>
                         <Upload />
-                      </Suspense>
-                    </ErrorBoundary>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/datasets/:id"
-                element={
-                  <ProtectedRoute>
-                    <ErrorBoundary label="Dataset detail error">
-                      <Suspense fallback={<DatasetDetailSkeleton />}>
-                        <DatasetDetail />
                       </Suspense>
                     </ErrorBoundary>
                   </ProtectedRoute>

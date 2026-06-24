@@ -9,6 +9,7 @@ interface ExportHubProps {
   onDownloadCsv: () => void
   onDownloadJson: () => void
   onPrint: () => void
+  onDecisionBrief?: () => void
   canExport: boolean
 }
 
@@ -19,6 +20,7 @@ export function ExportHub({
   onDownloadCsv,
   onDownloadJson,
   onPrint,
+  onDecisionBrief,
   canExport,
 }: ExportHubProps) {
   const [copied, setCopied] = useState(false)
@@ -60,11 +62,22 @@ export function ExportHub({
       id: 'print',
       icon: Printer,
       label: 'Print / Save PDF',
-      desc: 'Browser print dialog — save as PDF for sharing',
+      desc: 'Full report via browser print',
       color: 'var(--c-info)',
       bg: 'var(--c-info-bg)',
       border: 'var(--c-info-border)',
       onClick: () => { onPrint(); onClose() },
+      disabled: !canExport,
+    },
+    {
+      id: 'brief',
+      icon: Printer,
+      label: 'Decision brief (1 page)',
+      desc: 'Executive summary only — Tier 1 & 2 metrics',
+      color: 'var(--brand)',
+      bg: 'var(--brand-dim)',
+      border: 'var(--border-brand)',
+      onClick: () => { (onDecisionBrief ?? onPrint)(); onClose() },
       disabled: !canExport,
     },
     {
@@ -108,8 +121,8 @@ export function ExportHub({
             <Download className="h-4 w-4 text-(--brand)" />
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--brand)">Export Hub</p>
-            <p className="text-sm font-bold text-(--text-1)">Analysis #{analysisId}</p>
+            <p className="text-xs font-medium text-(--brand)">Export</p>
+            <p className="text-sm font-semibold text-(--text-1)">Analysis #{analysisId}</p>
           </div>
           <button
             onClick={onClose}
