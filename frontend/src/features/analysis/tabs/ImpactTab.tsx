@@ -36,7 +36,7 @@ export function ImpactTab({ data, kpis, rawColumnNames, kpiHistory }: ImpactTabP
               const sevTone = ins.severity === 'critical' ? 'risk' : 'warning'
               return (
                 <li key={i}>
-                  <div className="h-full rounded-lg bg-(--surface-1) p-5" style={{ boxShadow: 'var(--shadow-surface)' }}>
+                  <div className="h-full rounded-lg bg-(--surface-1) p-5 border border-(--border-subtle)">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
                       <StatusBadge tone="info">{ins.kind}</StatusBadge>
                       {ins.confidence && <StatusBadge tone="default">{ins.confidence}</StatusBadge>}

@@ -80,7 +80,7 @@ function MetricCell({
         <p
           className={[
             'text-xs font-medium tabular-nums flex items-center gap-1',
-            subTone === 'up' ? 'text-(--c-danger)' : subTone === 'down' ? 'text-(--c-success)' : 'text-(--text-3)',
+            subTone === 'up' ? 'text-(--critical)' : subTone === 'down' ? 'text-(--success)' : 'text-(--text-3)',
           ].join(' ')}
         >
           {subTone === 'up' && <TrendingUp className="h-3 w-3 shrink-0" />}
@@ -150,10 +150,9 @@ export function MetricRunway({
   return (
     <div
       data-print-tier="1"
-      className="rounded-lg bg-(--surface-1) overflow-hidden"
-      style={{ boxShadow: 'var(--shadow-surface), inset 0 1px 0 rgba(255,255,255,0.04)' }}
+      className="rounded-lg bg-(--surface-1) overflow-hidden border border-(--border-subtle)"
     >
-      <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-white/[0.04]">
+      <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-(--border-subtle)">
         <MetricCell
           label={rateLabel}
           value={rate.value}

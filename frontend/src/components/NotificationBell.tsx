@@ -98,7 +98,7 @@ export function NotificationBell() {
         {unreadCount > 0 && (
           <span
             aria-hidden
-            className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-(--c-danger) text-[9px] font-black text-white shadow-(--shadow-sm) animate-spring-up"
+            className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-(--critical) text-[9px] font-black text-white shadow-(--shadow-sm) animate-spring-up"
           >
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
@@ -120,7 +120,7 @@ export function NotificationBell() {
           <div className="flex items-center justify-between border-b border-(--border-subtle) px-4 py-3 bg-(--surface-1)">
             <div className="flex items-center gap-2">
               <Bell className="h-3.5 w-3.5 text-(--brand)" />
-              <p className="text-[11px] font-bold upperootLensse tracking-[0.14em] text-(--text-2)">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-(--text-2)">
                 Recent Completions
               </p>
             </div>
@@ -157,7 +157,7 @@ export function NotificationBell() {
                     onClick={() => setOpen(false)}
                     className="group flex items-center gap-3 px-4 py-3 hover:bg-(--surface-3) transition-colors"
                   >
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-(--c-success)" />
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-(--success)" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-(--text-1) truncate">
                         {run.dataset_name}

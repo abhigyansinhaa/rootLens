@@ -32,8 +32,8 @@ function DeltaPill({ value, fmt }: { value: number | null; fmt: (n: number) => s
       zero
         ? 'bg-(--surface-3) text-(--text-3)'
         : pos
-          ? 'bg-(--c-success-bg) text-(--c-success)'
-          : 'bg-(--c-danger-bg) text-(--c-danger)',
+          ? 'bg-(--success-bg) text-(--success)'
+          : 'bg-(--critical-bg) text-(--critical)',
     ].join(' ')}>
       {zero ? <Minus className="h-3 w-3" /> : pos ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
       {zero ? 'no change' : `${pos ? '+' : ''}${fmt(value)}`}
@@ -59,7 +59,7 @@ function MetricRow({
 
   return (
     <tr className="border-b border-(--border-subtle) last:border-0">
-      <td className="py-3 pr-4 text-xs text-(--text-3) font-semibold upperootLensse tracking-widest">{label}</td>
+      <td className="py-3 pr-4 text-xs text-(--text-3) font-semibold uppercase tracking-widest">{label}</td>
       <td className="py-3 pr-4 text-sm font-mono font-bold text-(--text-1) tabular-nums">
         {a != null ? format(a) : '—'}
       </td>
@@ -145,7 +145,7 @@ export function CompareAnalyses() {
           { run: b, label: 'Run B (comparison)' },
         ].map(({ run, label }, i) => (
           <Card key={i} padding="lg" className="border border-(--border-subtle) bg-(--surface-1)">
-            <p className="text-[10px] font-bold upperootLensse tracking-[0.14em] text-(--text-3) mb-2">{label}</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3) mb-2">{label}</p>
             <div className="flex items-center gap-2 flex-wrap mb-3">
               <span className="text-lg font-bold text-(--text-1)">Analysis #{run.id}</span>
               <StatusBadge tone={statusTone(run.status)}>{run.status}</StatusBadge>
@@ -190,10 +190,10 @@ export function CompareAnalyses() {
             <table className="w-full min-w-[480px]">
               <thead>
                 <tr className="border-b border-(--border-default)">
-                  <th className="pb-3 pr-4 text-left text-[10px] font-bold upperootLensse tracking-[0.14em] text-(--text-3)">Metric</th>
-                  <th className="pb-3 pr-4 text-left text-[10px] font-bold upperootLensse tracking-[0.14em] text-(--brand)">Run A #{a.id}</th>
-                  <th className="pb-3 pr-4 text-left text-[10px] font-bold upperootLensse tracking-[0.14em] text-(--c-info)">Run B #{b.id}</th>
-                  <th className="pb-3 text-left text-[10px] font-bold upperootLensse tracking-[0.14em] text-(--text-3)">Δ Change</th>
+                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3)">Metric</th>
+                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--brand)">Run A #{a.id}</th>
+                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--info)">Run B #{b.id}</th>
+                  <th className="pb-3 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3)">Δ Change</th>
                 </tr>
               </thead>
               <tbody>
@@ -219,10 +219,10 @@ export function CompareAnalyses() {
             <table className="w-full min-w-[480px]">
               <thead>
                 <tr className="border-b border-(--border-default)">
-                  <th className="pb-3 pr-4 text-left text-[10px] font-bold upperootLensse tracking-[0.14em] text-(--text-3)">Metric</th>
-                  <th className="pb-3 pr-4 text-left text-[10px] font-bold upperootLensse tracking-[0.14em] text-(--brand)">Run A #{a.id}</th>
-                  <th className="pb-3 pr-4 text-left text-[10px] font-bold upperootLensse tracking-[0.14em] text-(--c-info)">Run B #{b.id}</th>
-                  <th className="pb-3 text-left text-[10px] font-bold upperootLensse tracking-[0.14em] text-(--text-3)">Δ Change</th>
+                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3)">Metric</th>
+                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--brand)">Run A #{a.id}</th>
+                  <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--info)">Run B #{b.id}</th>
+                  <th className="pb-3 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3)">Δ Change</th>
                 </tr>
               </thead>
               <tbody>
@@ -231,7 +231,7 @@ export function CompareAnalyses() {
                   .map(k => (
                     <MetricRow
                       key={k}
-                      label={k.toUpperootLensse()}
+                      label={k.toUpperCase()}
                       a={typeof a.metrics![k] === 'number' ? a.metrics![k] as number : null}
                       b={typeof b.metrics![k] === 'number' ? b.metrics![k] as number : null}
                     />
@@ -257,7 +257,7 @@ export function CompareAnalyses() {
                 return (
                   <div
                     key={feature}
-                    className={`flex items-center gap-4 rounded-md border p-3 animate-slide-in-right delay-${Math.min((i + 1) * 50, 400)} ${inA && inB ? 'border-(--border-brand) bg-(--brand-dim)' : 'border-(--border-subtle) bg-(--surface-2)'
+                    className={`flex items-center gap-4 rounded-md border p-3 animate-slide-in-right delay-${Math.min((i + 1) * 50, 400)} ${inA && inB ? 'border-(--border-focus) bg-(--brand-dim)' : 'border-(--border-subtle) bg-(--surface-2)'
                       }`}
                   >
                     <code className="flex-1 text-sm font-semibold text-(--text-1) truncate">{feature}</code>
@@ -268,7 +268,7 @@ export function CompareAnalyses() {
                         <span className="text-(--text-4)">A: —</span>
                       )}
                       {inB ? (
-                        <span className="text-(--c-info) font-bold">B: #{rankB + 1}</span>
+                        <span className="text-(--info) font-bold">B: #{rankB + 1}</span>
                       ) : (
                         <span className="text-(--text-4)">B: —</span>
                       )}

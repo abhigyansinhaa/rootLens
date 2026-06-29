@@ -4,12 +4,13 @@ import { Link } from 'react-router-dom'
 import { api } from '../../api/client'
 import {
   Button, Card, CardEyebrow, EmptyState, ErrorState, Input,
-  PageHeader, Select, StatusBadge, AnimatedList,
+  PageHeader, Select, StatusBadge,
+  DataTable, THead, TBody, TR, TH, TD
 } from '../../components/ui'
 import { DatasetsListSkeleton } from '../../components/PageSkeletons'
 import {
   Database, Search, LayoutGrid, List,
-  FileSpreadsheet, Clock, ArrowRight, Upload,
+  FileSpreadsheet, Clock, Upload, ChevronRight,
 } from 'lucide-react'
 import type { Dataset } from '../../types'
 
@@ -30,6 +31,7 @@ export function Datasets({ compact = false }: { compact?: boolean }) {
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<'recent' | 'name' | 'rows'>('recent')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [density, setDensity] = useState<'compact' | 'comfortable'>('comfortable')
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['datasets'],
@@ -38,9 +40,9 @@ export function Datasets({ compact = false }: { compact?: boolean }) {
 
   const filtered = useMemo(() => {
     if (!data?.length) return []
-    const q = query.trim().toLowerootLensse()
+    const q = query.trim().toLowerCase()
     const list = q
-      ? data.filter(d => d.name.toLowerootLensse().includes(q) || d.filename.toLowerootLensse().includes(q) || d.file_format.toLowerootLensse().includes(q))
+      ? data.filter(d => d.name.toLowerCase().includes(q) || d.filename.toLowerCase().includes(q) || d.file_format.toLowerCase().includes(q))
       : [...data]
     if (sort === 'recent') list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     else if (sort === 'name') list.sort((a, b) => a.name.localeCompare(b.name))
@@ -49,7 +51,7 @@ export function Datasets({ compact = false }: { compact?: boolean }) {
   }, [data, query, sort])
 
   const totalRows = data?.reduce((s, d) => s + d.rows, 0) ?? 0
-  const formats = useMemo(() => Array.from(new Set((data ?? []).map(d => d.file_format.toUpperootLensse()))), [data])
+  const formats = useMemo(() => Array.from(new Set((data ?? []).map(d => d.file_format.toUpperCase()))), [data])
 
   if (isLoading) return <DatasetsListSkeleton />
   if (error) return <ErrorState message="We couldn't load your datasets. Check your connection and try again." onRetry={() => void refetch()} />
@@ -97,7 +99,7 @@ export function Datasets({ compact = false }: { compact?: boolean }) {
       {data && data.length > 0 && (
         <>
           {/* ── Toolbar ── */}
-          <div className={`${compact ? 'sticky top-0' : 'glass-2 sticky top-[calc(var(--app-header-height)+1rem)]'} z-20 rounded-lg border border-(--border-default) bg-(--surface-1) p-2 sm:p-4`}>
+          <div className={`${compact ? 'sticky top-0' : 'sticky top-[calc(var(--app-header-height)+1rem)]'} z-20 rounded-lg border border-(--border-default) bg-(--surface-1) p-2 sm:p-4`}>
             <div className={`flex gap-3 ${compact ? 'flex-col' : 'flex-col sm:flex-row sm:items-center sm:justify-between'}`}>
               <div className={`flex flex-1 items-center gap-2 ${compact ? 'flex-col' : ''}`}>
                 <div className={`relative w-full ${compact ? '' : 'max-w-sm flex-1'} group`}>
@@ -125,23 +127,45 @@ export function Datasets({ compact = false }: { compact?: boolean }) {
 
               {/* View toggle */}
               {!compact && (
-                <div className="flex items-center gap-1 rounded-md border border-(--border-subtle) bg-(--surface-2) p-1 shrink-0">
-                  {(['grid', 'list'] as const).map(mode => (
-                    <button
-                      key={mode}
-                      type="button"
-                      onClick={() => setViewMode(mode)}
-                      className={[
-                        'rounded-sm p-1.5 transition-all',
-                        viewMode === mode
-                          ? 'bg-(--surface-1) text-(--brand) shadow-(--shadow-xs)'
-                          : 'text-(--text-3) hover:text-(--text-1)',
-                      ].join(' ')}
-                      title={`${mode} view`}
-                    >
-                      {mode === 'grid' ? <LayoutGrid className="h-4 w-4" /> : <List className="h-4 w-4" />}
-                    </button>
-                  ))}
+                <div className="flex items-center gap-3 shrink-0">
+                  {viewMode === 'list' && (
+                    <div className="flex items-center gap-1 rounded-md border border-(--border-subtle) bg-(--surface-2) p-1 shrink-0">
+                      {(['compact', 'comfortable'] as const).map(d => (
+                        <button
+                          key={d}
+                          type="button"
+                          onClick={() => setDensity(d)}
+                          className={[
+                            'rounded-sm px-2 py-1 text-[10px] font-bold uppercase tracking-wider transition-all',
+                            density === d
+                              ? 'bg-(--surface-1) text-(--brand) shadow-sm'
+                              : 'text-(--text-3) hover:text-(--text-1)',
+                          ].join(' ')}
+                          title={`${d} density`}
+                        >
+                          {d}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1 rounded-md border border-(--border-subtle) bg-(--surface-2) p-1 shrink-0">
+                    {(['grid', 'list'] as const).map(mode => (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => setViewMode(mode)}
+                        className={[
+                          'rounded-sm p-1.5 transition-all',
+                          viewMode === mode
+                            ? 'bg-(--surface-1) text-(--brand) shadow-[var(--shadow-xs)]'
+                            : 'text-(--text-3) hover:text-(--text-1)',
+                        ].join(' ')}
+                        title={`${mode} view`}
+                      >
+                        {mode === 'grid' ? <LayoutGrid className="h-4 w-4" /> : <List className="h-4 w-4" />}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -156,12 +180,12 @@ export function Datasets({ compact = false }: { compact?: boolean }) {
 
           {/* ── Grid view ── */}
           {filtered.length > 0 && (viewMode === 'grid' && !compact) && (
-            <AnimatedList className="w-full grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-3" delay={50}>
+            <div className="w-full grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {filtered.map((d) => {
                 const fresh = freshnessOf(d.created_at)
                 return (
                   <Link key={d.id} to={`/datasets/${d.id}`} className="group block h-full">
-                    <div className="relative flex h-full flex-col overflow-hidden rounded-lg border border-(--border-subtle) bg-(--surface-1) transition-all duration-(--duration-normal) hover:-translate-y-1 hover:border-(--border-brand) hover:shadow-[var(--shadow-lg),0_0_30px_hsl(214_100%_59%/0.08)]">
+                    <div className="relative flex h-full flex-col overflow-hidden rounded-lg border border-(--border-subtle) bg-(--surface-1) transition-all duration-(--duration-normal) hover:-translate-y-1 hover:border-(--border-focus) hover:shadow-[var(--shadow-lg),0_0_30px_hsl(214_100%_59%/0.08)]">
                       {/* Top accent (reveals on hover) */}
                       <div className="h-[2px] w-full bg-(--brand) transition-transform origin-left scale-x-0 group-hover:scale-x-100" />
 
@@ -170,7 +194,7 @@ export function Datasets({ compact = false }: { compact?: boolean }) {
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-1.5">
                             <FileSpreadsheet className="h-3.5 w-3.5 text-(--text-3)" />
-                            <CardEyebrow>{d.file_format.toUpperootLensse()}</CardEyebrow>
+                            <CardEyebrow>{d.file_format.toUpperCase()}</CardEyebrow>
                           </div>
                           <StatusBadge tone={fresh.tone} dot className="text-[9px]">
                             {fresh.label}
@@ -188,13 +212,13 @@ export function Datasets({ compact = false }: { compact?: boolean }) {
                         {/* Stats */}
                         <dl className="mt-auto grid grid-cols-2 gap-2 border-t border-(--border-subtle) pt-4">
                           <div>
-                            <dt className="text-[10px] font-bold upperootLensse tracking-[0.14em] text-(--text-3)">Rows</dt>
+                            <dt className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3)">Rows</dt>
                             <dd className="mt-0.5 font-mono text-sm font-semibold tabular-nums text-(--text-1)">
                               {d.rows.toLocaleString()}
                             </dd>
                           </div>
                           <div>
-                            <dt className="text-[10px] font-bold upperootLensse tracking-[0.14em] text-(--text-3)">Columns</dt>
+                            <dt className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3)">Columns</dt>
                             <dd className="mt-0.5 font-mono text-sm font-semibold tabular-nums text-(--text-1)">
                               {d.cols}
                             </dd>
@@ -208,54 +232,61 @@ export function Datasets({ compact = false }: { compact?: boolean }) {
                   </Link>
                 )
               })}
-            </AnimatedList>
+            </div>
           )}
 
           {/* ── List view ── */}
           {filtered.length > 0 && (viewMode === 'list' || compact) && (
-            <AnimatedList className={`w-full flex-col items-stretch gap-2 ${compact ? 'px-1' : ''}`} delay={40}>
-              {filtered.map((d) => {
-                const fresh = freshnessOf(d.created_at)
-                const accentBg =
-                  fresh.tone === 'success' ? 'bg-(--c-success)' :
-                    fresh.tone === 'warning' ? 'bg-(--c-warning)' :
-                      'bg-(--border-strong)'
-
-                return (
-                  <Link key={d.id} to={`/datasets/${d.id}`} className={`group relative block overflow-hidden rounded-lg border border-(--border-subtle) bg-(--surface-1) ${compact ? 'p-3' : 'p-4'} transition-all hover:border-(--border-brand) hover:bg-(--surface-2)`}>
-                    {/* Left stripe */}
-                    <div className={`absolute left-0 top-0 bottom-0 w-[3px] ${accentBg} transition-all`} />
-
-                    <div className="flex min-w-0 items-center gap-3 pl-3">
-                      {!compact && <FileSpreadsheet className="h-4 w-4 shrink-0 text-(--text-3)" />}
-                      <div className="min-w-0 flex-1">
-                        <h2 className="truncate text-sm font-semibold text-(--text-1) group-hover:text-(--brand) transition-colors">
-                          {d.name}
-                        </h2>
-                        <p className={`truncate font-mono ${compact ? 'text-[9px]' : 'text-[10px]'} text-(--text-3) mt-0.5`}>{d.filename}</p>
-                      </div>
-
-                      {!compact && (
-                        <div className="hidden md:flex items-center gap-8 text-right font-mono text-xs text-(--text-2) tabular-nums shrink-0">
-                          <div><span className="text-(--text-3) mr-1.5">R</span>{d.rows.toLocaleString()}</div>
-                          <div><span className="text-(--text-3) mr-1.5">C</span>{d.cols}</div>
-                        </div>
-                      )}
-
-                      <div className="flex shrink-0 items-center gap-2">
-                        {!compact && <span className="hidden sm:inline text-xs text-(--text-3)">{formatDate(d.created_at)}</span>}
-                        {compact ? (
-                          <div className={`h-2 w-2 rounded-full ${accentBg}`} title={fresh.label} />
-                        ) : (
+            <div className={`animate-fade-in-up ${compact ? 'px-1' : ''}`}>
+              <DataTable>
+                <THead>
+                  <TR>
+                    <TH className="w-8"></TH>
+                    <TH>Dataset</TH>
+                    <TH>Status</TH>
+                    <TH align="right">Rows</TH>
+                    <TH align="right">Cols</TH>
+                    <TH align="right">Created</TH>
+                    <TH className="w-8"></TH>
+                  </TR>
+                </THead>
+                <TBody>
+                  {filtered.map((d) => {
+                    const fresh = freshnessOf(d.created_at)
+                    const py = density === 'compact' ? 'py-2' : 'py-3'
+                    return (
+                      <TR key={d.id} className="group relative">
+                        <TD className={py}>
+                          <FileSpreadsheet className="h-4 w-4 text-(--text-3)" />
+                        </TD>
+                        <TD className={py}>
+                          <Link to={`/datasets/${d.id}`} className="absolute inset-0" aria-label={`View ${d.name}`} />
+                          <div className="flex flex-col">
+                            <span className="text-sm font-semibold text-(--text-1) group-hover:text-(--brand) transition-colors">{d.name}</span>
+                            <span className="text-[10px] font-mono text-(--text-3) truncate max-w-[200px]">{d.filename}</span>
+                          </div>
+                        </TD>
+                        <TD className={py}>
                           <StatusBadge tone={fresh.tone} dot className="text-[9px]">{fresh.label}</StatusBadge>
-                        )}
-                        {!compact && <ArrowRight className="h-4 w-4 text-(--text-3) transition-transform group-hover:translate-x-1 group-hover:text-(--text-1)" />}
-                      </div>
-                    </div>
-                  </Link>
-                )
-              })}
-            </AnimatedList>
+                        </TD>
+                        <TD align="right" numeric className={`${py} text-sm font-mono font-medium text-(--text-2)`}>
+                          {d.rows.toLocaleString()}
+                        </TD>
+                        <TD align="right" numeric className={`${py} text-sm font-mono font-medium text-(--text-2)`}>
+                          {d.cols}
+                        </TD>
+                        <TD align="right" className={`${py} text-xs text-(--text-3)`}>
+                          {formatDate(d.created_at)}
+                        </TD>
+                        <TD className={py}>
+                          <ChevronRight className="h-4 w-4 text-(--text-4) group-hover:text-(--text-1) transition-colors ml-auto" />
+                        </TD>
+                      </TR>
+                    )
+                  })}
+                </TBody>
+              </DataTable>
+            </div>
           )}
         </>
       )}

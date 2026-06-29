@@ -10,6 +10,7 @@ import type { AnalysisKpis } from '../../types'
 import { CardEyebrow, StatusBadge } from '../ui'
 import { ChartTooltip, chartTooltipStyle } from '../ui'
 import { formatPct01 } from './format'
+import { chartPalette } from '../../lib/chartPalette'
 
 const BUCKET_LABEL: Record<AnalysisKpis['risk_segments'][0]['bucket'], string> = {
   low: 'Stable',
@@ -35,8 +36,7 @@ export function RiskSegmentsChart({ kpis, hasValue }: { kpis: AnalysisKpis; hasV
   return (
     <div
       data-print-tier="2"
-      className="rounded-lg bg-(--surface-1) p-6 overflow-hidden"
-      style={{ boxShadow: 'var(--shadow-surface)' }}
+      className="rounded-lg bg-(--surface-1) p-6 overflow-hidden border border-(--border-subtle)"
     >
       <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
         <div>
@@ -86,9 +86,9 @@ export function RiskSegmentsChart({ kpis, hasValue }: { kpis: AnalysisKpis; hasV
               contentStyle={chartTooltipStyle}
               cursor={{ fill: 'var(--surface-3)', opacity: 0.35 }}
             />
-            <Bar dataKey="users_share" name="Users" fill="var(--chart-neutral)" radius={[6, 6, 0, 0]} barSize={36} />
+            <Bar dataKey="users_share" name="Users" fill={chartPalette[2]} radius={[6, 6, 0, 0]} barSize={36} />
             {hasValue && (
-              <Bar dataKey="value_share" name="Value" fill="var(--c-warning)" radius={[6, 6, 0, 0]} barSize={36} />
+              <Bar dataKey="value_share" name="Value" fill={chartPalette[4]} radius={[6, 6, 0, 0]} barSize={36} />
             )}
           </BarChart>
         </ResponsiveContainer>
@@ -105,7 +105,7 @@ export function RiskSegmentsChart({ kpis, hasValue }: { kpis: AnalysisKpis; hasV
                 {BUCKET_LABEL[segment.bucket]}
               </StatusBadge>
               {segment.easiest_to_fix && (
-                <span className="text-[10px] text-(--c-success) font-medium">Tractable</span>
+                <span className="text-[10px] text-(--success) font-medium">Tractable</span>
               )}
             </div>
             <p className="text-lg font-semibold tabular-nums text-(--text-1)">{formatPct01(segment.share)}</p>

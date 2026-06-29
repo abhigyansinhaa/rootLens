@@ -20,7 +20,7 @@ export function Breadcrumbs() {
         const to = `/${pathnames.slice(0, index + 1).join('/')}`
 
         // Capitalize and format value
-        const formattedValue = value.charAt(0).toUpperootLensse() + value.slice(1).replace(/-/g, ' ')
+        const formattedValue = value.charAt(0).toUpperCase() + value.slice(1).replace(/-/g, ' ')
 
         return (
           <div key={to} className="flex items-center">

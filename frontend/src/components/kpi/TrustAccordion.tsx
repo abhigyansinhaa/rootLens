@@ -17,8 +17,7 @@ export function TrustAccordion({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between gap-4 rounded-lg bg-(--surface-1) px-5 py-4 text-left transition-colors hover:bg-(--surface-2)"
-        style={{ boxShadow: 'var(--shadow-surface)' }}
+        className="w-full flex items-center justify-between gap-4 rounded-lg bg-(--surface-1) border border-(--border-subtle) px-5 py-4 text-left transition-colors hover:bg-(--surface-2)"
         aria-expanded={open}
       >
         <div className="flex items-center gap-3 min-w-0">

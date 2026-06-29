@@ -49,11 +49,11 @@ export function ReliabilityBadge({ kpis }: { kpis: AnalysisKpis }) {
           <p className="text-base font-bold tracking-tight">
             Headline{' '}
             <span className="tabular-nums">{formatNumber(r.headline_value)}</span>{' '}
-            <span className="text-xs font-medium upperootLensse tracking-[0.16em] text-(--text-2)">
+            <span className="text-xs font-medium uppercase tracking-[0.16em] text-(--text-2)">
               ({r.headline_metric})
             </span>
             {r.cv_std !== undefined && r.cv_std !== null ? (
-              <span className="ml-2 text-xs font-medium upperootLensse tracking-[0.16em] text-(--text-2)">
+              <span className="ml-2 text-xs font-medium uppercase tracking-[0.16em] text-(--text-2)">
                 · CV std <span className="tabular-nums">{formatNumber(r.cv_std)}</span>
               </span>
             ) : null}

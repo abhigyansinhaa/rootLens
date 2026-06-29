@@ -20,8 +20,8 @@ const trendIconMap = {
 }
 
 const trendColorMap = {
-  up: 'text-(--c-success)',
-  down: 'text-(--c-danger)',
+  up: 'text-(--success)',
+  down: 'text-(--critical)',
   flat: 'text-(--text-3)',
 }
 
@@ -31,10 +31,9 @@ export function Stat({ label, value, hint, trend, trendValue, className = '' }: 
   return (
     <div
       className={[
-        'relative overflow-hidden rounded-lg',
+        'relative overflow-hidden rounded-lg border border-(--border-subtle)',
         'bg-(--surface-1)',
-        'p-5 transition-all duration-(--duration-normal)',
-        'hover:bg-(--surface-2)/80',
+        'p-4 sm:p-5',
         className,
       ].join(' ')}
     >

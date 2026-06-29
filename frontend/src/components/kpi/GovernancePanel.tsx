@@ -4,7 +4,7 @@ import { Card, CardEyebrow } from '../ui'
 function row(key: string, value: ReactNode) {
   return (
     <div className="flex flex-wrap justify-between gap-2 border-b border-(--border-subtle) py-2.5 last:border-b-0">
-      <dt className="text-[11px] font-bold upperootLensse tracking-[0.12em] text-(--text-3)">
+      <dt className="text-[11px] font-bold uppercase tracking-[0.12em] text-(--text-3)">
         {key}
       </dt>
       <dd className="max-w-[70%] text-right text-sm text-(--text-1) font-medium">{value}</dd>

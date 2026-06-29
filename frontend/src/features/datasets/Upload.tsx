@@ -9,9 +9,9 @@ import { DEMO_CSV } from './demoData'
 const FEATURES = [
   {
     icon: Zap,
-    color: 'var(--c-warning)',
-    bg: 'var(--c-warning-bg)',
-    border: 'var(--c-warning-border)',
+    color: 'var(--warning)',
+    bg: 'var(--warning-bg)',
+    border: 'var(--warning-border)',
     title: 'Instant SHAP Analysis',
     desc: 'XGBoost + LightGBM trained automatically. SHAP-based driver ranking with no config required.',
   },
@@ -19,15 +19,15 @@ const FEATURES = [
     icon: BarChart3,
     color: 'var(--brand)',
     bg: 'var(--brand-dim)',
-    border: 'var(--border-brand)',
+    border: 'var(--border-focus)',
     title: 'Decision-Ready KPIs',
     desc: 'Monetized risk segments, counterfactuals, and concentration analysis — all in one report.',
   },
   {
     icon: Shield,
-    color: 'var(--c-success)',
-    bg: 'var(--c-success-bg)',
-    border: 'var(--c-success-border)',
+    color: 'var(--success)',
+    bg: 'var(--success-bg)',
+    border: 'var(--success-border)',
     title: 'Governance & Audit',
     desc: 'Reliability scores, fairness flags, and full model lineage exported with every run.',
   },
@@ -154,8 +154,8 @@ export function Upload() {
         onDragLeave={() => setDrag(false)}
         onDrop={onDrop}
         className={[
-          'relative flex flex-col items-center justify-center rounded-lg',
-          'min-h-[240px] transition-all duration-200',
+          'relative flex flex-col items-center justify-center rounded-md',
+          'min-h-[200px] transition-all duration-200',
           'border border-dashed',
           drag
             ? 'border-(--brand) bg-(--brand-dim)'
@@ -175,10 +175,10 @@ export function Upload() {
 
         {success && (
           <div className="relative z-10 flex flex-col items-center gap-4 animate-spring-in">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-(--c-success-bg) border border-(--c-success-border)">
-              <CheckCircle2 className="h-8 w-8 text-(--c-success)" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-(--success-bg) border border-(--success-border)">
+              <CheckCircle2 className="h-8 w-8 text-(--success)" />
             </div>
-            <p className="text-sm font-semibold text-(--c-success)">Uploaded! Redirecting…</p>
+            <p className="text-sm font-semibold text-(--success)">Uploaded! Redirecting…</p>
           </div>
         )}
 
@@ -192,12 +192,12 @@ export function Upload() {
             />
 
             <div className={[
-              'flex h-16 w-16 items-center justify-center rounded-xl',
+              'flex h-12 w-12 items-center justify-center rounded-md',
               'border border-(--border-subtle) bg-(--surface-2)',
               'text-(--text-2) transition-transform',
               drag ? 'scale-110' : '',
             ].join(' ')}>
-              <UploadCloud className="h-8 w-8" />
+              <UploadCloud className="h-6 w-6" />
             </div>
 
             <div>
@@ -225,8 +225,8 @@ export function Upload() {
 
       {/* File preview strip */}
       {selectedFile && loading && (
-        <div className="flex items-center gap-4 rounded-lg border border-(--border-brand) bg-(--brand-dim) px-5 py-4 animate-spring-in">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-(--border-brand) bg-(--brand-dimmer)">
+        <div className="flex items-center gap-4 rounded-lg border border-(--border-focus) bg-(--brand-dim) px-5 py-4 animate-spring-in">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-(--border-focus) bg-(--brand-dimmer)">
             <FileType className="h-5 w-5 text-(--brand)" />
           </div>
           <div className="flex-1 min-w-0">
@@ -234,7 +234,7 @@ export function Upload() {
             <p className="text-xs text-(--text-2) mt-0.5">
               {(selectedFile.size / 1024).toFixed(1)} KB
               {selectedFile.type && (
-                <span className="ml-2 capitalize">{selectedFile.type.split('/').pop()?.toUpperootLensse()}</span>
+                <span className="ml-2 capitalize">{selectedFile.type.split('/').pop()?.toUpperCase()}</span>
               )}
             </p>
           </div>
@@ -243,10 +243,10 @@ export function Upload() {
       )}
 
       {err && (
-        <div className="flex items-start gap-3 rounded-lg border border-(--c-danger-border) bg-(--c-danger-bg) px-5 py-4 animate-spring-in">
-          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-(--c-danger)" />
+        <div className="flex items-start gap-3 rounded-lg border border-(--critical-border) bg-(--critical-bg) px-5 py-4 animate-spring-in">
+          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-(--critical)" />
           <div>
-            <p className="text-sm font-bold text-(--c-danger)">Upload failed</p>
+            <p className="text-sm font-bold text-(--critical)">Upload failed</p>
             <p className="mt-0.5 text-xs text-(--text-2)">{err}</p>
           </div>
         </div>
@@ -254,7 +254,7 @@ export function Upload() {
 
       {/* Feature cards */}
       <div>
-        <p className="mb-4 text-[11px] font-bold upperootLensse tracking-[0.16em] text-(--text-3)">
+        <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.16em] text-(--text-3)">
           What happens after upload
         </p>
         <div className="grid gap-4 sm:grid-cols-3">

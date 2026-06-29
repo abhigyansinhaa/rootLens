@@ -80,7 +80,7 @@ function CopilotContent({
   const topDriverName = topDriver ? formatDriverLabel(topDriver.feature, rawColumns) : null
 
   const handleFollowUp = () => {
-    const q = followUp.trim().toLowerootLensse()
+    const q = followUp.trim().toLowerCase()
     if (!q) return
     if (q.includes('driver') || q.includes('cause')) onCitationClick?.('drivers-section')
     else if (q.includes('trust') || q.includes('model')) onCitationClick?.('trust-section')
@@ -101,8 +101,8 @@ function CopilotContent({
             <p className="text-[11px] text-(--text-3)">Grounded in run #{analysis.id}</p>
           </div>
         </div>
-        <span className="flex items-center gap-1.5 text-[11px] text-(--c-success)">
-          <span className="status-dot status-dot-live bg-(--c-success)" />
+        <span className="flex items-center gap-1.5 text-[11px] text-(--success)">
+          <span className="status-dot status-dot-live bg-(--success)" />
           Live
         </span>
       </div>

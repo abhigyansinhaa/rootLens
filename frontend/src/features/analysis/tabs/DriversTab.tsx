@@ -12,6 +12,7 @@ import type { AnalysisKpis, Analysis } from '../../../types'
 import { DriverImpactCard, ReliabilityBadge, RiskSegmentsChart } from '../../../components/kpi'
 import { ChartTooltip, chartTooltipStyle } from '../../../components/ui'
 import { formatDriverLabel } from '../../../lib/driverLabels'
+import { chartPalette } from '../../../lib/chartPalette'
 
 interface DriversTabProps {
   data: Analysis
@@ -91,7 +92,7 @@ function InteractiveShapChart({
               return (
                 <Cell
                   key={entry.feature}
-                  fill="var(--chart-primary)"
+                  fill={chartPalette[1]}
                   fillOpacity={isSelected ? 1 : 0.25}
                 />
               )
@@ -115,7 +116,7 @@ export function DriversTab({
   driverSearchRef,
 }: DriversTabProps) {
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null)
-  const driverootLensrdRef = useRef<HTMLDivElement>(null)
+  const driverCardRef = useRef<HTMLDivElement>(null)
 
   const chartData: ChartRow[] = useMemo(() => {
     const fi = data.feature_importance
@@ -138,8 +139,8 @@ export function DriversTab({
     (feature: string | null) => {
       setSelectedFeature(feature)
       onHighlightChange?.(feature)
-      if (feature && driverootLensrdRef.current) {
-        setTimeout(() => driverootLensrdRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80)
+      if (feature && driverCardRef.current) {
+        setTimeout(() => driverCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80)
       }
     },
     [onHighlightChange],
@@ -170,7 +171,7 @@ export function DriversTab({
               </button>
             )}
           </div>
-          <div className="rounded-lg bg-(--surface-1) p-4" style={{ boxShadow: 'var(--shadow-surface)' }}>
+          <div className="rounded-lg bg-(--surface-1) p-4 border border-(--border-subtle)">
             <InteractiveShapChart
               chartData={chartData}
               selectedFeature={selectedFeature}
@@ -180,7 +181,7 @@ export function DriversTab({
         </div>
       )}
 
-      <div ref={driverootLensrdRef}>
+      <div ref={driverCardRef}>
         <DriverImpactCard
           kpis={kpis}
           directionByFeature={directionByFeature}

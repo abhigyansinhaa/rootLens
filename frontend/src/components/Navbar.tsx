@@ -15,7 +15,7 @@ type NavbarProps = {
 }
 
 const navItems = [
-  { to: '/', label: 'Overview', icon: LayoutDashboard, end: true },
+  { to: '/', label: 'Command Center', icon: LayoutDashboard, end: true },
   { to: '/datasets', label: 'Datasets', icon: Database, end: false },
   { to: '/upload', label: 'Upload', icon: Upload, end: false },
   { to: '/analyses', label: 'Analyses', icon: BarChart3, end: false },
@@ -25,15 +25,15 @@ const navItems = [
 function displayName(email: string): string {
   const local = email.split('@')[0] ?? ''
   const first = local.split(/[._-]/)[0] ?? local
-  return first.charAt(0).toUpperootLensse() + first.slice(1)
+  return first.charAt(0).toUpperCase() + first.slice(1)
 }
 
 /** Derive initials for avatar */
 function initials(email: string): string {
   const local = email.split('@')[0] ?? ''
   const parts = local.split(/[._-]/).filter(Boolean)
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperootLensse()
-  return local.slice(0, 2).toUpperootLensse()
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
+  return local.slice(0, 2).toUpperCase()
 }
 
 export function Navbar({ user, onLogout }: NavbarProps) {
@@ -52,7 +52,7 @@ export function Navbar({ user, onLogout }: NavbarProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-(--border-subtle) glass bg-(--app-bg)/80 backdrop-blur-md">
+      <header className="sticky top-0 z-40 w-full border-b border-(--border-subtle) bg-(--app-bg)">
         <div className="mx-auto flex h-(--app-header-height) max-w-(--page-max-width) items-center justify-between px-4 sm:px-6 lg:px-8">
 
           {/* ── Left: Logo & Desktop Navigation ── */}
@@ -96,6 +96,13 @@ export function Navbar({ user, onLogout }: NavbarProps) {
           {/* ── Right: Utilities & Profile ── */}
           <div className="flex items-center gap-2">
             <div className="hidden sm:flex items-center gap-2 border-r border-(--border-subtle) pr-4 mr-2">
+              <button
+                className="hidden lg:flex items-center gap-1.5 mr-2 rounded-md border border-(--border-subtle) bg-(--surface-1) px-2 py-1 text-xs font-medium text-(--text-3) hover:bg-(--surface-2) hover:text-(--text-2) transition-colors"
+                onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+                title="Open Command Palette"
+              >
+                Search... <kbd className="ml-1 rounded bg-(--surface-3) px-1.5 py-0.5 text-[10px] font-sans font-semibold">⌘K</kbd>
+              </button>
               <ThemeToggle />
               <NotificationBell />
             </div>
@@ -107,7 +114,7 @@ export function Navbar({ user, onLogout }: NavbarProps) {
               </div>
               <button
                 onClick={onLogout}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-(--brand-dim) border border-(--border-brand) text-(--brand) text-xs font-bold hover:bg-(--brand) hover:text-white transition-colors"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-(--brand-dim) border border-(--border-focus) text-(--brand) text-xs font-bold hover:bg-(--brand) hover:text-white transition-colors"
                 title="Sign out"
               >
                 {abbr}
@@ -164,7 +171,7 @@ export function Navbar({ user, onLogout }: NavbarProps) {
                       [
                         'group flex items-center gap-3 rounded-md px-3 py-3 text-base font-medium',
                         isActive
-                          ? 'bg-(--brand-dim) text-(--brand) shadow-[inset_4px_0_0_0_var(--color-brand-500)]'
+                          ? 'bg-(--brand-dim) text-(--brand) shadow-[inset_4px_0_0_0_var(--brand)]'
                           : 'text-(--text-2) hover:bg-(--surface-2) hover:text-(--text-1)'
                       ].join(' ')
                     }
@@ -181,7 +188,7 @@ export function Navbar({ user, onLogout }: NavbarProps) {
 
               <div className="mt-4 pt-4 px-4">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-(--brand-dim) border border-(--border-brand) text-(--brand) text-sm font-bold">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-(--brand-dim) border border-(--border-focus) text-(--brand) text-sm font-bold">
                     {abbr}
                   </div>
                   <div className="flex flex-col">
@@ -201,7 +208,7 @@ export function Navbar({ user, onLogout }: NavbarProps) {
 
                 <button
                   onClick={onLogout}
-                  className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-base font-medium text-(--c-danger) hover:bg-(--c-danger-bg)"
+                  className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-base font-medium text-(--critical) hover:bg-(--critical-bg)"
                 >
                   <LogOut className="h-5 w-5" />
                   Sign out

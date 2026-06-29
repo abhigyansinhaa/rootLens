@@ -22,7 +22,7 @@ export function LineageTab({ data, onDownloadJson }: LineageTabProps) {
         aria-label="Run lineage metadata"
       >
         <div className="border-b border-(--border-subtle) bg-(--surface-2) px-5 py-3">
-          <p className="text-[11px] font-bold upperootLensse tracking-[0.16em] text-(--brand)">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-(--brand)">
             Run Lineage
           </p>
         </div>
@@ -34,7 +34,7 @@ export function LineageTab({ data, onDownloadJson }: LineageTabProps) {
             { label: 'Schema Hash', value: data.schema_hash },
           ].map(({ label, value }) => (
             <div key={label} className="px-5 py-4">
-              <p className="text-[10px] font-bold upperootLensse tracking-[0.14em] text-(--text-3) mb-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3) mb-1">
                 {label}
               </p>
               <code
@@ -54,7 +54,7 @@ export function LineageTab({ data, onDownloadJson }: LineageTabProps) {
         aria-label="Analysis configuration"
       >
         <div className="border-b border-(--border-subtle) bg-(--surface-2) px-5 py-3">
-          <p className="text-[11px] font-bold upperootLensse tracking-[0.16em] text-(--text-3)">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-(--text-3)">
             Analysis Configuration
           </p>
         </div>
@@ -66,7 +66,7 @@ export function LineageTab({ data, onDownloadJson }: LineageTabProps) {
             { label: 'Value Column', value: data.value_column ?? '—' },
           ].map(({ label, value }) => (
             <div key={label} className="px-5 py-4">
-              <p className="text-[10px] font-bold upperootLensse tracking-[0.14em] text-(--text-3) mb-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3) mb-1">
                 {label}
               </p>
               <p className="text-sm font-semibold text-(--text-1) capitalize">{value}</p>
@@ -82,7 +82,7 @@ export function LineageTab({ data, onDownloadJson }: LineageTabProps) {
           aria-label="Model metadata"
         >
           <div className="flex items-center justify-between border-b border-(--border-subtle) bg-(--surface-2) px-5 py-3">
-            <p className="text-[11px] font-bold upperootLensse tracking-[0.16em] text-(--text-3)">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-(--text-3)">
               Model Metadata
             </p>
             <Button size="xs" variant="secondary" type="button" onClick={onDownloadJson}>
@@ -101,7 +101,7 @@ export function LineageTab({ data, onDownloadJson }: LineageTabProps) {
 
       {/* Reproducibility note */}
       <div className="rounded-lg border border-(--border-subtle) bg-(--brand-dimmer) p-5">
-        <p className="text-[11px] font-bold upperootLensse tracking-[0.14em] text-(--brand) mb-2">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-(--brand) mb-2">
           Reproducibility guarantee
         </p>
         <p className="text-sm leading-relaxed text-(--text-2)">

@@ -49,7 +49,7 @@ export default function App() {
           {/* Skip to main content — keyboard / screen reader accessibility */}
           <a
             href="#main-content"
-            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-99999 focus:rounded-lg focus:border focus:border-(--border-brand) focus:bg-(--surface-2) focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-(--brand) focus:shadow-(--shadow-lg)"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-99999 focus:rounded-lg focus:border focus:border-(--border-focus) focus:bg-(--surface-2) focus:px-4 focus:py-2 focus:text-sm focus:font-bold focus:text-(--brand) focus:shadow-(--shadow-lg)"
           >
             Skip to main content
           </a>

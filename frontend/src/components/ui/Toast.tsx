@@ -56,32 +56,32 @@ const VARIANT_STYLES: Record<ToastVariant, {
   border: string
 }> = {
   success: {
-    bar: 'bg-(--c-success)',
+    bar: 'bg-(--success)',
     icon: CheckCircle2,
-    iconColor: 'text-(--c-success)',
+    iconColor: 'text-(--success)',
     bg: 'bg-(--surface-2)',
-    border: 'border-(--c-success-border)',
+    border: 'border-(--success-border)',
   },
   error: {
-    bar: 'bg-(--c-danger)',
+    bar: 'bg-(--critical)',
     icon: XCircle,
-    iconColor: 'text-(--c-danger)',
+    iconColor: 'text-(--critical)',
     bg: 'bg-(--surface-2)',
-    border: 'border-(--c-danger-border)',
+    border: 'border-(--critical-border)',
   },
   warning: {
-    bar: 'bg-(--c-warning)',
+    bar: 'bg-(--warning)',
     icon: AlertTriangle,
-    iconColor: 'text-(--c-warning)',
+    iconColor: 'text-(--warning)',
     bg: 'bg-(--surface-2)',
-    border: 'border-(--c-warning-border)',
+    border: 'border-(--warning-border)',
   },
   info: {
-    bar: 'bg-(--c-info)',
+    bar: 'bg-(--info)',
     icon: Info,
-    iconColor: 'text-(--c-info)',
+    iconColor: 'text-(--info)',
     bg: 'bg-(--surface-2)',
-    border: 'border-(--c-info-border)',
+    border: 'border-(--info-border)',
   },
 }
 

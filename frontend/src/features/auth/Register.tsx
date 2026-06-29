@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { useAuth } from './AuthContext'
 import { Button, Input } from '../../components/ui'
-import { ShieldCheck, Server, Lock, Eye, EyeOff, Activity } from 'lucide-react'
+import { ShieldCheck, Server, Eye, EyeOff, Activity } from 'lucide-react'
 
 function StrengthBar({ password }: { password: string }) {
   const score = (() => {
@@ -18,9 +18,9 @@ function StrengthBar({ password }: { password: string }) {
   })()
 
   const color =
-    score < 40 ? 'bg-(--c-danger)' :
-    score < 80 ? 'bg-(--c-warning)' :
-                 'bg-(--c-success)'
+    score < 40 ? 'bg-(--critical)' :
+    score < 80 ? 'bg-(--warning)' :
+                 'bg-(--success)'
   const label =
     score < 40 ? 'Weak' :
     score < 80 ? 'Fair' :
@@ -30,12 +30,12 @@ function StrengthBar({ password }: { password: string }) {
 
   return (
     <div className="mt-2 space-y-1">
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-(--surface-4)">
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-(--surface-3)">
         <div className={`h-full transition-all duration-500 rounded-full ${color}`} style={{ width: `${score}%` }} />
       </div>
       <div className="flex justify-between items-center text-[10px] font-semibold text-(--text-3)">
         <span>Password strength:</span>
-        <span className={score < 40 ? 'text-(--c-danger)' : score < 80 ? 'text-(--c-warning)' : 'text-(--c-success)'}>{label}</span>
+        <span className={score < 40 ? 'text-(--critical)' : score < 80 ? 'text-(--warning)' : 'text-(--success)'}>{label}</span>
       </div>
     </div>
   )
@@ -79,7 +79,7 @@ export function Register() {
       <div className="relative hidden w-1/2 flex-col justify-between border-r border-(--border-subtle) bg-(--surface-1) p-12 lg:flex xl:p-20">
         <div>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--brand-dim) border border-(--border-brand)">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-(--brand-dim) border border-(--border-focus)">
                <Activity className="h-5 w-5 text-(--brand)" />
             </div>
             <span className="text-xl font-bold tracking-tight text-(--text-1)">RootLens</span>
@@ -87,41 +87,46 @@ export function Register() {
 
           <div className="mt-16 max-w-md">
             <h1 className="text-3xl font-bold tracking-tight text-(--text-1) leading-tight">
-              Enterprise root-cause intelligence, ready for deployment.
+              Decision Intelligence for Enterprise Teams
             </h1>
             <p className="mt-4 text-base leading-relaxed text-(--text-2)">
-              Upload your datasets, identify core business drivers, and quantify risk instantly without configuring complex ML pipelines.
+              Transform operational data into explainable business decisions.
             </p>
           </div>
 
           <div className="mt-12 space-y-6">
             <div className="flex items-start gap-4">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-(--c-info-bg) border border-(--c-info-border)">
-                <ShieldCheck className="h-4 w-4 text-(--c-info)" />
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-(--info-bg) border border-(--info-border)">
+                <ShieldCheck className="h-4 w-4 text-(--info)" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-(--text-1)">SOC2 Ready & Audit Friendly</h3>
-                <p className="mt-1 text-sm text-(--text-3)">All models include full lineage tracking, fairness metrics, and SHAP-based explainability by default.</p>
+                <h3 className="text-sm font-semibold text-(--text-1)">Explainable AI</h3>
+                <p className="mt-1 text-sm text-(--text-3)">Every decision is backed by interactive SHAP values and driver impact analysis.</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-(--c-success-bg) border border-(--c-success-border)">
-                <Server className="h-4 w-4 text-(--c-success)" />
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-(--success-bg) border border-(--success-border)">
+                <Server className="h-4 w-4 text-(--success)" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-(--text-1)">End-to-End Encryption</h3>
-                <p className="mt-1 text-sm text-(--text-3)">Data is encrypted in transit and at rest. Strict role-based access controls for enterprise teams.</p>
+                <h3 className="text-sm font-semibold text-(--text-1)">Audit-Ready Reporting</h3>
+                <p className="mt-1 text-sm text-(--text-3)">Full pipeline lineage, data quality scoring, and model reliability metrics attached to every run.</p>
               </div>
             </div>
             <div className="flex items-start gap-4">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-(--brand-dim) border border-(--border-brand)">
-                <Lock className="h-4 w-4 text-(--brand)" />
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-(--brand-dim) border border-(--border-focus)">
+                <Activity className="h-4 w-4 text-(--brand)" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-(--text-1)">Private Cloud Deployable</h3>
-                <p className="mt-1 text-sm text-(--text-3)">Run RootLens in your own VPC. No data leaves your secure perimeter.</p>
+                <h3 className="text-sm font-semibold text-(--text-1)">Executive Decision Briefs</h3>
+                <p className="mt-1 text-sm text-(--text-3)">Automatically translate complex ML models into readable narratives for business leaders.</p>
               </div>
             </div>
+          </div>
+          <div className="mt-10 pt-8 border-t border-(--border-subtle)">
+            <p className="text-sm font-medium text-(--text-3)">
+              Trusted by data teams making critical business decisions
+            </p>
           </div>
         </div>
 
@@ -135,9 +140,9 @@ export function Register() {
       </div>
 
       {/* ── Right Panel: Auth Form ── */}
-      <div className="flex w-full flex-col justify-center px-6 sm:px-12 lg:w-1/2 lg:px-16 xl:px-24 bg-(--surface-0)">
+      <div className="flex w-full flex-col justify-center px-6 sm:px-12 lg:w-1/2 lg:px-16 xl:px-24 bg-(--app-bg)">
         <div className="mb-8 lg:hidden flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-(--brand-dim) border border-(--border-brand)">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-(--brand-dim) border border-(--border-focus)">
             <Activity className="h-4 w-4 text-(--brand)" />
           </div>
           <span className="text-lg font-bold text-(--text-1)">RootLens</span>
@@ -145,7 +150,7 @@ export function Register() {
 
         <div className="w-full max-w-sm mx-auto lg:mx-0">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold tracking-tight text-(--text-1)">Create your workspace</h2>
+            <h2 className="text-2xl font-bold tracking-tight text-(--text-1)">Create workspace</h2>
             <p className="mt-1.5 text-sm text-(--text-3)">Get started with your work email.</p>
           </div>
 
@@ -187,7 +192,7 @@ export function Register() {
             </div>
 
             {err && (
-              <div className="flex items-center gap-2 rounded-md border border-(--c-danger-border) bg-(--c-danger-bg) px-3 py-2.5 text-sm font-medium text-(--c-danger)">
+              <div className="flex items-center gap-2 rounded-md border border-(--critical-border) bg-(--critical-bg) px-3 py-2.5 text-sm font-medium text-(--critical)">
                 <ShieldCheck className="h-4 w-4 shrink-0" />
                 {err}
               </div>

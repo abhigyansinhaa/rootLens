@@ -41,9 +41,9 @@ export function ExportHub({
       icon: FileSpreadsheet,
       label: 'Download CSV',
       desc: 'KPI summary as a spreadsheet-ready CSV',
-      color: 'var(--c-success)',
-      bg: 'var(--c-success-bg)',
-      border: 'var(--c-success-border)',
+      color: 'var(--success)',
+      bg: 'var(--success-bg)',
+      border: 'var(--success-border)',
       onClick: () => { onDownloadCsv(); onClose() },
       disabled: !canExport,
     },
@@ -54,7 +54,7 @@ export function ExportHub({
       desc: 'Full analysis artifact with all raw data',
       color: 'var(--brand)',
       bg: 'var(--brand-dim)',
-      border: 'var(--border-brand)',
+      border: 'var(--border-focus)',
       onClick: () => { onDownloadJson(); onClose() },
       disabled: !canExport,
     },
@@ -63,9 +63,9 @@ export function ExportHub({
       icon: Printer,
       label: 'Print / Save PDF',
       desc: 'Full report via browser print',
-      color: 'var(--c-info)',
-      bg: 'var(--c-info-bg)',
-      border: 'var(--c-info-border)',
+      color: 'var(--info)',
+      bg: 'var(--info-bg)',
+      border: 'var(--info-border)',
       onClick: () => { onPrint(); onClose() },
       disabled: !canExport,
     },
@@ -76,7 +76,7 @@ export function ExportHub({
       desc: 'Executive summary only — Tier 1 & 2 metrics',
       color: 'var(--brand)',
       bg: 'var(--brand-dim)',
-      border: 'var(--border-brand)',
+      border: 'var(--border-focus)',
       onClick: () => { (onDecisionBrief ?? onPrint)(); onClose() },
       disabled: !canExport,
     },
@@ -85,9 +85,9 @@ export function ExportHub({
       icon: copied ? CheckCircle2 : Share2,
       label: copied ? 'Link copied!' : 'Copy share link',
       desc: 'Shareable URL — preserves the current tab via ?tab= parameter',
-      color: copied ? 'var(--c-success)' : 'var(--c-warning)',
-      bg: copied ? 'var(--c-success-bg)' : 'var(--c-warning-bg)',
-      border: copied ? 'var(--c-success-border)' : 'var(--c-warning-border)',
+      color: copied ? 'var(--success)' : 'var(--warning)',
+      bg: copied ? 'var(--success-bg)' : 'var(--warning-bg)',
+      border: copied ? 'var(--success-border)' : 'var(--warning-border)',
       onClick: copyShareLink,
       disabled: false,
     },
@@ -117,7 +117,7 @@ export function ExportHub({
       >
         {/* Header */}
         <div className="relative flex items-center gap-3 border-b border-(--border-subtle) bg-(--surface-1) px-6 py-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-(--brand-dim) border border-(--border-brand)">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-(--brand-dim) border border-(--border-focus)">
             <Download className="h-4 w-4 text-(--brand)" />
           </div>
           <div>

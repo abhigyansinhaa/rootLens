@@ -8,7 +8,6 @@ import {
   EmptyState,
   ErrorState,
   StatusBadge,
-  NumberTicker,
 } from '../../components/ui'
 import { DashboardSkeleton } from '../../components/PageSkeletons'
 import {
@@ -136,24 +135,24 @@ export function Dashboard() {
 
   const kpis = [
     { label: 'Indexed Datasets', value: datasets.length, hint: `${totalRows.toLocaleString()} rows total`, color: 'var(--brand)', spark: [2, 4, 3, 6, 8, 12, datasets.length], icon: Database },
-    { label: 'Total Analyses', value: analyses.length, hint: `${completed} completed`, color: 'var(--c-info)', spark: [1, 3, 5, 4, 7, 9, analyses.length], icon: BarChart3 },
-    { label: 'Completion Rate', value: analyses.length ? formatPct01(completed / analyses.length, 0) : '—', hint: 'Across all runs', color: 'var(--c-success)', spark: [90, 85, 95, 92, 98, 100], icon: Activity },
-    { label: 'Awaiting Action', value: actionQueue.length, hint: 'Action items pending', color: actionQueue.length ? 'var(--c-warning)' : 'var(--c-success)', spark: [5, 4, 6, 2, 3, actionQueue.length], icon: AlertCircle },
+    { label: 'Total Analyses', value: analyses.length, hint: `${completed} completed`, color: 'var(--info)', spark: [1, 3, 5, 4, 7, 9, analyses.length], icon: BarChart3 },
+    { label: 'Completion Rate', value: analyses.length ? formatPct01(completed / analyses.length, 0) : '—', hint: 'Across all runs', color: 'var(--success)', spark: [90, 85, 95, 92, 98, 100], icon: Activity },
+    { label: 'Awaiting Action', value: actionQueue.length, hint: 'Action items pending', color: actionQueue.length ? 'var(--warning)' : 'var(--success)', spark: [5, 4, 6, 2, 3, actionQueue.length], icon: AlertCircle },
   ]
 
   return (
     <div className="space-y-6">
       {/* ── Top Header & KPI strip ── */}
-      <div className="flex items-center justify-between pb-2 border-b border-(--border-subtle)">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-2 border-b border-(--border-subtle)">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-(--c-success-bg) border border-(--c-success-border) px-2.5 py-1 text-[10px] font-bold upperootLensse tracking-[0.16em] text-(--c-success) mb-2">
+          <div className="inline-flex items-center gap-2 rounded-full bg-(--success-bg) border border-(--success-border) px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-(--success) mb-2">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-(--c-success) opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-(--c-success)"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-(--success) opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-(--success)"></span>
             </span>
             System Online
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-(--text-1)">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-(--text-1)">
             {getGreeting()}, operator.
           </h1>
           <p className="mt-1 text-sm text-(--text-3)">
@@ -170,145 +169,94 @@ export function Dashboard() {
         </div>
       </div>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {/* ── Bento Grid ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        
+        {/* KPIs - 1 column each */}
         {kpis.map((kpi) => (
-          <div key={kpi.label} className={`relative overflow-hidden rounded-md border border-(--border-subtle) bg-(--surface-1) p-4 transition-all duration-200 hover:border-(--border-default) hover:bg-(--surface-2)`}>
-            {/* Left accent bar */}
-            <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-r-full" style={{ background: kpi.color }} />
-
-            <div className="flex items-start justify-between pl-3">
+          <div key={kpi.label} className={`relative flex flex-col justify-between overflow-hidden rounded-xl border border-(--border-subtle) bg-(--surface-1) p-5 transition-colors hover:border-(--border-default) hover:bg-(--surface-2)`}>
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-(--border-subtle)" style={{ background: kpi.color }} />
+            <div className="flex items-start justify-between pl-2">
               <div className="min-w-0">
-                <p className="text-[11px] font-bold upperootLensse tracking-[0.12em] text-(--text-3)">{kpi.label}</p>
+                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-(--text-3)">{kpi.label}</p>
                 <p className="mt-2 text-3xl font-bold text-(--text-1) tracking-tight leading-none font-mono">
-                  {typeof kpi.value === 'number' ? <NumberTicker value={kpi.value} /> : kpi.value}
+                  {typeof kpi.value === 'number' ? kpi.value : kpi.value}
                 </p>
                 <p className="mt-1.5 text-xs text-(--text-2)">{kpi.hint}</p>
               </div>
+            </div>
+            <div className="mt-4 pl-2 h-7 w-full flex justify-end">
               <Sparkline values={kpi.spark} color={kpi.color} />
             </div>
           </div>
         ))}
-      </section>
 
-      {/* ── Main grid ── */}
-      <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
-        {/* Left column */}
-        <div className="space-y-6 min-w-0">
-
-          {/* Recent datasets */}
-          <div>
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-(--border-subtle)">
-              <div>
-                <h2 className="text-sm font-bold text-(--text-1) upperootLensse tracking-widest">Recent Datasets</h2>
-              </div>
-              <Link to="/datasets" className="text-xs font-semibold text-(--brand) hover:text-(--text-1) transition-colors flex items-center gap-1">
-                View all <ArrowUpRight className="h-3 w-3" />
-              </Link>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              {recent.map((dataset) => {
-                const latest = latestByDataset.get(dataset.id)
-                const tone = latest ? statusTone(latest.status) : 'default'
-                const accentColor =
-                  tone === 'success' ? 'var(--c-success)' :
-                    tone === 'risk' ? 'var(--c-danger)' :
-                      tone === 'warning' ? 'var(--c-warning)' :
-                        tone === 'info' ? 'var(--c-info)' :
-                          'var(--border-default)'
-
-                return (
-                  <Link
-                    key={dataset.id}
-                    to={`/datasets/${dataset.id}`}
-                    className="group relative overflow-hidden rounded-md border border-(--border-subtle) bg-(--surface-1) p-4 transition-colors hover:border-(--border-default) hover:bg-(--surface-2)"
-                  >
-                    {/* Top accent */}
-                    <div className="absolute top-0 left-0 bottom-0 w-1 transition-transform"
-                      style={{ background: accentColor }} />
-
-                    <div className="flex items-start justify-between gap-2 mb-2 pl-2">
-                      <h3 className="text-sm font-semibold text-(--text-1) truncate min-w-0 group-hover:text-(--brand) transition-colors">
-                        {dataset.name}
-                      </h3>
-                      {latest && (
-                        <StatusBadge tone={tone} dot={IN_FLIGHT.has(latest.status)} pulse={IN_FLIGHT.has(latest.status)}
-                          className="shrink-0 text-[9px]">
-                          {latest.status}
-                        </StatusBadge>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-4 text-xs text-(--text-3) font-mono pl-2">
-                      <span>{dataset.rows.toLocaleString()} rows</span>
-                      <span>{dataset.cols} cols</span>
-                      <span className="flex items-center gap-1 ml-auto">
-                        <Clock className="h-3 w-3" />{timeAgo(dataset.created_at)}
-                      </span>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
+        {/* Recent Datasets - 2 columns, spans 1 row */}
+        <div className="col-span-1 md:col-span-2 lg:col-span-2 xl:col-span-2 flex flex-col rounded-xl border border-(--border-subtle) bg-(--surface-1) p-5 transition-colors hover:border-(--border-default)">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xs font-bold text-(--text-1) uppercase tracking-widest">Recent Datasets</h2>
+            <Link to="/datasets" className="text-xs font-semibold text-(--brand) hover:text-(--text-1) transition-colors flex items-center gap-1">
+              View all <ArrowUpRight className="h-3 w-3" />
+            </Link>
           </div>
+          <div className="grid gap-3 sm:grid-cols-2 flex-1">
+            {recent.map((dataset) => {
+              const latest = latestByDataset.get(dataset.id)
+              const tone = latest ? statusTone(latest.status) : 'default'
+              const accentColor =
+                tone === 'success' ? 'var(--success)' :
+                  tone === 'risk' ? 'var(--critical)' :
+                    tone === 'warning' ? 'var(--warning)' :
+                      tone === 'info' ? 'var(--info)' :
+                        'var(--border-default)'
 
-          {/* Action items */}
-          <div>
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-(--border-subtle)">
-              <div>
-                <h2 className="text-sm font-bold text-(--text-1) upperootLensse tracking-widest flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4" /> Action Items
-                </h2>
-              </div>
-            </div>
+              return (
+                <Link
+                  key={dataset.id}
+                  to={`/datasets/${dataset.id}`}
+                  className="group relative flex flex-col justify-between overflow-hidden rounded-lg border border-(--border-subtle) bg-(--app-bg) p-3 transition-colors hover:border-(--border-default) hover:bg-(--surface-2)"
+                >
+                  <div className="absolute top-0 left-0 bottom-0 w-[3px] transition-transform"
+                    style={{ background: accentColor }} />
 
-            {actionQueue.length ? (
-              <div className="space-y-3">
-                {actionQueue.map(({ dataset, reason, tone, icon: Icon }) => {
-                  return (
-                    <div key={dataset.id} className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-md border border-(--border-subtle) bg-(--surface-1) p-3 transition-colors hover:border-(--border-default)">
-                      <div className="flex min-w-0 flex-1 items-start gap-2.5">
-                        <Icon className={`h-4 w-4 shrink-0 mt-0.5 ${tone === 'risk' ? 'text-(--c-danger)' : tone === 'warning' ? 'text-(--c-warning)' : 'text-(--c-info)'}`} />
-                        <div className="min-w-0">
-                          <h3 className="text-sm font-semibold text-(--text-1) truncate">{dataset.name}</h3>
-                          <p className="text-xs text-(--text-2) mt-0.5">{reason}</p>
-                        </div>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant={tone === 'risk' ? 'danger' : 'secondary'}
-                        to={`/datasets/${dataset.id}`}
-                        className="shrink-0 h-8"
-                      >
-                        Resolve <ArrowRight className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  )
-                })}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center rounded-md border border-dashed border-(--border-subtle) bg-(--surface-1) py-8 text-center">
-                <p className="text-sm text-(--text-3)">All datasets have recent successful analyses.</p>
-              </div>
-            )}
+                  <div className="flex items-start justify-between gap-2 mb-2 pl-1.5">
+                    <h3 className="text-sm font-semibold text-(--text-1) truncate min-w-0 group-hover:text-(--brand) transition-colors">
+                      {dataset.name}
+                    </h3>
+                    {latest && (
+                      <StatusBadge tone={tone} dot={IN_FLIGHT.has(latest.status)} pulse={IN_FLIGHT.has(latest.status)}
+                        className="shrink-0 text-[9px]">
+                        {latest.status}
+                      </StatusBadge>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3 text-[11px] text-(--text-3) font-mono pl-1.5 mt-auto pt-1">
+                    <span>{dataset.rows.toLocaleString()} rows</span>
+                    <span className="flex items-center gap-1 ml-auto">
+                      <Clock className="h-3 w-3" />{timeAgo(dataset.created_at)}
+                    </span>
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         </div>
 
-        {/* Right column — Activity feed */}
-        <div className="space-y-4">
-          <div className="pb-2 border-b border-(--border-subtle)">
-            <h2 className="text-sm font-bold text-(--text-1) upperootLensse tracking-widest">Activity Feed</h2>
+        {/* Activity Feed - 1 column, spans 2 rows */}
+        <div className="col-span-1 md:col-span-2 lg:col-span-1 xl:col-span-1 row-span-1 xl:row-span-2 flex flex-col rounded-xl border border-(--border-subtle) bg-(--surface-1) p-5 transition-colors hover:border-(--border-default)">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xs font-bold text-(--text-1) uppercase tracking-widest">Activity Feed</h2>
           </div>
-
-          <div className="relative space-y-2 max-h-[600px] overflow-y-auto pr-1">
+          <div className="relative flex-1 space-y-2 overflow-y-auto pr-1">
             {recentRuns.length ? (
               recentRuns.map((run) => (
                 <Link
                   key={run.id}
                   to={`/analyses/${run.id}`}
-                  className="block rounded-md border border-(--border-subtle) bg-(--surface-1) p-3 transition-all hover:border-(--border-default) hover:bg-(--surface-2)"
+                  className="block rounded-lg border border-(--border-subtle) bg-(--app-bg) p-3 transition-all hover:border-(--border-default) hover:bg-(--surface-2)"
                 >
-                  <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center justify-between mb-2">
                     <StatusBadge tone={statusTone(run.status)} dot={IN_FLIGHT.has(run.status)} pulse={IN_FLIGHT.has(run.status)} className="text-[9px]">
                       {run.status}
                     </StatusBadge>
@@ -321,7 +269,50 @@ export function Dashboard() {
                 </Link>
               ))
             ) : (
-              <p className="text-xs text-(--text-3) py-4 text-center">No recent activity.</p>
+              <div className="flex h-full items-center justify-center">
+                <p className="text-xs text-(--text-3) text-center">No recent activity.</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Action Items - 2 columns */}
+        <div className="col-span-1 md:col-span-2 lg:col-span-2 xl:col-span-2 flex flex-col rounded-xl border border-(--border-subtle) bg-(--surface-1) p-5 transition-colors hover:border-(--border-default)">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xs font-bold text-(--text-1) uppercase tracking-widest flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" /> Action Items
+            </h2>
+          </div>
+
+          <div className="flex-1">
+            {actionQueue.length ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {actionQueue.map(({ dataset, reason, tone, icon: Icon }) => {
+                  return (
+                    <div key={dataset.id} className="flex flex-col justify-between rounded-lg border border-(--border-subtle) bg-(--app-bg) p-3 transition-colors hover:border-(--border-default)">
+                      <div className="flex min-w-0 items-start gap-2.5 mb-3">
+                        <Icon className={`h-4 w-4 shrink-0 mt-0.5 ${tone === 'risk' ? 'text-(--critical)' : tone === 'warning' ? 'text-(--warning)' : 'text-(--info)'}`} />
+                        <div className="min-w-0">
+                          <h3 className="text-sm font-semibold text-(--text-1) truncate">{dataset.name}</h3>
+                          <p className="text-xs text-(--text-2) mt-0.5 leading-snug">{reason}</p>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant={tone === 'risk' ? 'danger' : 'secondary'}
+                        to={`/datasets/${dataset.id}`}
+                        className="w-full h-8 text-[11px] font-semibold"
+                      >
+                        Resolve <ArrowRight className="h-3 w-3 ml-1" />
+                      </Button>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-(--border-subtle) bg-(--app-bg) py-8">
+                <p className="text-sm text-(--text-3)">All datasets have recent successful analyses.</p>
+              </div>
             )}
           </div>
         </div>

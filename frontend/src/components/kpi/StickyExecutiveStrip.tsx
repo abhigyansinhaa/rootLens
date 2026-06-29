@@ -90,13 +90,13 @@ export function StickyExecutiveStrip({
 
   return (
     <div
-      className="sticky z-40 -mx-4 px-4 sm:mx-0 sm:px-0 bg-(--app-bg)/90 backdrop-blur-xl transition-all print:hidden"
-      style={{ top: 'var(--app-header-height, 60px)', boxShadow: 'var(--shadow-surface)' }}
+      className="sticky z-40 -mx-4 px-4 sm:mx-0 sm:px-0 bg-(--surface-1) border-b border-(--border-subtle) transition-all print:hidden"
+      style={{ top: 'var(--app-header-height, 60px)' }}
     >
       <div className="flex items-center gap-4 sm:gap-6 overflow-x-auto whitespace-nowrap no-scrollbar py-2.5">
         {items.map((item, i) => (
           <div key={item.label} className="flex items-center gap-4 shrink-0">
-            {i > 0 && <div className="h-4 w-px bg-white/[0.06] hidden sm:block" aria-hidden />}
+            {i > 0 && <div className="h-4 w-px bg-(--border-subtle) hidden sm:block" aria-hidden />}
             <div className="flex items-center gap-2">
               <span className="text-xs text-(--text-3)">{item.label}</span>
               <span
@@ -116,7 +116,7 @@ export function StickyExecutiveStrip({
         ))}
         
         {onExport && (
-          <div className="ml-auto pl-4 border-l border-white/[0.06] hidden sm:block">
+          <div className="ml-auto pl-4 border-l border-(--border-subtle) hidden sm:block">
             <button
               onClick={onExport}
               className="flex items-center gap-1.5 rounded-md bg-(--surface-2) px-2.5 py-1 text-xs font-semibold text-(--text-2) transition-colors hover:bg-(--surface-3) hover:text-(--text-1)"

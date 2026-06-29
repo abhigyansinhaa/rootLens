@@ -7,7 +7,6 @@ import {
   ErrorState,
   PageHeader,
   StatusBadge,
-  AnimatedList,
 } from '../../components/ui'
 import { AnalysesListSkeleton } from '../../components/PageSkeletons'
 import { BarChart3, ArrowRight, Clock, Search, X } from 'lucide-react'
@@ -68,14 +67,14 @@ export function AnalysesList() {
   const inFlight = analyses.filter(a => IN_FLIGHT.has(a.status)).length
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerootLensse()
+    const q = search.trim().toLowerCase()
     return analyses
       .slice()
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .filter(a => {
         const matchSearch = !q ||
-          a.dataset_name.toLowerootLensse().includes(q) ||
-          a.target.toLowerootLensse().includes(q)
+          a.dataset_name.toLowerCase().includes(q) ||
+          a.target.toLowerCase().includes(q)
         const matchStatus =
           statusFilter === 'all' ? true :
             statusFilter === 'running' ? IN_FLIGHT.has(a.status) :
@@ -147,9 +146,9 @@ export function AnalysesList() {
               onClick={() => setStatusFilter(chip.value)}
               aria-pressed={statusFilter === chip.value}
               className={[
-                'rounded-full px-3 py-1.5 text-[11px] font-bold upperootLensse tracking-widest transition-all',
+                'rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-widest transition-all',
                 statusFilter === chip.value
-                  ? 'bg-(--brand-dim) border border-(--border-brand) text-(--brand)'
+                  ? 'bg-(--brand-dim) border border-(--border-focus) text-(--brand)'
                   : 'border border-(--border-subtle) bg-(--surface-2) text-(--text-3) hover:text-(--text-1) hover:border-(--border-default)',
               ].join(' ')}
             >
@@ -179,7 +178,7 @@ export function AnalysesList() {
           No analyses match your search.
         </div>
       ) : (
-        <AnimatedList className="w-full items-stretch gap-2" delay={50}>
+        <div className="w-full flex flex-col items-stretch gap-2">
           {filtered.map((run) => {
             const tone = statusTone(run.status)
             const running = IN_FLIGHT.has(run.status)
@@ -191,16 +190,16 @@ export function AnalysesList() {
                   'group flex items-center gap-4 rounded-lg',
                   'border border-(--border-subtle) bg-(--surface-1)',
                   'p-4 transition-all duration-(--duration-normal)',
-                  'hover:border-(--border-brand) hover:bg-(--surface-2) hover:-translate-y-px hover:shadow-(--shadow-md)',
+                  'hover:border-(--border-focus) hover:bg-(--surface-2) hover:-translate-y-px hover:shadow-(--shadow-md)',
                 ].join(' ')}
               >
                 {/* Status dot */}
                 <div className={[
                   'h-2.5 w-2.5 shrink-0 rounded-full',
-                  tone === 'success' ? 'bg-(--c-success)' :
-                    tone === 'risk' ? 'bg-(--c-danger)' :
-                      tone === 'warning' ? 'bg-(--c-warning)' :
-                        tone === 'info' ? 'bg-(--c-info)' :
+                  tone === 'success' ? 'bg-(--success)' :
+                    tone === 'risk' ? 'bg-(--critical)' :
+                      tone === 'warning' ? 'bg-(--warning)' :
+                        tone === 'info' ? 'bg-(--info)' :
                           'bg-(--text-4)',
                   running ? 'animate-pulse' : '',
                 ].join(' ')} />
@@ -223,7 +222,7 @@ export function AnalysesList() {
                       <span className="capitalize">{run.task_type.replace('_', ' ')}</span>
                     )}
                     {run.value_column && (
-                      <span>value: <span className="text-(--c-success)">{run.value_column}</span></span>
+                      <span>value: <span className="text-(--success)">{run.value_column}</span></span>
                     )}
                   </div>
                 </div>
@@ -249,7 +248,7 @@ export function AnalysesList() {
               </Link>
             )
           })}
-        </AnimatedList>
+        </div>
       )}
     </div>
   )

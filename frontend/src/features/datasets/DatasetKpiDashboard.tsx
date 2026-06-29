@@ -128,15 +128,15 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
         }
       />
 
-      <Card padding="md" tone="strong" elevated className="glass border-t-(--border-subtle) border-t-2">
+      <Card padding="md" tone="strong" elevated className="border-t-(--border-subtle) border-t-2">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
           <div className="flex items-center gap-4">
-            <Activity className="h-5 w-5 text-brand-500 hidden sm:block" />
+            <Activity className="h-5 w-5 text-(--brand) hidden sm:block" />
             <Select
               label="Analysis focus"
               id="dataset-analysis-select"
               value={activeAnalysisId ?? ''}
-              className="bg-(--surface-1) transition-colors focus:ring-brand-500 w-full sm:w-96"
+              className="bg-(--surface-1) transition-colors focus:ring-(--brand) w-full sm:w-96"
               onChange={(e) => {
                 const next = Number(e.target.value)
                 setSelectedId(Number.isFinite(next) ? next : null)
@@ -156,7 +156,7 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
               </StatusBadge>
             )}
             {detail && DKD_TERMINAL_OK.has(detail.status) && (
-              <Button size="sm" className="bg-brand-500 hover:bg-brand-400 text-white shadow-md shadow-brand-500/20" to={`/analyses/${detail.id}`}>
+              <Button size="sm" className="bg-(--brand) hover:opacity-90 text-white shadow-md" to={`/analyses/${detail.id}`}>
                 View Report <ChevronRight className="ml-1.5 h-4 w-4" />
               </Button>
             )}
@@ -167,10 +167,10 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
       {detailQuery.isLoading ? (
         <LoadingState rows={4} />
       ) : detail && DKD_TERMINAL_OK.has(detail.status) ? (
-        <Card padding="lg" elevated className={`border-l-4 ${detail.status === 'completed_with_warnings' ? 'border-l-amber-500 bg-amber-500/5' : 'border-l-emerald-500 bg-emerald-500/5'} animate-slide-in-left`}>
+        <Card padding="lg" elevated className={`border-l-4 ${detail.status === 'completed_with_warnings' ? 'border-l-(--warning) bg-(--warning-bg)' : 'border-l-(--success) bg-(--success-bg)'} animate-slide-in-left`}>
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex gap-4">
-              <div className={`mt-1 flex shrink-0 h-10 w-10 items-center justify-center rounded-full ${detail.status === 'completed_with_warnings' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30'}`}>
+              <div className={`mt-1 flex shrink-0 h-10 w-10 items-center justify-center rounded-full ${detail.status === 'completed_with_warnings' ? 'bg-(--warning-bg) text-(--warning)' : 'bg-(--success-bg) text-(--success)'}`}>
                 <CheckCircle2 className="h-5 w-5" />
               </div>
               <div>
@@ -198,10 +198,10 @@ export function DatasetKpiDashboard({ datasetId, datasetName }: Props) {
           </div>
         </Card>
       ) : (
-        <Card padding="lg" elevated className={`border-l-4 ${detail?.status === 'failed' ? 'border-l-red-500 bg-red-500/5' : 'border-l-brand-500 bg-brand-500/5'} animate-slide-in-left`}>
+        <Card padding="lg" elevated className={`border-l-4 ${detail?.status === 'failed' ? 'border-l-(--critical) bg-(--critical-bg)' : 'border-l-(--brand) bg-(--brand-dim)'} animate-slide-in-left`}>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex gap-4">
-              <div className={`mt-1 flex shrink-0 h-10 w-10 items-center justify-center rounded-full ${detail?.status === 'failed' ? 'bg-red-100 text-red-600 dark:bg-red-900/30' : 'bg-brand-100 text-brand-600 dark:bg-brand-900/30'}`}>
+              <div className={`mt-1 flex shrink-0 h-10 w-10 items-center justify-center rounded-full ${detail?.status === 'failed' ? 'bg-(--critical-bg) text-(--critical)' : 'bg-(--brand-dim) text-(--brand)'}`}>
                 {detail?.status === 'failed' ? <AlertCircle className="h-5 w-5" /> : <PlayCircle className="h-5 w-5 animate-pulse" />}
               </div>
               <div>

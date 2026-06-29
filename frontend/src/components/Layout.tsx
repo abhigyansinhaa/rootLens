@@ -19,7 +19,7 @@ export function Layout() {
   // Dynamic page title
   useEffect(() => {
     const titles: Record<string, string> = {
-      '/':              'Dashboard',
+      '/':              'Command Center',
       '/datasets':      'Datasets',
       '/upload':        'Upload Dataset',
       '/analyses':      'All Analyses',
@@ -35,7 +35,7 @@ export function Layout() {
   if (!user) {
     return (
       <div className="flex min-h-screen flex-col bg-(--app-bg)">
-        <header className="sticky top-0 z-50 border-b border-(--border-subtle) glass">
+        <header className="sticky top-0 z-50 border-b border-(--border-subtle) bg-(--app-bg)">
           <div className="mx-auto flex h-(--app-header-height) max-w-7xl items-center justify-between px-4 lg:px-8">
             <Link to="/login" className="group flex items-center gap-2.5">
               <img src="/logo.png" alt="RootLens" className="h-7 w-auto object-contain" />
@@ -48,7 +48,7 @@ export function Layout() {
                 Sign in
               </Link>
               <Link
-                className="rounded-md bg-(--brand) px-4 py-1.5 text-sm font-semibold text-white transition-all hover:brightness-110 hover:shadow-[0_0_20px_hsl(214_100%_59%/0.4)]"
+                className="rounded-md bg-(--brand) px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:brightness-110 shadow-sm"
                 to="/register"
               >
                 Get started

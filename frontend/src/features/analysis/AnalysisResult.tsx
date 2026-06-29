@@ -64,7 +64,7 @@ function fmt(iso: string | null) {
 function analysisTitle(data: Analysis, datasetName?: string) {
   const target = data.target.replace(/_/g, ' ')
   if (datasetName) return `${datasetName} · ${target}`
-  return `${target.charAt(0).toUpperootLensse()}${target.slice(1)} analysis`
+  return `${target.charAt(0).toUpperCase()}${target.slice(1)} analysis`
 }
 
 export function AnalysisResult() {
@@ -415,8 +415,7 @@ export function AnalysisResult() {
           {copilotProps && (
             <aside className="hidden xl:block w-80 shrink-0 sticky top-[calc(var(--app-header-height)+52px)] self-start max-h-[calc(100vh-var(--app-header-height)-64px)]">
               <div
-                className="rounded-lg bg-(--surface-1) p-5 flex flex-col max-h-[inherit]"
-                style={{ boxShadow: 'var(--shadow-surface)' }}
+                className="rounded-lg bg-(--surface-1) p-5 flex flex-col max-h-[inherit] border border-(--border-subtle)"
               >
                 <AICopilot {...copilotProps} className="min-h-[480px]" />
               </div>

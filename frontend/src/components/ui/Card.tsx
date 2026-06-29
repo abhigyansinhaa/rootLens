@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
 type CardTone = 'default' | 'strong' | 'risk' | 'success' | 'warning' | 'info'
-type CardVariant = 'default' | 'glass' | 'solid' | 'flat'
+type CardVariant = 'default' | 'solid' | 'flat'
 type CardPadding = 'none' | 'sm' | 'md' | 'lg' | 'xl'
 
 type CardProps = {
@@ -19,15 +19,14 @@ type CardProps = {
 const toneStyles: Record<CardTone, string> = {
   default: 'bg-(--surface-1)',
   strong:  'bg-(--surface-2)',
-  risk:    'bg-(--c-danger-bg)',
-  success: 'bg-(--c-success-bg)',
-  warning: 'bg-(--c-warning-bg)',
-  info:    'bg-(--c-info-bg)',
+  risk:    'bg-(--critical-bg)',
+  success: 'bg-(--success-bg)',
+  warning: 'bg-(--warning-bg)',
+  info:    'bg-(--info-bg)',
 }
 
 const variantStyles: Record<CardVariant, string> = {
-  default: 'border-0',
-  glass:   'backdrop-blur-[20px]',
+  default: 'border border-(--border-subtle)',
   solid:   'border-0',
   flat:    'border-0 bg-transparent',
 }
@@ -52,23 +51,18 @@ export function Card({
   className = '',
 }: CardProps) {
   const elevShadow = elevated
-    ? 'shadow-(--shadow-md)'
+    ? 'shadow-md'
     : ''
 
   const hoverCls = hover
-    ? 'transition-all duration-(--duration-normal) hover:-translate-y-0.5 hover:shadow-(--shadow-lg) hover:bg-(--surface-2)'
-    : ''
-
-  const glassBase = variant === 'glass'
-    ? 'bg-(--glass-1) backdrop-blur-[20px]'
+    ? 'transition-colors duration-(--duration-normal) hover:border-(--border-strong) hover:bg-(--surface-2)'
     : ''
 
   return (
     <div
       className={[
         'relative overflow-hidden rounded-lg',
-        variant !== 'glass' ? toneStyles[tone] : '',
-        variant === 'glass' ? glassBase : '',
+        toneStyles[tone],
         variantStyles[variant],
         paddingStyles[padding],
         elevShadow,
@@ -82,15 +76,6 @@ export function Card({
           aria-hidden
           className="absolute top-0 left-0 right-0 h-[2px]"
           style={{ background: accentColor }}
-        />
-      )}
-
-      {/* Ambient glow layer for elevated glass cards */}
-      {elevated && variant === 'glass' && (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-24 -right-24 h-48 w-48 rounded-full opacity-20"
-          style={{ background: 'radial-gradient(circle, var(--brand) 0%, transparent 70%)' }}
         />
       )}
 

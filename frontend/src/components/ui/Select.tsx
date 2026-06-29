@@ -37,7 +37,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               'focus:outline-none focus:border-(--border-focus) focus:bg-(--surface-3)',
               'focus:shadow-[0_0_0_3px_hsl(214_100%_59%/0.15)]',
               'disabled:cursor-not-allowed disabled:opacity-50',
-              error ? 'border-(--c-danger)' : '',
+              error ? 'border-(--critical)' : '',
               className,
             ].filter(Boolean).join(' ')}
             aria-invalid={!!error}
@@ -53,7 +53,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         </div>
 
         {error && (
-          <p className="mt-1.5 text-xs font-medium text-(--c-danger)">{error}</p>
+          <p className="mt-1.5 text-xs font-medium text-(--critical)">{error}</p>
         )}
         {hint && !error && (
           <p className="mt-1.5 text-xs text-(--text-3)">{hint}</p>

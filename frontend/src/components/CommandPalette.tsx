@@ -1,7 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, LayoutDashboard, Database, Upload, BarChart3, Sun, Moon, ArrowRight } from 'lucide-react'
+import { Search, LayoutDashboard, Database, Upload, BarChart3, Sun, Moon, Plus, Download, History, Shield } from 'lucide-react'
 import { useTheme } from '../hooks/useTheme'
+
+type CommandItem = {
+  id: string
+  title: string
+  icon: any
+  type: string
+  shortcut?: string
+  action: () => void
+}
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false)
@@ -27,32 +36,63 @@ export function CommandPalette() {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 50)
     } else if (query !== '') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setQuery('')
     }
   }, [open, query])
 
-  if (!open) return null
-
-  const items = [
-    { id: 'home', title: 'Go to Overview', icon: LayoutDashboard, type: 'Navigation', action: () => navigate('/') },
-    { id: 'datasets', title: 'View Datasets', icon: Database, type: 'Navigation', action: () => navigate('/datasets') },
-    { id: 'upload', title: 'Upload Dataset', icon: Upload, type: 'Navigation', action: () => navigate('/upload') },
-    { id: 'analyses', title: 'View Analyses', icon: BarChart3, type: 'Navigation', action: () => navigate('/analyses') },
-    { id: 'theme', title: `Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Theme`, icon: theme === 'dark' ? Sun : Moon, type: 'Appearance', action: () => toggle() },
+  const items: CommandItem[] = [
+    { id: 'home', title: 'Open Command Center', icon: LayoutDashboard, type: 'Navigation', shortcut: '⌘1', action: () => navigate('/') },
+    { id: 'datasets', title: 'View Datasets', icon: Database, type: 'Navigation', shortcut: '⌘2', action: () => navigate('/datasets') },
+    { id: 'upload', title: 'Upload Dataset', icon: Upload, type: 'Navigation', shortcut: '⌘3', action: () => navigate('/upload') },
+    { id: 'analyses', title: 'View Analyses', icon: BarChart3, type: 'Navigation', shortcut: '⌘4', action: () => navigate('/analyses') },
+    { id: 'new', title: 'Create New Analysis', icon: Plus, type: 'Actions', shortcut: '⌘N', action: () => { navigate('/upload'); setOpen(false) } },
+    { id: 'export', title: 'Export Report', icon: Download, type: 'Actions', shortcut: '⌘E', action: () => { setOpen(false) } },
+    { id: 'history', title: 'View History', icon: History, type: 'Actions', shortcut: '⌘H', action: () => { navigate('/analyses'); setOpen(false) } },
+    { id: 'governance', title: 'Open Governance', icon: Shield, type: 'Actions', shortcut: '⌘G', action: () => { setOpen(false) } },
+    { id: 'theme', title: `Toggle ${theme === 'dark' ? 'Light' : 'Dark'} Mode`, icon: theme === 'dark' ? Sun : Moon, type: 'Appearance', shortcut: '⌘D', action: () => { toggle(); setOpen(false) } },
   ]
+
+  // Global shortcuts
+  useEffect(() => {
+    if (open) return // Don't trigger global shortcuts if palette is open
+
+    const down = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey) {
+        const item = items.find(i => i.shortcut?.toLowerCase() === `⌘${e.key.toLowerCase()}`)
+        if (item) {
+          e.preventDefault()
+          item.action()
+        }
+      }
+    }
+    document.addEventListener('keydown', down)
+    return () => document.removeEventListener('keydown', down)
+  }, [open, theme, navigate, toggle])
+
+
+  if (!open) return null
 
   const filteredItems = query === ''
     ? items
     : items.filter((item) =>
-      item.title.toLowerootLensse().includes(query.toLowerootLensse()) ||
-      item.type.toLowerootLensse().includes(query.toLowerootLensse())
+      item.title.toLowerCase().includes(query.toLowerCase()) ||
+      item.type.toLowerCase().includes(query.toLowerCase())
     )
 
-  const handleSelect = (item: typeof items[0]) => {
+  const handleSelect = (item: CommandItem) => {
     item.action()
     setOpen(false)
   }
+
+  // Group items by type
+  const groupedItems = filteredItems.reduce((acc, item) => {
+    if (!acc[item.type]) acc[item.type] = []
+    acc[item.type].push(item)
+    return acc
+  }, {} as Record<string, CommandItem[]>)
+
+  // We want to flatten for keyboard navigation
+  const flatGroupedItems = Object.values(groupedItems).flat()
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] sm:pt-[20vh] px-4">
@@ -79,8 +119,8 @@ export function CommandPalette() {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Escape') setOpen(false)
-              if (e.key === 'Enter' && filteredItems.length > 0) {
-                handleSelect(filteredItems[0])
+              if (e.key === 'Enter' && flatGroupedItems.length > 0) {
+                handleSelect(flatGroupedItems[0])
               }
             }}
           />
@@ -90,25 +130,35 @@ export function CommandPalette() {
         </div>
 
         <div className="max-h-[60vh] overflow-y-auto p-2">
-          {filteredItems.length === 0 ? (
+          {flatGroupedItems.length === 0 ? (
             <p className="p-4 text-center text-sm text-(--text-3)">No results found.</p>
           ) : (
-            <div className="space-y-1">
-              {filteredItems.map((item, index) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleSelect(item)}
-                  className={`group flex w-full items-center justify-between rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-(--brand-dim) hover:text-(--brand) ${index === 0 && query !== '' ? 'bg-(--brand-dim) text-(--brand)' : 'text-(--text-2)'}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <item.icon className="h-4 w-4 shrink-0 opacity-70 group-hover:opacity-100" />
-                    <span>{item.title}</span>
+            <div className="space-y-4 py-2">
+              {Object.entries(groupedItems).map(([type, groupItems]) => (
+                <div key={type} className="space-y-1">
+                  <div className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-(--text-4)">
+                    {type}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-(--text-3) opacity-0 transition-opacity group-hover:opacity-100">{item.type}</span>
-                    <ArrowRight className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
-                  </div>
-                </button>
+                  {groupItems.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleSelect(item)}
+                      className={`group flex w-full items-center justify-between rounded-md px-3 py-2.5 text-sm transition-colors hover:bg-(--surface-2) text-(--text-2) hover:text-(--text-1)`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <item.icon className="h-4 w-4 shrink-0 opacity-70 group-hover:text-(--brand) group-hover:opacity-100" />
+                        <span>{item.title}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {item.shortcut && (
+                          <kbd className="rounded bg-(--surface-2) group-hover:bg-(--surface-3) px-1.5 py-0.5 text-[10px] font-sans font-semibold text-(--text-3) transition-colors">
+                            {item.shortcut}
+                          </kbd>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
               ))}
             </div>
           )}

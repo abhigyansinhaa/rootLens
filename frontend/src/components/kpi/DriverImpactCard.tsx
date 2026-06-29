@@ -64,10 +64,10 @@ export function DriverImpactCard({
   }, [rows, sortBy])
 
   const filtered = useMemo(() => {
-    const q = searchQuery.trim().toLowerootLensse()
+    const q = searchQuery.trim().toLowerCase()
     return sorted.filter((r) => {
-      const label = formatDriverLabel(r.feature, rawColumns).toLowerootLensse()
-      const matchesSearch = !q || label.includes(q) || r.feature.toLowerootLensse().includes(q)
+      const label = formatDriverLabel(r.feature, rawColumns).toLowerCase()
+      const matchesSearch = !q || label.includes(q) || r.feature.toLowerCase().includes(q)
       const ctrl = controllabilityForFeature(r.feature)
       return matchesSearch && (ctrlFilter === 'all' || ctrl === ctrlFilter)
     })
@@ -160,7 +160,7 @@ export function DriverImpactCard({
         </div>
       </div>
 
-      <div className="rounded-lg bg-(--surface-1) overflow-hidden" style={{ boxShadow: 'var(--shadow-surface)' }}>
+      <div className="rounded-lg bg-(--surface-1) overflow-hidden border border-(--border-subtle)">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -270,7 +270,7 @@ export function DriverImpactCard({
         <div className="fixed inset-0 z-50 flex justify-end print:hidden">
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm animate-fade-in" onClick={() => setEvidenceFeature(null)} />
           <div className="relative w-full max-w-2xl bg-(--app-bg) h-full shadow-(--shadow-overlay) overflow-y-auto animate-slide-in-right">
-            <div className="sticky top-0 z-10 flex justify-between items-center bg-(--app-bg)/90 backdrop-blur-xl p-6">
+            <div className="sticky top-0 z-10 flex justify-between items-center bg-(--app-bg) border-b border-(--border-subtle) p-6">
               <div>
                 <p className="text-xs font-medium text-(--brand) mb-1">Evidence</p>
                 <h2 className="text-xl font-semibold text-(--text-1) pr-8">{formatDriverLabel(evidenceFeature, rawColumns)}</h2>

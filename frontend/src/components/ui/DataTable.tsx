@@ -12,7 +12,7 @@ export function DataTable({ children, className = '', ...rest }: HTMLAttributes<
 
 export function THead({ children }: { children: ReactNode }) {
   return (
-    <thead className="border-b border-(--border-1) bg-(--surface-3) text-[10px] font-black upperootLensse tracking-[0.18em] text-(--text-3)">
+    <thead className="border-b border-(--border-1) bg-(--surface-3) text-[10px] font-black uppercase tracking-[0.18em] text-(--text-3)">
       {children}
     </thead>
   )

@@ -45,7 +45,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               'focus:shadow-[0_0_0_3px_hsl(214_100%_59%/0.15)]',
               'disabled:cursor-not-allowed disabled:opacity-50',
               error
-                ? 'border-(--c-danger) focus:border-(--c-danger) focus:shadow-[0_0_0_3px_hsl(0_84%_60%/0.15)]'
+                ? 'border-(--critical) focus:border-(--critical) focus:shadow-[0_0_0_3px_hsl(0_84%_60%/0.15)]'
                 : '',
               leftIcon  ? 'pl-9'  : 'px-3',
               rightIcon ? 'pr-9'  : '',
@@ -65,7 +65,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         </div>
 
         {error && (
-          <p id={`${id}-error`} className="mt-1.5 text-xs font-medium text-(--c-danger)">
+          <p id={`${id}-error`} className="mt-1.5 text-xs font-medium text-(--critical)">
             {error}
           </p>
         )}

@@ -20,17 +20,8 @@ export function EmptyState({ title, description, icon, action, className = '' }:
         className,
       ].join(' ')}
     >
-      {/* Ambient glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 rounded-xl"
-        style={{
-          background: 'radial-gradient(ellipse 60% 40% at 50% 0%, hsl(214 100% 59% / 0.06) 0%, transparent 70%)',
-        }}
-      />
-
       {/* Icon */}
-      <div className="relative z-10 mb-5 flex h-16 w-16 items-center justify-center rounded-xl border border-(--border-default) bg-(--surface-2) text-(--text-3) shadow-(--shadow-md)">
+      <div className="relative z-10 mb-5 flex h-16 w-16 items-center justify-center rounded-xl border border-(--border-default) bg-(--surface-2) text-(--text-3)">
         {icon ?? <PackageOpen className="h-7 w-7" />}
       </div>
 

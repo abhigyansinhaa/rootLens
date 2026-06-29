@@ -4,23 +4,23 @@ import { formatNumber, formatPct01 } from '../kpi/format'
 import type { ColumnSchema } from '../../types'
 
 export function DatasetColumnCard({ col }: { col: ColumnSchema }) {
-  const isTarget = col.name.toLowerootLensse().includes('target') ||
-    col.name.toLowerootLensse().includes('churn') ||
-    col.name.toLowerootLensse().includes('label')
+  const isTarget = col.name.toLowerCase().includes('target') ||
+    col.name.toLowerCase().includes('churn') ||
+    col.name.toLowerCase().includes('label')
 
-  const isId = col.name.toLowerootLensse().endsWith('_id') || col.name.toLowerootLensse() === 'id'
+  const isId = col.name.toLowerCase().endsWith('_id') || col.name.toLowerCase() === 'id'
 
   // Health heuristics
   const nullPct = col.null_ratio
   const nullTone = nullPct > 0.5 ? 'risk' : nullPct > 0.1 ? 'warning' : 'success'
 
   const dtypeColor = col.dtype.includes('float') || col.dtype.includes('int')
-    ? 'text-cyan-500'
+    ? 'text-(--info)'
     : col.dtype.includes('bool')
-      ? 'text-purple-500'
+      ? 'text-(--gov-pending)'
       : col.dtype.includes('datetime')
-        ? 'text-emerald-500'
-        : 'text-amber-500' // object/string
+        ? 'text-(--success)'
+        : 'text-(--warning)' // object/string
 
   return (
     <div className="flex flex-col justify-between rounded-lg border border-(--border-subtle) bg-(--surface-1) p-4 transition-colors hover:border-(--border-default) hover:bg-(--surface-2)">
@@ -32,7 +32,7 @@ export function DatasetColumnCard({ col }: { col: ColumnSchema }) {
           <div className="flex shrink-0 items-center gap-1.5">
             {isTarget && <StatusBadge tone="info" className="text-[9px]">Target?</StatusBadge>}
             {isId && <StatusBadge tone="default" className="text-[9px]">ID</StatusBadge>}
-            <span className={`text-[10px] font-mono font-bold upperootLensse ${dtypeColor}`}>
+            <span className={`text-[10px] font-mono font-bold uppercase ${dtypeColor}`}>
               {col.dtype}
             </span>
           </div>
@@ -40,20 +40,20 @@ export function DatasetColumnCard({ col }: { col: ColumnSchema }) {
 
         {/* Null ratio bar */}
         <div className="mb-4">
-          <div className="flex items-center justify-between text-[10px] upperootLensse tracking-widest font-bold mb-1.5">
+          <div className="flex items-center justify-between text-[10px] uppercase tracking-widest font-bold mb-1.5">
             <span className="text-(--text-3) flex items-center gap-1">
               Missing
               {nullPct > 0.5 && <HelpTooltip title="Columns with >50% missing values are often dropped.">!</HelpTooltip>}
             </span>
-            <span className={nullPct > 0 ? 'text-(--text-2)' : 'text-(--c-success)'}>
+            <span className={nullPct > 0 ? 'text-(--text-2)' : 'text-(--success)'}>
               {formatPct01(nullPct)}
             </span>
           </div>
           <div className="h-1.5 w-full rounded-full bg-(--surface-3) overflow-hidden">
             <div
-              className={`h-full rounded-full ${nullTone === 'risk' ? 'bg-(--c-danger)' :
-                  nullTone === 'warning' ? 'bg-(--c-warning)' :
-                    'bg-(--c-success)'
+              className={`h-full rounded-full ${nullTone === 'risk' ? 'bg-(--critical)' :
+                  nullTone === 'warning' ? 'bg-(--warning)' :
+                    'bg-(--success)'
                 }`}
               style={{ width: `${Math.max(1, nullPct * 100)}%` }}
             />

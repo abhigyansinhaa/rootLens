@@ -21,9 +21,8 @@ type ButtonProps =
 const variantClasses: Record<ButtonVariant, string> = {
   primary: [
     'bg-(--brand) text-white font-semibold',
-    'hover:brightness-110 hover:shadow-[0_0_24px_hsl(214_100%_59%/0.4)]',
+    'hover:brightness-110 shadow-sm',
     'active:brightness-95',
-    'shadow-[0_0_0_1px_hsl(214_100%_59%/0.5),0_2px_8px_hsl(214_100%_59%/0.3)]',
     'disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:brightness-100',
   ].join(' '),
 
@@ -31,7 +30,7 @@ const variantClasses: Record<ButtonVariant, string> = {
     'bg-(--surface-2) text-(--text-1) font-medium',
     'border border-(--border-default)',
     'hover:bg-(--surface-3) hover:border-(--border-strong)',
-    'active:bg-(--surface-4)',
+    'active:bg-(--surface-3)',
     'disabled:opacity-40 disabled:cursor-not-allowed',
   ].join(' '),
 
@@ -43,10 +42,9 @@ const variantClasses: Record<ButtonVariant, string> = {
   ].join(' '),
 
   danger: [
-    'bg-(--c-danger-bg) text-(--c-danger) font-semibold',
-    'border border-(--c-danger-border)',
-    'hover:bg-(--c-danger) hover:text-white hover:border-transparent',
-    'hover:shadow-[0_0_20px_hsl(0_84%_60%/0.3)]',
+    'bg-(--critical-bg) text-(--critical) font-semibold',
+    'border border-(--critical-border)',
+    'hover:bg-(--critical) hover:text-white hover:border-transparent',
     'active:brightness-90',
     'disabled:opacity-40 disabled:cursor-not-allowed',
   ].join(' '),

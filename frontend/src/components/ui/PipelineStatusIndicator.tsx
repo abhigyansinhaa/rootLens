@@ -35,7 +35,7 @@ export function PipelineStatusIndicator({ status }: { status: string }) {
         <p className="text-sm text-(--text-2)">Serious AI work is happening. Please do not close this window.</p>
       </div>
 
-      <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-(--surface-3) before:via-(--surface-3) before:to-transparent">
+      <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-(--border-subtle)">
         {STAGES.map((stage, idx) => {
           const isCompleted = idx < activeStageIdx
           const isActive = idx === activeStageIdx
@@ -44,26 +44,26 @@ export function PipelineStatusIndicator({ status }: { status: string }) {
           return (
             <div key={stage.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group animate-fade-in-up" style={{ animationDelay: `${idx * 100}ms` }}>
               <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-(--app-bg) bg-(--surface-1) shadow-sm shrink-0 md:order-1 md:group-odd:-ml-5 md:group-even:-mr-5 z-10 transition-colors duration-500" style={{
-                backgroundColor: isCompleted ? 'var(--c-success-bg)' : isActive ? 'var(--brand-dim)' : 'var(--surface-2)',
+                backgroundColor: isCompleted ? 'var(--success-bg)' : isActive ? 'var(--brand-dim)' : 'var(--surface-2)',
                 borderColor: 'var(--app-bg)'
               }}>
                 {isCompleted ? (
-                  <CheckCircle2 className="h-5 w-5 text-(--c-success)" />
+                  <CheckCircle2 className="h-5 w-5 text-(--success)" />
                 ) : isActive ? (
                   <Loader2 className="h-5 w-5 text-(--brand) animate-spin" />
                 ) : (
-                  <Circle className="h-3 w-3 text-(--surface-4)" fill="currentColor" />
+                  <Circle className="h-3 w-3 text-(--surface-3)" fill="currentColor" />
                 )}
               </div>
 
-              <div className={`w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] border border-(--border-subtle) rounded-lg p-4 shadow-sm transition-all duration-500 ${isActive ? 'bg-(--surface-1) border-(--border-brand) shadow-(--shadow-sm)' : 'bg-(--surface-2)/50'}`}>
+              <div className={`w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] border border-(--border-subtle) rounded-lg p-4 shadow-sm transition-all duration-500 ${isActive ? 'bg-(--surface-1) border-(--border-focus) shadow-md' : 'bg-(--surface-2)'}`}>
                 <div className="flex items-center justify-between mb-1">
                   <h3 className={`text-sm font-bold ${isActive ? 'text-(--text-1)' : isCompleted ? 'text-(--text-2)' : 'text-(--text-3)'}`}>
                     {stage.label}
                   </h3>
-                  {isActive && <span className="text-[10px] upperootLensse tracking-wider font-semibold text-(--brand) animate-pulse">In Progress</span>}
-                  {isCompleted && <span className="text-[10px] upperootLensse tracking-wider font-semibold text-(--c-success)">Done</span>}
-                  {isPending && <span className="text-[10px] upperootLensse tracking-wider font-semibold text-(--text-4)">Pending</span>}
+                  {isActive && <span className="text-[10px] uppercase tracking-wider font-semibold text-(--brand) animate-pulse">In Progress</span>}
+                  {isCompleted && <span className="text-[10px] uppercase tracking-wider font-semibold text-(--success)">Done</span>}
+                  {isPending && <span className="text-[10px] uppercase tracking-wider font-semibold text-(--text-4)">Pending</span>}
                 </div>
                 {isActive && (
                   <div className="w-full bg-(--surface-3) rounded-full h-1.5 mt-3 overflow-hidden">

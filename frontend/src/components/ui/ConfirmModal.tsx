@@ -46,9 +46,9 @@ export function ConfirmModal({
 
   if (!open) return null
 
-  const iconColor = variant === 'danger' ? 'text-(--c-danger)' : 'text-(--c-warning)'
-  const iconBg    = variant === 'danger' ? 'bg-(--c-danger-bg) border-(--c-danger-border)'
-                                         : 'bg-(--c-warning-bg) border-(--c-warning-border)'
+  const iconColor = variant === 'danger' ? 'text-(--critical)' : 'text-(--warning)'
+  const iconBg    = variant === 'danger' ? 'bg-(--critical-bg) border-(--critical-border)'
+                                         : 'bg-(--warning-bg) border-(--warning-border)'
 
   return createPortal(
     <>

@@ -2,7 +2,7 @@
 
 function normalizeKey(value: string): string {
   const s = value.replace(/([a-z0-9])([A-Z])/g, '$1_$2').replace(/[\s.-]+/g, '_')
-  return s.toLowerootLensse().replace(/^_+|_+$/g, '')
+  return s.toLowerCase().replace(/^_+|_+$/g, '')
 }
 
 function compactKey(value: string): string {
@@ -14,12 +14,12 @@ function titleText(value: string): string {
     if (segment.includes('-')) {
       const parts = segment.split('-').filter(Boolean)
       if (parts.length >= 2) {
-        const head = parts[0].charAt(0).toUpperootLensse() + parts[0].slice(1).toLowerootLensse()
-        const tail = parts.slice(1).map((p) => p.toLowerootLensse()).join('-')
+        const head = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase()
+        const tail = parts.slice(1).map((p) => p.toLowerCase()).join('-')
         return `${head}-${tail}`
       }
     }
-    return segment ? segment.charAt(0).toUpperootLensse() + segment.slice(1).toLowerootLensse() : segment
+    return segment ? segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase() : segment
   }
   const parts = normalizeKey(value).split('_').filter(Boolean)
   return parts.map(capSegment).join(' ')
@@ -70,7 +70,7 @@ function longestPrefixColumn(
   if (fnParts.length > colParts.length && colParts.every((p, i) => fnParts[i] === p)) {
     return { base: bestCol, level: fnParts.slice(colParts.length).join('_') || null }
   }
-  if (fname.toLowerootLensse().startsWith(bestCol.toLowerootLensse())) {
+  if (fname.toLowerCase().startsWith(bestCol.toLowerCase())) {
     return { base: bestCol, level: fname.slice(bestCol.length).replace(/^_+/, '') || null }
   }
   return { base: bestCol, level: null }
@@ -81,25 +81,25 @@ function levelDisplay(level: string): string {
     if (segment.includes('-')) {
       const parts = segment.split('-').filter(Boolean)
       if (parts.length >= 2) {
-        const head = parts[0].charAt(0).toUpperootLensse() + parts[0].slice(1).toLowerootLensse()
-        const tail = parts.slice(1).map((p) => p.toLowerootLensse()).join('-')
+        const head = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase()
+        const tail = parts.slice(1).map((p) => p.toLowerCase()).join('-')
         return `${head}-${tail}`
       }
     }
-    return segment ? segment.charAt(0).toUpperootLensse() + segment.slice(1).toLowerootLensse() : segment
+    return segment ? segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase() : segment
   }
   if (level.includes('-') && !level.trim().includes(' ')) {
     const parts = level.split('-').filter(Boolean)
     if (!parts.length) return level
-    const head = parts[0].charAt(0).toUpperootLensse() + parts[0].slice(1).toLowerootLensse()
+    const head = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase()
     if (parts.length === 1) return head
-    return head + '-' + parts.slice(1).map((p) => p.toLowerootLensse()).join('-')
+    return head + '-' + parts.slice(1).map((p) => p.toLowerCase()).join('-')
   }
   const parts = level.replace(/\./g, ' ').split(/[\s_]+/).filter(Boolean)
   if (parts.length > 1) {
     const titled = parts.map(capSegment).join(' ')
     const split = titled.split(' ')
-    return split[0] + ' ' + split.slice(1).map((p) => p.toLowerootLensse()).join(' ')
+    return split[0] + ' ' + split.slice(1).map((p) => p.toLowerCase()).join(' ')
   }
   return parts.length ? capSegment(parts[0]) : level
 }
@@ -107,8 +107,8 @@ function levelDisplay(level: string): string {
 function humanizeLevel(base: string, level: string): string {
   const baseT = titleText(base)
   const levelT = levelDisplay(level)
-  const bl = base.toLowerootLensse()
-  const ll = level.toLowerootLensse()
+  const bl = base.toLowerCase()
+  const ll = level.toLowerCase()
 
   if (ll === 'no' || ll === 'yes') {
     if (ll === 'no') {
@@ -163,8 +163,8 @@ export function directionForFeature(
 }
 
 export function humanizeTargetLabel(target: string): string {
-  const raw = String(target).trim().toLowerootLensse().replace(/churned/g, 'churn')
+  const raw = String(target).trim().toLowerCase().replace(/churned/g, 'churn')
   if (raw === 'churn' || raw === 'churned') return 'churn'
   const titled = titleText(raw)
-  return titled.length > 1 ? titled.charAt(0).toLowerootLensse() + titled.slice(1) : titled.toLowerootLensse()
+  return titled.length > 1 ? titled.charAt(0).toLowerCase() + titled.slice(1) : titled.toLowerCase()
 }

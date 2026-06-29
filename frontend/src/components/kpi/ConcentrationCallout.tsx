@@ -48,8 +48,7 @@ export function ConcentrationCallout({ kpis }: { kpis: AnalysisKpis }) {
     <div
       id="concentration-section"
       data-print-tier="2"
-      className="rounded-lg bg-(--surface-1) p-6 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between"
-      style={{ boxShadow: 'var(--shadow-surface)' }}
+      className="rounded-lg bg-(--surface-1) p-6 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between border border-(--border-subtle)"
     >
       <div className="max-w-md space-y-3">
         <CardEyebrow>Pareto concentration</CardEyebrow>
@@ -144,8 +143,8 @@ export function ConcentrationCallout({ kpis }: { kpis: AnalysisKpis }) {
                 <Area
                   type="monotone"
                   dataKey="y"
-                  stroke="var(--chart-primary)"
-                  fill="var(--chart-primary)"
+                  stroke="var(--brand)"
+                  fill="var(--brand)"
                   fillOpacity={0.12}
                   strokeWidth={2}
                 />

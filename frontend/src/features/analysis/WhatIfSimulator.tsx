@@ -62,7 +62,7 @@ function DriverSlider({
           onChange={(e) => onChange(Number(e.target.value) / 100)}
           className="w-full h-2 rounded-full appearance-none cursor-pointer"
           style={{
-            background: `linear-gradient(to right, ${color} 0%, ${color} ${Math.round(value * 100)}%, var(--surface-4) ${Math.round(value * 100)}%, var(--surface-4) 100%)`,
+            background: `linear-gradient(to right, ${color} 0%, ${color} ${Math.round(value * 100)}%, var(--surface-3) ${Math.round(value * 100)}%, var(--surface-3) 100%)`,
           }}
           aria-label={`Reduction scenario for ${label}`}
         />
@@ -138,11 +138,11 @@ export function WhatIfSimulator({ kpis, rawColumns }: WhatIfSimulatorProps) {
           style={{ background: 'radial-gradient(ellipse at right top, hsl(214 100% 59%), transparent 70%)' }}
         />
         <div className="flex items-center gap-3 relative z-10">
-          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-(--brand-dim) border border-(--border-brand)">
+          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-(--brand-dim) border border-(--border-focus)">
             <Sliders className="h-4 w-4 text-(--brand)" />
           </div>
           <div>
-            <p className="text-[10px] font-bold upperootLensse tracking-[0.16em] text-(--brand)">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-(--brand)">
               What-If Simulator
             </p>
             <h2 className="text-base font-bold text-(--text-1)">
@@ -191,7 +191,7 @@ export function WhatIfSimulator({ kpis, rawColumns }: WhatIfSimulatorProps) {
 
         {/* Right — projected outcomes */}
         <div className="p-6 space-y-5 bg-(--surface-2)/50 border-t border-(--border-subtle) lg:border-t-0">
-          <p className="text-[10px] font-bold upperootLensse tracking-[0.16em] text-(--text-3)">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-(--text-3)">
             Projected outcome
           </p>
 
@@ -201,12 +201,12 @@ export function WhatIfSimulator({ kpis, rawColumns }: WhatIfSimulatorProps) {
               <span>High-risk share</span>
               <span className="font-mono font-bold text-(--text-2)">
                 {formatPct01(baseHighRiskShare)} → {' '}
-                <span className="text-(--c-success)">{formatPct01(projectedHighRisk)}</span>
+                <span className="text-(--success)">{formatPct01(projectedHighRisk)}</span>
               </span>
             </div>
-            <div className="relative h-2.5 rounded-full bg-(--surface-4) overflow-hidden">
+            <div className="relative h-2.5 rounded-full bg-(--surface-3) overflow-hidden">
               <div
-                className="absolute left-0 top-0 h-full rounded-full bg-(--c-danger) transition-all duration-500"
+                className="absolute left-0 top-0 h-full rounded-full bg-(--critical) transition-all duration-500"
                 style={{ width: `${projectedHighRisk * 100}%` }}
               />
               <div
@@ -214,7 +214,7 @@ export function WhatIfSimulator({ kpis, rawColumns }: WhatIfSimulatorProps) {
                 style={{ width: `${baseHighRiskShare * 100}%` }}
               />
             </div>
-            <p className="text-[11px] text-(--c-success) font-semibold flex items-center gap-1">
+            <p className="text-[11px] text-(--success) font-semibold flex items-center gap-1">
               <TrendingDown className="h-3 w-3" />
               {formatPct01(Math.max(0, baseHighRiskShare - projectedHighRisk))} reduction
             </p>
@@ -222,11 +222,11 @@ export function WhatIfSimulator({ kpis, rawColumns }: WhatIfSimulatorProps) {
 
           {/* Revenue recovery */}
           {projectedRevRecov != null && (
-            <div className="rounded-lg border border-(--c-success-border) bg-(--c-success-bg) p-4">
-              <p className="text-[10px] font-bold upperootLensse tracking-[0.14em] text-(--c-success) mb-1">
+            <div className="rounded-lg border border-(--success-border) bg-(--success-bg) p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--success) mb-1">
                 Potential revenue recovery
               </p>
-              <p className="text-2xl font-bold tabular-nums text-(--c-success)">
+              <p className="text-2xl font-bold tabular-nums text-(--success)">
                 {fmt(projectedRevRecov)}
               </p>
               <p className="text-[11px] text-(--text-3) mt-1">
@@ -237,7 +237,7 @@ export function WhatIfSimulator({ kpis, rawColumns }: WhatIfSimulatorProps) {
 
           {/* Combined lift */}
           <div className="rounded-lg border border-(--border-default) bg-(--surface-1) p-4">
-            <p className="text-[10px] font-bold upperootLensse tracking-[0.14em] text-(--text-3) mb-1">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3) mb-1">
               Combined lift
             </p>
             <p className="text-2xl font-bold tabular-nums text-(--brand)">
