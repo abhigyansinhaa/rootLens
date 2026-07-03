@@ -1,11 +1,13 @@
 import json
+import logging
 from typing import Annotated, Any
 
 import pandas as pd
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.deps import get_current_user
+from app.rate_limit import limiter
 from app.domain.models import Analysis, Dataset, User
 from app.domain.schemas import ColumnSchema, DatasetOut, DatasetProfileOut, DatasetProfileRequest
 from app.infrastructure.db import get_db
@@ -21,6 +23,11 @@ from app.infrastructure.storage import (
 from app.pipelines.profile import profile_dataset_for_target
 
 router = APIRouter(prefix="/datasets", tags=["datasets"])
+
+logger = logging.getLogger(__name__)
+
+# Hard cap mirrored by nginx client_max_body_size — prevents in-memory DoS
+MAX_UPLOAD_BYTES = 200 * 1024 * 1024  # 200 MB
 
 
 def _infer_columns(df: pd.DataFrame) -> list[ColumnSchema]:
@@ -72,7 +79,9 @@ def _dataset_to_out(ds: Dataset) -> DatasetOut:
 
 
 @router.post("", response_model=DatasetOut, status_code=status.HTTP_201_CREATED)
+@limiter.limit("20/hour")
 async def upload_dataset(
+    request: Request,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
     file: UploadFile = File(...),
@@ -82,6 +91,11 @@ async def upload_dataset(
     content = await file.read()
     if not content:
         raise HTTPException(status_code=400, detail="Empty file")
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File exceeds the {MAX_UPLOAD_BYTES // (1024 * 1024)} MB upload limit",
+        )
 
     content_hash = content_hash_of_bytes(content)
     existing = (
@@ -101,7 +115,11 @@ async def upload_dataset(
         df = _load_dataframe(storage_path, fmt)
     except Exception as e:
         delete_file(storage_path)
-        raise HTTPException(status_code=400, detail=f"Could not parse file: {e!s}") from e
+        logger.exception("Failed to parse uploaded file (storage_path=%s): %s", storage_path, e)
+        raise HTTPException(
+            status_code=400,
+            detail="Could not parse file: check that the format and encoding are correct",
+        ) from e
 
     if df.empty or df.shape[1] == 0:
         delete_file(storage_path)
