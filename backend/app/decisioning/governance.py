@@ -31,10 +31,12 @@ logger = logging.getLogger(__name__)
 
 GovernanceStatus = Literal["ok", "warning", "critical"]
 
-LEAKAGE_WARN_TRIGGER = 1
-DEGRADED_WARN_TRIGGER = 1
-GOVERNANCE_COVERAGE_FLOOR = 0.5
-RELIABILITY_LOW_CRITICAL = True
+from app.thresholds import (
+    DEGRADED_WARN_TRIGGER,
+    GOVERNANCE_COVERAGE_FLOOR,
+    LEAKAGE_WARN_TRIGGER,
+    RELIABILITY_LOW_CRITICAL,
+)
 
 
 def _classify_warning(text: str) -> str:

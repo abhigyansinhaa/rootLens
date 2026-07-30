@@ -21,10 +21,12 @@ from xgboost import XGBClassifier, XGBRegressor
 
 from app.pipelines.common import TaskType, positive_class_index_for_model
 
-MAX_SHAP_SAMPLES = 1000
-SHAP_PLOT_SAMPLE_CAP = 1000
-SHAP_COMPUTE_SAMPLE_CAP = 5000
-SHAP_COMPUTE_MIN_SAMPLE = 500
+from app.thresholds import (
+    MAX_SHAP_SAMPLES,
+    SHAP_COMPUTE_MIN_SAMPLE,
+    SHAP_COMPUTE_SAMPLE_CAP,
+    SHAP_PLOT_SAMPLE_CAP,
+)
 
 
 def shap_compute_sample_size(n_rows: int) -> int:
@@ -122,18 +124,28 @@ def _extract_positive_class_shap_matrix(
     return arr
 
 
+from app.pipelines.shap_cache import get_cached_shap_values, save_cached_shap_values
+
 def _tree_shap_matrix(
     model: Any,
     X_sample: np.ndarray,
     task_type: TaskType,
     label_encoder: Any | None,
+    dataset_hash: str | None = None,
+    schema_hash: str | None = None,
 ) -> np.ndarray:
     """Per-row SHAP for the positive (risk) class, shape ``(n_samples, n_features)``."""
+    cached_sv, _ = get_cached_shap_values(dataset_hash, schema_hash, model, "explain")
+    if cached_sv is not None:
+        return cached_sv
+
     explainer = shap.TreeExplainer(model)
     sv = explainer.shap_values(X_sample)
-    return _extract_positive_class_shap_matrix(
+    sv_extracted = _extract_positive_class_shap_matrix(
         sv, X_sample, task_type=task_type, label_encoder=label_encoder
     )
+    save_cached_shap_values(dataset_hash, schema_hash, model, "explain", sv_extracted, 0.0)
+    return sv_extracted
 
 
 def _is_binary_dummy_column(col: np.ndarray) -> bool:
@@ -184,8 +196,10 @@ def _tree_explainer_shap(
     X_sample: np.ndarray,
     task_type: TaskType,
     label_encoder: Any | None,
+    dataset_hash: str | None = None,
+    schema_hash: str | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
-    mat = _tree_shap_matrix(model, X_sample, task_type, label_encoder)
+    mat = _tree_shap_matrix(model, X_sample, task_type, label_encoder, dataset_hash, schema_hash)
     mean_abs = np.abs(mat).mean(axis=0)
     mean_signed = _mean_signed_from_shap_matrix(mat, X_sample)
     return mean_abs, mean_signed
@@ -247,6 +261,8 @@ def compute_explanations_with_fallback(
     X_test_raw: pd.DataFrame | None = None,
     label_encoder: Any | None = None,
     raw_columns: list[str] | None = None,
+    dataset_hash: str | None = None,
+    schema_hash: str | None = None,
 ) -> tuple[list[dict[str, Any]], str | None, list[str]]:
     """Like compute_explanations, but never raises: falls back to model importances."""
     import logging
@@ -267,6 +283,8 @@ def compute_explanations_with_fallback(
             X_test_raw=X_test_raw,
             label_encoder=label_encoder,
             raw_columns=raw_columns,
+            dataset_hash=dataset_hash,
+            schema_hash=schema_hash,
         )
         if plot_err:
             notes.append(user_msg.GOODWILL_PLOT_SKIPPED)
@@ -363,6 +381,8 @@ def compute_explanations(
     X_test_raw: pd.DataFrame | None = None,
     label_encoder: Any | None = None,
     raw_columns: list[str] | None = None,
+    dataset_hash: str | None = None,
+    schema_hash: str | None = None,
 ) -> tuple[list[dict[str, Any]], str | None]:
     """Build per-feature explanation rows. Uses SHAP for tree models; coef / permutation for linear."""
     artifact_dir.mkdir(parents=True, exist_ok=True)
@@ -383,7 +403,7 @@ def compute_explanations(
     imp: np.ndarray | None = getattr(model, "feature_importances_", None)
 
     if isinstance(model, (XGBClassifier, XGBRegressor, RandomForestClassifier, RandomForestRegressor)):
-        mean_abs, mean_signed = _tree_explainer_shap(model, X_s, task_type, label_encoder)
+        mean_abs, mean_signed = _tree_explainer_shap(model, X_s, task_type, label_encoder, dataset_hash, schema_hash)
         if imp is None or len(imp) != len(feature_names):
             imp = np.ones(len(feature_names)) / max(len(feature_names), 1)
     elif isinstance(model, (LogisticRegression, ElasticNet)):

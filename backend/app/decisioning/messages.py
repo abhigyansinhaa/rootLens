@@ -33,9 +33,9 @@ GOODWILL_FAILURE_SUPPORT = (
 
 def combined_user_message(fallback_notes: list[str]) -> str | None:
     """Single paragraph for report.user_message when any fallback ran."""
-    if not fallback_notes:
-        return None
     unique = list(dict.fromkeys(n for n in fallback_notes if n.strip()))
+    if not unique:
+        return None
     parts = [GOODWILL_PARTIAL]
     parts.extend(unique[:4])
     return " ".join(parts)

@@ -1,4 +1,11 @@
-"""Train models with sklearn Pipeline, routing, and cross-validated metrics."""
+"""Train models with sklearn Pipeline, routing, and cross-validated metrics.
+
+Note on Model Persistence:
+Currently, trained models are NOT serialized to disk (e.g. via joblib.dump).
+The system trains the model, computes KPIs and explanations, and then discards
+the model object. If inference on new data is required in the future,
+joblib-based serialization must be added to the training pipeline.
+"""
 
 from __future__ import annotations
 
@@ -29,7 +36,14 @@ from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 from xgboost import XGBClassifier, XGBRegressor
 
 from app.pipelines.common import TaskType, detect_task_type, positive_class_index_for_model
-from app.pipelines.encoders import HIGH_CARD_MAX, FrequencyEncoder, OOFTargetEncoder
+from app.pipelines.encoders import FrequencyEncoder, OOFTargetEncoder
+from app.pipelines.pipeline_helpers import (
+    evaluate_model_metrics,
+    prepare_training_data,
+    run_cross_validation,
+    split_training_data,
+)
+from app.thresholds import ENCODER_VERSION, HIGH_CARD_MAX, MAX_CAT_LEVELS, RANDOM_STATE
 
 ModelKind = Literal["xgboost", "random_forest", "logistic_regression", "elastic_net"]
 
@@ -67,10 +81,6 @@ def _json_safe_hyperparams(params: dict[str, Any]) -> dict[str, Any]:
             out[k] = str(v)
     return out
 
-
-MAX_CAT_LEVELS = 25
-ENCODER_VERSION = "v2"
-RANDOM_STATE = 42
 
 
 def training_work_frame(
@@ -215,17 +225,8 @@ def _choose_model_kind(
     n_categorical: int,
 ) -> ModelKind:
     """Route to a model family based on dataset shape."""
-    complexity = n_numeric + min(n_categorical * 3, 50)
-    if n_rows < 200:
-        if task == "classification":
-            return "random_forest"
-        return "elastic_net" if n_numeric > n_categorical else "random_forest"
-    if n_rows < 2000 and complexity < 80:
-        if task == "classification":
-            return "xgboost"
-        return "xgboost"
-    if task == "classification":
-        return "xgboost"
+    if task == "classification" and n_rows < 200:
+        return "random_forest"
     return "xgboost"
 
 
@@ -323,20 +324,9 @@ def train_model(
         drop_cols.add(dc_used)
 
     y_raw = work[target]
-    X_df = work.drop(columns=list(drop_cols))
-    num_cols, cat_cols = _build_column_lists(X_df)
-    if not num_cols and not cat_cols:
-        raise ValueError("No feature columns")
-
-    cat_low, cat_mid, cat_dropped = _split_categorical_by_cardinality(X_df, cat_cols)
-    if cat_dropped:
-        warnings.append(
-            "Dropped extremely-high-cardinality columns "
-            f"(>{HIGH_CARD_MAX} unique levels) from training: {cat_dropped[:5]}"
-            + ("..." if len(cat_dropped) > 5 else "")
-            + ". These looked identifier-like; revisit with cleaner labels if you need them as drivers."
-        )
-        X_df = X_df.drop(columns=cat_dropped)
+    X_df, num_cols, cat_low, cat_mid = prepare_training_data(
+        work, target, dc_used, warnings, _build_column_lists, _split_categorical_by_cardinality
+    )
 
     pre = _make_preprocessor(num_cols, cat_low, cat_mid)
     kind = force_model_kind or _choose_model_kind(task, len(work), len(num_cols), len(cat_low) + len(cat_mid))
@@ -358,96 +348,13 @@ def train_model(
 
     use_temporal_holdout = temporal_ordered
 
-    if use_temporal_holdout:
-        n_total = len(work)
-        split_idx = max(1, min(n_total - 1, int(np.floor(n_total * (1 - float(test_size))))))
-        X_train_df = X_df.iloc[:split_idx].copy()
-        X_test_df = X_df.iloc[split_idx:].copy()
-        y_train = y[:split_idx]
-        y_test = y[split_idx:]
-    else:
-        if task == "classification":
-            unique, counts = np.unique(y, return_counts=True)
-            stratify = y if len(unique) > 1 and counts.min() >= 2 else None
-        else:
-            stratify = None
+    X_train_df, X_test_df, y_train, y_test = split_training_data(
+        X_df, y, test_size, random_state, use_temporal_holdout, task
+    )
 
-        X_train_df, X_test_df, y_train, y_test = train_test_split(
-            X_df,
-            y,
-            test_size=test_size,
-            random_state=random_state,
-            stratify=stratify,
-        )
-
-    cv_metrics: dict[str, float] = {}
-    validation_strategy = "holdout"
-    n_splits = min(5, max(2, len(y_train) // 10))
-
-    if skip_cv:
-        validation_strategy = "holdout_cv_skipped"
-    elif len(y_train) >= 30 and n_splits >= 2:
-        if use_temporal_holdout:
-            n_splits_ts = min(5, max(2, len(y_train) // 15))
-            validation_strategy = f"walk_forward_{n_splits_ts}_fold_train"
-            tscv = TimeSeriesSplit(n_splits=n_splits_ts)
-            try:
-                if task == "classification":
-                    scores = cross_val_score(
-                        full_pipe,
-                        X_train_df,
-                        y_train,
-                        cv=tscv,
-                        scoring="accuracy",
-                        n_jobs=-1,
-                    )
-                    cv_metrics["cv_accuracy_mean"] = float(np.mean(scores))
-                    cv_metrics["cv_accuracy_std"] = float(np.std(scores))
-                else:
-                    scores = cross_val_score(
-                        full_pipe,
-                        X_train_df,
-                        y_train,
-                        cv=tscv,
-                        scoring="r2",
-                        n_jobs=-1,
-                    )
-                    cv_metrics["cv_r2_mean"] = float(np.mean(scores))
-                    cv_metrics["cv_r2_std"] = float(np.std(scores))
-            except Exception:
-                validation_strategy = "holdout_cv_failed"
-        else:
-            validation_strategy = f"{n_splits}-fold_cv_train"
-            if task == "classification":
-                cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
-                try:
-                    scores = cross_val_score(
-                        full_pipe,
-                        X_train_df,
-                        y_train,
-                        cv=cv,
-                        scoring="accuracy",
-                        n_jobs=-1,
-                    )
-                    cv_metrics["cv_accuracy_mean"] = float(np.mean(scores))
-                    cv_metrics["cv_accuracy_std"] = float(np.std(scores))
-                except Exception:
-                    validation_strategy = "holdout_cv_failed"
-            else:
-                cv = KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
-                try:
-                    scores = cross_val_score(
-                        full_pipe,
-                        X_train_df,
-                        y_train,
-                        cv=cv,
-                        scoring="r2",
-                        n_jobs=-1,
-                    )
-                    cv_metrics["cv_r2_mean"] = float(np.mean(scores))
-                    cv_metrics["cv_r2_std"] = float(np.std(scores))
-                except Exception:
-                    validation_strategy = "holdout_cv_failed"
+    cv_metrics, validation_strategy = run_cross_validation(
+        full_pipe, X_train_df, y_train, task, skip_cv, use_temporal_holdout, random_state
+    )
 
     t_fit0 = time.perf_counter()
     full_pipe.fit(X_train_df, y_train)
@@ -459,46 +366,9 @@ def train_model(
 
     y_pred = full_pipe.named_steps["model"].predict(X_test_t)
 
-    if task == "classification":
-        metrics: dict[str, float | list[dict[str, float]]] = {
-            "accuracy": float(accuracy_score(y_test, y_pred)),
-            "f1_macro": float(f1_score(y_test, y_pred, average="macro", zero_division=0)),
-        }
-        n_classes_t = len(np.unique(y_train))
-        if n_classes_t == 2:
-            try:
-                pc_idx = positive_class_index_for_model(task, le)
-                proba = full_pipe.named_steps["model"].predict_proba(X_test_t)[:, pc_idx]
-                metrics["roc_auc"] = float(roc_auc_score(y_test, proba))
-                metrics["brier_score_loss"] = float(brier_score_loss(y_test, proba))
-                prob_true, prob_pred = calibration_curve(
-                    y_test,
-                    proba,
-                    n_bins=min(10, max(3, len(y_test) // 20)),
-                    strategy="uniform",
-                )
-                metrics["calibration_curve"] = [
-                    {"mean_predicted": float(a), "fraction_positive": float(b)}
-                    for a, b in zip(prob_pred, prob_true)
-                ]
-                try:
-                    log_baseline = LogisticRegression(max_iter=400, random_state=random_state)
-                    log_baseline.fit(X_train_t, y_train)
-                    proba_lb = log_baseline.predict_proba(X_test_t)[:, pc_idx]
-                    metrics["logistic_baseline_roc_auc"] = float(roc_auc_score(y_test, proba_lb))
-                except Exception:
-                    pass
-            except Exception:
-                metrics["roc_auc"] = 0.0
-        metrics.update(cv_metrics)
-    else:
-        mse = mean_squared_error(y_test, y_pred)
-        metrics = {
-            "r2": float(r2_score(y_test, y_pred)),
-            "mae": float(mean_absolute_error(y_test, y_pred)),
-            "rmse": float(np.sqrt(mse)),
-        }
-        metrics.update(cv_metrics)
+    metrics = evaluate_model_metrics(
+        task, y_test, y_pred, y_train, full_pipe, X_test_t, le, X_train_t, random_state, cv_metrics
+    )
 
     confidence = _confidence_from_metrics(task, metrics, len(work))
     if len(work) < 50:

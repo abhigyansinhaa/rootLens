@@ -27,14 +27,12 @@ import numpy as np
 
 ConfidenceTier = Literal["high", "medium", "low"]
 
-
-# Thresholds intentionally tuned to be forgiving: we want "high" to mean
-# "operator can act on this number"; "low" means "use as direction, not
-# magnitude". Anything in between lands on "medium".
-HIGH_CV_RATIO_MAX = 0.85
-MEDIUM_CV_RATIO_MAX = 1.6
-HIGH_SUPPORT_MIN = 0.05
-MEDIUM_SUPPORT_MIN = 0.01
+from app.thresholds import (
+    HIGH_CV_RATIO_MAX,
+    HIGH_SUPPORT_MIN,
+    MEDIUM_CV_RATIO_MAX,
+    MEDIUM_SUPPORT_MIN,
+)
 
 
 @dataclass

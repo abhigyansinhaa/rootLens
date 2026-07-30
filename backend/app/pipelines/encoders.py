@@ -223,5 +223,3 @@ class FrequencyEncoder(BaseEstimator, TransformerMixin):
         return np.asarray([f"{n}__freq" for n in names], dtype=object)
 
 
-HIGH_CARD_MIN = 26
-HIGH_CARD_MAX = 300

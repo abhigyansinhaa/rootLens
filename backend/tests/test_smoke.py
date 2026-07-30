@@ -778,8 +778,8 @@ class TestConfig:
         assert settings.artifacts_dir is not None
 
     def test_cors_origins_is_list(self):
-        assert isinstance(settings.cors_origins, list)
-        assert len(settings.cors_origins) > 0
+        assert isinstance(settings.cors_origins_list, list)
+        assert len(settings.cors_origins_list) > 0
 
 
 # ===================================================================

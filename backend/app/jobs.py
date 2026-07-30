@@ -148,10 +148,12 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
             art_dir,
             model_kind=result.model_kind,
             task_type=result.task_type,
-            y_test=result.y_test,
+            y_test=result.y_test_raw,
             X_test_raw=result.X_test_df,
             label_encoder=result.label_encoder,
             raw_columns=raw_cols_early,
+            dataset_hash=analysis.dataset_hash,
+            schema_hash=analysis.schema_hash,
         )
 
         fallback_notes = list(training_fallback_notes) + list(explanation_fallback_notes)
@@ -243,6 +245,8 @@ def run_analysis(db: Session, analysis_id: int, test_size: float, max_rows: int 
                 value_col,
                 art_dir,
                 data_warning_count=len(result.data_warnings or []),
+                dataset_hash=analysis.dataset_hash,
+                schema_hash=analysis.schema_hash,
             )
             report["kpis"] = kpis
         except Exception as e:

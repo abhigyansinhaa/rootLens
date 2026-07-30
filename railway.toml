@@ -1,0 +1,75 @@
+# rootLens — Railway monorepo service definitions
+#
+# MySQL and Redis are provisioned as Railway Add-ons (one-click in the dashboard).
+# Railway injects their connection URLs automatically; we reference them below via
+# Variable References so no secret is ever hardcoded here.
+#
+# REQUIRED dashboard actions after first deploy:
+#   1. Add MySQL add-on  → Railway injects ${{MySQL.MYSQL_URL}}
+#   2. Add Redis add-on  → Railway injects ${{Redis.REDIS_URL}}
+#   3. Attach a Volume to `backend` and `worker` services, mount path: /data
+#      (prevents upload/artifact loss on redeploy — ~$0.25/GB/month)
+#   4. Set shared variables:
+#        SECRET_KEY    = <openssl rand -hex 32>
+#        CORS_ORIGINS  = https://rootlens.ai,https://app.rootlens.ai
+#        MYSQL_PASSWORD      = <strong password>
+#        MYSQL_ROOT_PASSWORD = <strong password>
+
+[project]
+name = "rootlens"
+
+# ── Backend API ───────────────────────────────────────────────────────────────
+[services.backend]
+  source = "backend"
+
+  [services.backend.build]
+    dockerfile = "Dockerfile"
+
+  [services.backend.deploy]
+    startCommand = "sh -c 'until alembic upgrade head; do echo \"DB not ready, retrying...\"; sleep 3; done && exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --timeout-keep-alive 30'"
+    healthcheckPath = "/api/health"
+    healthcheckTimeout = 300
+    restartPolicyType = "on_failure"
+    restartPolicyMaxRetries = 3
+
+  [services.backend.variables]
+    APP_ENV      = "production"
+    LOG_LEVEL    = "WARNING"
+    SECRET_KEY   = "${{SECRET_KEY}}"
+    # Railway MySQL add-on — scheme coerced to mysql+pymysql:// automatically by config.py
+    DATABASE_URL = "${{MySQL.MYSQL_URL}}"
+    REDIS_URL    = "${{Redis.REDIS_URL}}"
+    CORS_ORIGINS = "${{CORS_ORIGINS}}"
+    # Injected by Railway at build time — used by /api/version endpoint
+    APP_VERSION  = "${{RAILWAY_GIT_COMMIT_SHA}}"
+
+# ── RQ Worker ────────────────────────────────────────────────────────────────
+[services.worker]
+  source = "backend"
+
+  [services.worker.build]
+    dockerfile = "Dockerfile"
+
+  [services.worker.deploy]
+    startCommand = "rq worker default --url $REDIS_URL"
+    restartPolicyType = "on_failure"
+    restartPolicyMaxRetries = 5
+
+  [services.worker.variables]
+    APP_ENV      = "production"
+    LOG_LEVEL    = "WARNING"
+    SECRET_KEY   = "${{SECRET_KEY}}"
+    DATABASE_URL = "${{MySQL.MYSQL_URL}}"
+    REDIS_URL    = "${{Redis.REDIS_URL}}"
+    APP_VERSION  = "${{RAILWAY_GIT_COMMIT_SHA}}"
+
+# ── Frontend (nginx + Vite SPA) ───────────────────────────────────────────────
+[services.frontend]
+  source = "frontend"
+
+  [services.frontend.build]
+    dockerfile = "Dockerfile"
+
+  [services.frontend.variables]
+    # Points nginx proxy to the backend Railway service URL at runtime (envsubst)
+    BACKEND_URL = "https://${{backend.RAILWAY_PUBLIC_DOMAIN}}"

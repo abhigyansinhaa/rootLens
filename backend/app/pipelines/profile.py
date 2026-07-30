@@ -12,23 +12,18 @@ import pandas as pd
 from app.pipelines.common import TaskType, detect_task_type
 
 logger = logging.getLogger(__name__)
-
-# Heuristic thresholds (tunable)
-MIN_ROWS_FOR_ANALYSIS = 10
-MIN_ROWS_RECOMMENDED = 50
-MAX_CLASSIFICATION_CARDINALITY = 50
-ID_LIKE_UNIQUE_RATIO = 0.5
-HIGH_NULL_RATIO = 0.5
-HIGH_CARD_CAT_UNIQUE = 100
-LEAKAGE_NAME_SUBSTR = ("id", "uuid", "email", "phone", "ssn", "hash")
-
-# Leakage detection thresholds. Stay generous on purpose: we want to flag the
-# tell-tale "this column is the target in disguise" pattern without spamming
-# users about merely-predictive features.
-LEAKAGE_CORR_ABS_THRESHOLD = 0.98
-LEAKAGE_MI_SCORE_THRESHOLD = 0.95
-LEAKAGE_MI_SAMPLE_ROWS = 5000
-
+from app.thresholds import (
+    HIGH_CARD_CAT_UNIQUE,
+    HIGH_NULL_RATIO,
+    ID_LIKE_UNIQUE_RATIO,
+    LEAKAGE_CORR_ABS_THRESHOLD,
+    LEAKAGE_MI_SAMPLE_ROWS,
+    LEAKAGE_MI_SCORE_THRESHOLD,
+    LEAKAGE_NAME_SUBSTR,
+    MAX_CLASSIFICATION_CARDINALITY,
+    MIN_ROWS_FOR_ANALYSIS,
+    MIN_ROWS_RECOMMENDED,
+)
 
 @dataclass
 class ProfileResult:
