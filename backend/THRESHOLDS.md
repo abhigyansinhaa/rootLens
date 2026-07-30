@@ -29,6 +29,8 @@ All values listed here correspond to variables defined centrally in `app/thresho
 *   **`SHAP_PLOT_SAMPLE_CAP = 1000`**: Number of dots shown on the UI beeswarm plot.
 *   **`SHAP_COMPUTE_SAMPLE_CAP = 5000`**: Maximum number of rows to evaluate SHAP values on (to prevent timeout on huge datasets).
 *   **`SHAP_COMPUTE_MIN_SAMPLE = 500`**: Minimum number of rows required to compute stable SHAP values.
+*   **`SHAP_CACHE_MAX_BYTES = 100 * 1024 * 1024`**: Maximum total size (100MB) of disk cache for SHAP computations before LRU eviction.
+*   **`SHAP_CACHE_MAX_FILES = 200`**: Maximum file count in `data/shap_cache/` before oldest `.pkl` files are deleted.
 
 ## 4. Decisioning & Governance (`counterfactual.py`, `governance.py`)
 

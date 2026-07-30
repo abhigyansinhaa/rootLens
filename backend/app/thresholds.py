@@ -42,11 +42,13 @@ RANDOM_STATE = 42
 # 3. Model Explainability (app/pipelines/explain.py)
 # =============================================================================
 
-# SHAP Sampling caps
+# SHAP Sampling caps & Caching caps
 MAX_SHAP_SAMPLES = 1000
 SHAP_PLOT_SAMPLE_CAP = 1000
 SHAP_COMPUTE_SAMPLE_CAP = 5000
 SHAP_COMPUTE_MIN_SAMPLE = 500
+SHAP_CACHE_MAX_BYTES = 100 * 1024 * 1024  # 100 MB max disk cache size
+SHAP_CACHE_MAX_FILES = 200  # Max cached files
 
 # =============================================================================
 # 4. Decisioning Engine: Counterfactuals & Governance
