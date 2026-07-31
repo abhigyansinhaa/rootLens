@@ -157,7 +157,7 @@ export function Datasets({ compact = false }: { compact?: boolean }) {
                         className={[
                           'rounded-sm p-1.5 transition-all',
                           viewMode === mode
-                            ? 'bg-(--surface-1) text-(--brand) shadow-[var(--shadow-xs)]'
+                            ? 'bg-(--surface-1) text-(--brand) shadow-(--shadow-xs)'
                             : 'text-(--text-3) hover:text-(--text-1)',
                         ].join(' ')}
                         title={`${mode} view`}
@@ -187,7 +187,7 @@ export function Datasets({ compact = false }: { compact?: boolean }) {
                   <Link key={d.id} to={`/datasets/${d.id}`} className="group block h-full">
                     <div className="relative flex h-full flex-col overflow-hidden rounded-lg border border-(--border-subtle) bg-(--surface-1) transition-all duration-(--duration-normal) hover:-translate-y-1 hover:border-(--border-focus) hover:shadow-[var(--shadow-lg),0_0_30px_hsl(214_100%_59%/0.08)]">
                       {/* Top accent (reveals on hover) */}
-                      <div className="h-[2px] w-full bg-(--brand) transition-transform origin-left scale-x-0 group-hover:scale-x-100" />
+                      <div className="h-0.5 w-full bg-(--brand) transition-transform origin-left scale-x-0 group-hover:scale-x-100" />
 
                       <div className="flex flex-1 flex-col gap-3 p-5">
                         {/* Header row */}
@@ -263,7 +263,7 @@ export function Datasets({ compact = false }: { compact?: boolean }) {
                           <Link to={`/datasets/${d.id}`} className="absolute inset-0" aria-label={`View ${d.name}`} />
                           <div className="flex flex-col">
                             <span className="text-sm font-semibold text-(--text-1) group-hover:text-(--brand) transition-colors">{d.name}</span>
-                            <span className="text-[10px] font-mono text-(--text-3) truncate max-w-[200px]">{d.filename}</span>
+                            <span className="text-[10px] font-mono text-(--text-3) truncate max-w-50">{d.filename}</span>
                           </div>
                         </TD>
                         <TD className={py}>

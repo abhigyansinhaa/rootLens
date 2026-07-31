@@ -63,7 +63,7 @@ export function DatasetColumnCard({ col }: { col: ColumnSchema }) {
 
       <div className="flex items-center justify-between text-xs text-(--text-3) border-t border-(--border-subtle) pt-3">
         <span><span className="font-semibold text-(--text-2)">{formatNumber(col.n_unique)}</span> unique</span>
-        <span className="truncate max-w-[120px] ml-4 text-right" title={col.sample_values?.join(', ')}>
+        <span className="truncate max-w-30 ml-4 text-right" title={col.sample_values?.join(', ')}>
           {col.sample_values?.slice(0, 2).join(', ')}...
         </span>
       </div>
