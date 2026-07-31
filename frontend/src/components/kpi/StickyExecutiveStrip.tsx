@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import type { Analysis, AnalysisKpis, KpiHistoryResponse } from '../../types'
 import { StatusBadge } from '../ui'
+import { ConfidenceArc } from './ConfidenceArc'
 import { formatDriverLabel } from '../../lib/driverLabels'
 import { formatCompactMoney, formatNumber, formatPct01 } from './format'
 
@@ -80,9 +81,12 @@ export function StickyExecutiveStrip({
     {
       label: 'Confidence',
       value: (
-        <StatusBadge tone={m.relTone} dot className="px-0 py-0 text-xs capitalize bg-transparent border-0">
-          {m.rel.tier}
-        </StatusBadge>
+        <span className="flex items-center gap-1.5">
+          <ConfidenceArc cvRatio={m.rel.cv_std} tier={m.rel.tier} size={20} />
+          <StatusBadge tone={m.relTone} dot className="px-0 py-0 text-xs capitalize bg-transparent border-0">
+            {m.rel.tier}
+          </StatusBadge>
+        </span>
       ),
       extra: null,
     },

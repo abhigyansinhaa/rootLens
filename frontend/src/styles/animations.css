@@ -36,8 +36,8 @@
 }
 
 @keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 8px hsl(214 100% 59% / 0.2);  }
-  50%       { box-shadow: 0 0 24px hsl(214 100% 59% / 0.5); }
+  0%, 100% { box-shadow: 0 0 8px rgba(111, 168, 166, 0.2);  }
+  50%       { box-shadow: 0 0 24px rgba(111, 168, 166, 0.5); }
 }
 
 @keyframes dotPulse {
@@ -61,7 +61,7 @@
 }
 
 @keyframes sectionPulse {
-  0%   { background-color: hsl(239 84% 67% / 0.12); }
+  0%   { background-color: rgba(111, 168, 166, 0.12); }
   100% { background-color: transparent; }
 }
 
@@ -84,8 +84,8 @@
 }
 
 @keyframes borderPulse {
-  0%, 100% { border-color: hsl(214 100% 59% / 0.3); }
-  50%       { border-color: hsl(214 100% 59% / 0.7); }
+  0%, 100% { border-color: rgba(111, 168, 166, 0.3); }
+  50%       { border-color: rgba(111, 168, 166, 0.7); }
 }
 
 @keyframes skeletonWave {

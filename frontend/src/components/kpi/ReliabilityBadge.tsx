@@ -1,5 +1,6 @@
 import type { AnalysisKpis } from '../../types'
 import { Card, CardEyebrow, StatusBadge } from '../ui'
+import { ConfidenceArc } from './ConfidenceArc'
 import { formatNumber } from './format'
 
 export function ReliabilityBadge({ kpis }: { kpis: AnalysisKpis }) {
@@ -13,16 +14,18 @@ export function ReliabilityBadge({ kpis }: { kpis: AnalysisKpis }) {
         <div className="min-w-[180px] flex-1">
           <CardEyebrow>Model reliability</CardEyebrow>
           <h2 className="mt-2 text-lg font-bold text-(--text-1)">Separation &amp; stability</h2>
-          <div className="mt-3">
+          <div className="mt-3 flex items-center gap-2">
+            <ConfidenceArc cvRatio={r.cv_std} tier={r.tier} size={28} />
             <StatusBadge tone={tone} dot className="text-xs">
               {r.tier}
             </StatusBadge>
           </div>
         </div>
-        <div className="min-w-[180px] flex-1 lg:border-l lg:border-(--border-soft) lg:pl-10">
+        <div className="min-w-[180px] flex-1 lg:border-l lg:border-(--border-subtle) lg:pl-10">
           <CardEyebrow>Intervention confidence</CardEyebrow>
           <h2 className="mt-2 text-lg font-bold text-(--text-1)">Action readiness</h2>
-          <div className="mt-3">
+          <div className="mt-3 flex items-center gap-2">
+            <ConfidenceArc tier={iv?.tier} size={28} />
             <StatusBadge
               tone={
                 iv?.tier === 'high' ? 'success' : iv?.tier === 'low' ? 'risk' : iv?.tier === 'medium' ? 'warning' : 'default'

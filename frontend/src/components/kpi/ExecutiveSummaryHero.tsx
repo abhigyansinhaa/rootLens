@@ -34,7 +34,7 @@ export function ExecutiveSummaryHero({
   const relValue = formatNumber(kpis.reliability.headline_value)
 
   return (
-    <Card padding="xl" tone="strong" elevated className="relative overflow-hidden border-2 border-(--border-subtle) bg-linear-to-br from-(--surface-1) to-(--surface-2)">
+    <Card padding="xl" tone="strong" elevated className="relative overflow-hidden">
 
       <div className="relative z-10">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-(--brand) mb-4">

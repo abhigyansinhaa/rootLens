@@ -20,8 +20,8 @@ type ButtonProps =
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary: [
-    'bg-(--brand) text-white font-semibold',
-    'hover:brightness-110 shadow-sm',
+    'bg-(--brand) text-(--app-bg) font-semibold',
+    'hover:brightness-110',
     'active:brightness-95',
     'disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none disabled:hover:brightness-100',
   ].join(' '),

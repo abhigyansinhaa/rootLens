@@ -51,7 +51,7 @@ export function Card({
   className = '',
 }: CardProps) {
   const elevShadow = elevated
-    ? 'shadow-md'
+    ? 'border-(--border-default)'
     : ''
 
   const hoverCls = hover

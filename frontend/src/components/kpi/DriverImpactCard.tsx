@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from 'react'
 import type { AnalysisKpis } from '../../types'
 import { CardEyebrow, StatusBadge } from '../ui'
+import { ConfidenceArc } from './ConfidenceArc'
 import { directionForFeature, formatDriverLabel } from '../../lib/driverLabels'
 import { categoryForDriver, controllabilityBadgeLabel, controllabilityForFeature } from './driverMeta'
 import { formatPct01 } from './format'
@@ -219,7 +220,16 @@ export function DriverImpactCard({
                         ? `$${Math.abs(r.revenue_recoverable).toLocaleString(undefined, { maximumFractionDigits: 0 })}`
                         : '—'}
                     </td>
-                    <td className="px-4 py-3 hidden lg:table-cell capitalize text-(--text-2)">{r.confidence_tier ?? '—'}</td>
+                    <td className="px-4 py-3 hidden lg:table-cell">
+                      <div className="flex items-center gap-1.5 capitalize text-(--text-2) text-xs">
+                        <ConfidenceArc
+                          cvRatio={typeof r.confidence_signals?.cv_ratio === 'number' ? r.confidence_signals.cv_ratio : null}
+                          tier={r.confidence_tier}
+                          size={22}
+                        />
+                        <span>{r.confidence_tier ?? '—'}</span>
+                      </div>
+                    </td>
                     <td className="px-4 py-3">
                       <button
                         type="button"
