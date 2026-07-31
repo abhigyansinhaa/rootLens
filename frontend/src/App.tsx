@@ -38,6 +38,7 @@ const AnalysisResult  = lazy(() => import('./features/analysis/AnalysisResult').
 const CompareAnalyses = lazy(() => import('./features/analysis/CompareAnalyses').then(m => ({ default: m.CompareAnalyses })))
 const Login           = lazy(() => import('./features/auth/Login').then(m => ({ default: m.Login })))
 const Register        = lazy(() => import('./features/auth/Register').then(m => ({ default: m.Register })))
+const LandingPage     = lazy(() => import('./features/landing/LandingPage').then(m => ({ default: m.LandingPage })))
 
 const queryClient = new QueryClient()
 
@@ -54,6 +55,16 @@ export default function App() {
             Skip to main content
           </a>
           <Routes>
+            {/* ── Standalone Public Landing Page ── */}
+            <Route
+              path="/landing"
+              element={
+                <Suspense fallback={<DashboardSkeleton />}>
+                  <LandingPage />
+                </Suspense>
+              }
+            />
+
             <Route element={<Layout />}>
               {/* ── Auth routes ── */}
               <Route
