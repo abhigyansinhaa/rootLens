@@ -96,6 +96,7 @@ export function LandingPage() {
               onClick={toggleTheme}
               className="p-2 rounded-lg text-(--text-3) hover:text-(--text-1) hover:bg-(--surface-2) transition-colors"
               title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
             >
               {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
@@ -536,6 +537,9 @@ export function LandingPage() {
                 >
                   <button
                     type="button"
+                    id={`faq-question-${idx}`}
+                    aria-expanded={openFaq === idx}
+                    aria-controls={`faq-answer-${idx}`}
                     onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
                     className="w-full flex items-center justify-between gap-4 p-5 text-left font-bold text-sm text-(--text-1) hover:text-(--brand)"
                   >
@@ -547,7 +551,12 @@ export function LandingPage() {
                     />
                   </button>
                   {openFaq === idx && (
-                    <div className="px-5 pb-5 text-xs sm:text-sm text-(--text-2) leading-relaxed border-t border-(--border-subtle) pt-4 animate-fade-in">
+                    <div
+                      id={`faq-answer-${idx}`}
+                      role="region"
+                      aria-labelledby={`faq-question-${idx}`}
+                      className="px-5 pb-5 text-xs sm:text-sm text-(--text-2) leading-relaxed border-t border-(--border-subtle) pt-4 animate-fade-in"
+                    >
                       {faq.a}
                     </div>
                   )}
