@@ -235,57 +235,93 @@ export function Datasets({ compact = false }: { compact?: boolean }) {
             </div>
           )}
 
-          {/* ── List view ── */}
+          {/* ── List / Sidebar view ── */}
           {filtered.length > 0 && (viewMode === 'list' || compact) && (
-            <div className={`animate-fade-in-up ${compact ? 'px-1' : ''}`}>
-              <DataTable>
-                <THead>
-                  <TR>
-                    <TH className="w-8"></TH>
-                    <TH>Dataset</TH>
-                    <TH>Status</TH>
-                    <TH align="right">Rows</TH>
-                    <TH align="right">Cols</TH>
-                    <TH align="right">Created</TH>
-                    <TH className="w-8"></TH>
-                  </TR>
-                </THead>
-                <TBody>
+            <div className={`animate-fade-in-up ${compact ? 'px-0.5' : ''}`}>
+              {compact ? (
+                <div className="space-y-2 w-full min-w-0">
                   {filtered.map((d) => {
                     const fresh = freshnessOf(d.created_at)
-                    const py = density === 'compact' ? 'py-2' : 'py-3'
                     return (
-                      <TR key={d.id} className="group relative">
-                        <TD className={py}>
-                          <FileSpreadsheet className="h-4 w-4 text-(--text-3)" />
-                        </TD>
-                        <TD className={py}>
-                          <Link to={`/datasets/${d.id}`} className="absolute inset-0" aria-label={`View ${d.name}`} />
-                          <div className="flex flex-col">
-                            <span className="text-sm font-semibold text-(--text-1) group-hover:text-(--brand) transition-colors">{d.name}</span>
-                            <span className="text-[10px] font-mono text-(--text-3) truncate max-w-50">{d.filename}</span>
+                      <Link
+                        key={d.id}
+                        to={`/datasets/${d.id}`}
+                        className="group block w-full min-w-0 rounded-lg border border-(--border-subtle) bg-(--surface-1) p-3 transition-all hover:border-(--border-focus) hover:bg-(--surface-2)"
+                      >
+                        <div className="flex items-start justify-between gap-2 min-w-0">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <FileSpreadsheet className="h-4 w-4 shrink-0 text-(--brand)" />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-xs font-bold text-(--text-1) group-hover:text-(--brand) transition-colors" title={d.name}>
+                                {d.name}
+                              </p>
+                              <p className="truncate font-mono text-[10px] text-(--text-3)" title={d.filename}>
+                                {d.filename}
+                              </p>
+                            </div>
                           </div>
-                        </TD>
-                        <TD className={py}>
-                          <StatusBadge tone={fresh.tone} dot className="text-[9px]">{fresh.label}</StatusBadge>
-                        </TD>
-                        <TD align="right" numeric className={`${py} text-sm font-mono font-medium text-(--text-2)`}>
-                          {d.rows.toLocaleString()}
-                        </TD>
-                        <TD align="right" numeric className={`${py} text-sm font-mono font-medium text-(--text-2)`}>
-                          {d.cols}
-                        </TD>
-                        <TD align="right" className={`${py} text-xs text-(--text-3)`}>
-                          {formatDate(d.created_at)}
-                        </TD>
-                        <TD className={py}>
-                          <ChevronRight className="h-4 w-4 text-(--text-4) group-hover:text-(--text-1) transition-colors ml-auto" />
-                        </TD>
-                      </TR>
+                          <StatusBadge tone={fresh.tone} dot className="text-[9px] shrink-0">
+                            {fresh.label}
+                          </StatusBadge>
+                        </div>
+                        <div className="mt-2 flex items-center justify-between border-t border-(--border-subtle) pt-2 text-[10px] text-(--text-3)">
+                          <span className="font-mono">{d.rows.toLocaleString()} rows · {d.cols} cols</span>
+                          <span className="font-semibold">{d.file_format.toUpperCase()}</span>
+                        </div>
+                      </Link>
                     )
                   })}
-                </TBody>
-              </DataTable>
+                </div>
+              ) : (
+                <DataTable>
+                  <THead>
+                    <TR>
+                      <TH className="w-8"></TH>
+                      <TH>Dataset</TH>
+                      <TH>Status</TH>
+                      <TH align="right">Rows</TH>
+                      <TH align="right">Cols</TH>
+                      <TH align="right">Created</TH>
+                      <TH className="w-8"></TH>
+                    </TR>
+                  </THead>
+                  <TBody>
+                    {filtered.map((d) => {
+                      const fresh = freshnessOf(d.created_at)
+                      const py = density === 'compact' ? 'py-2' : 'py-3'
+                      return (
+                        <TR key={d.id} className="group relative">
+                          <TD className={py}>
+                            <FileSpreadsheet className="h-4 w-4 text-(--text-3)" />
+                          </TD>
+                          <TD className={py}>
+                            <Link to={`/datasets/${d.id}`} className="absolute inset-0" aria-label={`View ${d.name}`} />
+                            <div className="flex flex-col">
+                              <span className="text-sm font-semibold text-(--text-1) group-hover:text-(--brand) transition-colors">{d.name}</span>
+                              <span className="text-[10px] font-mono text-(--text-3) truncate max-w-50">{d.filename}</span>
+                            </div>
+                          </TD>
+                          <TD className={py}>
+                            <StatusBadge tone={fresh.tone} dot className="text-[9px]">{fresh.label}</StatusBadge>
+                          </TD>
+                          <TD align="right" numeric className={`${py} text-sm font-mono font-medium text-(--text-2)`}>
+                            {d.rows.toLocaleString()}
+                          </TD>
+                          <TD align="right" numeric className={`${py} text-sm font-mono font-medium text-(--text-2)`}>
+                            {d.cols}
+                          </TD>
+                          <TD align="right" className={`${py} text-xs text-(--text-3)`}>
+                            {formatDate(d.created_at)}
+                          </TD>
+                          <TD className={py}>
+                            <ChevronRight className="h-4 w-4 text-(--text-4) group-hover:text-(--text-1) transition-colors ml-auto" />
+                          </TD>
+                        </TR>
+                      )
+                    })}
+                  </TBody>
+                </DataTable>
+              )}
             </div>
           )}
         </>

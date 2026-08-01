@@ -152,7 +152,7 @@ export function MetricRunway({
       data-print-tier="1"
       className="rounded-lg bg-(--surface-1) overflow-hidden border border-(--border-subtle)"
     >
-      <div className="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-(--border-subtle)">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 lg:divide-y-0 lg:divide-x divide-(--border-subtle)">
         <MetricCell
           label={rateLabel}
           value={rate.value}

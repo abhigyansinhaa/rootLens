@@ -9,47 +9,47 @@ export function ReliabilityBadge({ kpis }: { kpis: AnalysisKpis }) {
   const iv = kpis.intervention_confidence
 
   return (
-    <Card padding="lg" tone={tone}>
-      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">
-        <div className="min-w-[180px] flex-1">
-          <CardEyebrow>Model reliability</CardEyebrow>
-          <h2 className="mt-2 text-lg font-bold text-(--text-1)">Separation &amp; stability</h2>
-          <div className="mt-3 flex items-center gap-2">
-            <ConfidenceArc cvRatio={r.cv_std} tier={r.tier} size={28} />
-            <StatusBadge tone={tone} dot className="text-xs">
-              {r.tier}
-            </StatusBadge>
+    <Card padding="lg" tone={tone} className="w-full overflow-hidden">
+      <div className="flex flex-col gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pb-4 border-b border-(--border-subtle)">
+          <div>
+            <CardEyebrow>Model reliability</CardEyebrow>
+            <h2 className="mt-1 text-base font-bold text-(--text-1)">Separation &amp; stability</h2>
+            <div className="mt-2.5 flex items-center gap-2">
+              <ConfidenceArc cvRatio={r.cv_std} tier={r.tier} size={26} />
+              <StatusBadge tone={tone} dot className="text-xs capitalize">
+                {r.tier}
+              </StatusBadge>
+            </div>
+          </div>
+          <div className="sm:border-l sm:border-(--border-subtle) sm:pl-6">
+            <CardEyebrow>Intervention confidence</CardEyebrow>
+            <h2 className="mt-1 text-base font-bold text-(--text-1)">Action readiness</h2>
+            <div className="mt-2.5 flex items-center gap-2">
+              <ConfidenceArc tier={iv?.tier} size={26} />
+              <StatusBadge
+                tone={
+                  iv?.tier === 'high' ? 'success' : iv?.tier === 'low' ? 'risk' : iv?.tier === 'medium' ? 'warning' : 'default'
+                }
+                dot
+                className="text-xs capitalize"
+              >
+                {iv?.tier ?? 'unknown'}
+              </StatusBadge>
+            </div>
           </div>
         </div>
-        <div className="min-w-[180px] flex-1 lg:border-l lg:border-(--border-subtle) lg:pl-10">
-          <CardEyebrow>Intervention confidence</CardEyebrow>
-          <h2 className="mt-2 text-lg font-bold text-(--text-1)">Action readiness</h2>
-          <div className="mt-3 flex items-center gap-2">
-            <ConfidenceArc tier={iv?.tier} size={28} />
-            <StatusBadge
-              tone={
-                iv?.tier === 'high' ? 'success' : iv?.tier === 'low' ? 'risk' : iv?.tier === 'medium' ? 'warning' : 'default'
-              }
-              dot
-              className="text-xs"
-            >
-              {iv?.tier ?? 'unknown'}
-            </StatusBadge>
-          </div>
-          {iv?.rationale_bullets?.length ? (
-            <ul className="mt-3 list-disc space-y-1 pl-4 text-[11px] leading-5 text-(--text-2)">
-              {iv.rationale_bullets.map((b, i) => (
-                <li key={i}>{b}</li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-3 text-[11px] text-(--text-3)">
-              A strong model can still misstate causal lift — pair scenarios with pilots.
-            </p>
-          )}
-        </div>
-        <div className="flex-1 border-t border-(--border-soft) pt-6 text-sm leading-6 text-(--text-1) lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
-          <p className="text-base font-bold tracking-tight">
+
+        {iv?.rationale_bullets?.length ? (
+          <ul className="list-disc space-y-1 pl-4 text-[11px] leading-5 text-(--text-2)">
+            {iv.rationale_bullets.map((b, i) => (
+              <li key={i}>{b}</li>
+            ))}
+          </ul>
+        ) : null}
+
+        <div className="text-sm leading-6 text-(--text-1) pt-2">
+          <p className="text-sm font-bold tracking-tight">
             Headline{' '}
             <span className="tabular-nums">{formatNumber(r.headline_value)}</span>{' '}
             <span className="text-xs font-medium uppercase tracking-[0.16em] text-(--text-2)">
@@ -61,9 +61,9 @@ export function ReliabilityBadge({ kpis }: { kpis: AnalysisKpis }) {
               </span>
             ) : null}
           </p>
-          <p className="mt-2 text-xs leading-5 text-(--text-2)">{r.hint}</p>
+          <p className="mt-1.5 text-xs leading-5 text-(--text-2)">{r.hint}</p>
           {r.business_explanation ? (
-            <p className="mt-3 text-xs leading-5 text-(--text-3)">{r.business_explanation}</p>
+            <p className="mt-2 text-xs leading-5 text-(--text-3)">{r.business_explanation}</p>
           ) : null}
         </div>
       </div>

@@ -261,25 +261,30 @@ export function ConfigureAnalysis({ dataset }: { dataset: Dataset }) {
             )}
           </div>
 
-          <div className="bg-(--surface-2) rounded-lg border border-(--border-subtle) p-4 w-full lg:w-72 space-y-4 shrink-0 self-start">
+          <div className="bg-(--surface-2) rounded-lg border border-(--border-subtle) p-4.5 w-full lg:w-80 space-y-4 shrink-0 self-start">
             <h3 className="text-xs font-bold text-(--text-1) uppercase tracking-widest border-b border-(--border-subtle) pb-2">Analysis Context</h3>
 
             <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-(--text-3)">Task Type</span>
-                <span className="font-semibold text-(--text-1)">{taskHint || 'Unknown'}</span>
+              <div className="flex items-center justify-between gap-3 min-w-0">
+                <span className="text-(--text-3) shrink-0">Task Type</span>
+                <span className="font-semibold text-(--text-1) truncate">{taskHint || 'Unknown'}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-(--text-3)">Test Split</span>
-                <span className="font-semibold text-(--text-1)">20% (Holdout)</span>
+              <div className="flex items-center justify-between gap-3 min-w-0">
+                <span className="text-(--text-3) shrink-0">Test Split</span>
+                <span className="font-semibold text-(--text-1) shrink-0">20% (Holdout)</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-(--text-3)">Optimization</span>
-                <span className="font-semibold text-(--text-1)">{taskHint === 'Classification' ? 'Log Loss' : 'RMSE'}</span>
+              <div className="flex items-center justify-between gap-3 min-w-0">
+                <span className="text-(--text-3) shrink-0">Optimization</span>
+                <span className="font-semibold text-(--text-1) shrink-0">{taskHint === 'Classification' ? 'Log Loss' : 'RMSE'}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-(--text-3)">Value Column</span>
-                <span className="font-semibold text-(--text-1)">{resolvedValueCol || 'None'}</span>
+              <div className="flex items-center justify-between gap-3 min-w-0">
+                <span className="text-(--text-3) shrink-0">Value Column</span>
+                <span
+                  className="font-mono text-xs font-semibold text-(--text-1) truncate max-w-[150px] text-right"
+                  title={resolvedValueCol || 'None'}
+                >
+                  {resolvedValueCol || 'None'}
+                </span>
               </div>
             </div>
 

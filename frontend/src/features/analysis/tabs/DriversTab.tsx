@@ -150,7 +150,7 @@ export function DriversTab({
 
   return (
     <div className="space-y-12 print:block">
-      <div className="grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 items-start">
         <RiskSegmentsChart kpis={kpis} hasValue={revenueReady} />
         <ReliabilityBadge kpis={kpis} />
       </div>

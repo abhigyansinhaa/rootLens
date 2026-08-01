@@ -80,7 +80,7 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
       : 0
 
   return (
-    <div className="space-y-8 animate-fade-in-up">
+    <div className="space-y-8 p-5 sm:p-8 min-w-0 max-w-full overflow-x-hidden animate-fade-in-up">
       <Link
         className="inline-flex items-center gap-2 text-sm font-semibold text-(--text-3) hover:text-(--brand) transition-colors"
         to="/datasets"

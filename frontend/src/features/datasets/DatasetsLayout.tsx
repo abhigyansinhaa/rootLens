@@ -1,8 +1,9 @@
-import { Outlet, useParams, useLocation } from 'react-router-dom'
+import { Outlet, useParams, useLocation, Link } from 'react-router-dom'
 import { Datasets } from './DatasetsList'
 import { ErrorBoundary } from '../../components/ErrorBoundary'
 import { Suspense } from 'react'
 import { DatasetDetailSkeleton } from '../../components/PageSkeletons'
+import { ArrowLeft } from 'lucide-react'
 
 export function DatasetsLayout() {
   const { id } = useParams()
@@ -11,8 +12,20 @@ export function DatasetsLayout() {
   const isDetailView = !!id
 
   return (
-    <div className={`flex w-full overflow-hidden transition-all duration-300 ${isDetailView ? 'gap-6 h-[calc(100vh-var(--app-header-height)-100px)]' : 'flex-col'}`}>
+    <div className={`flex w-full transition-all duration-300 ${isDetailView ? 'flex-col lg:flex-row gap-6 min-h-[500px] lg:h-[calc(100vh-var(--app-header-height)-90px)] lg:overflow-hidden' : 'flex-col'}`}>
       
+      {/* ── Mobile Back Link ── */}
+      {isDetailView && (
+        <div className="lg:hidden pb-2">
+          <Link
+            to="/datasets"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-(--brand) hover:text-(--text-1) transition-colors"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> Back to all datasets
+          </Link>
+        </div>
+      )}
+
       {/* ── Left Pane (Master List) ── */}
       <div 
         className={`transition-all duration-300 ease-(--ease-spring) flex flex-col ${
