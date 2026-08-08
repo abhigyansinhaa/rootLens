@@ -163,7 +163,7 @@ export function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button to="/upload" className="h-9 shadow-sm shadow-(--brand-dim)">
+          <Button to="/upload" className="h-9 shadow-(--brand-dim)">
             <PlusCircle className="h-4 w-4" /> New Dataset
           </Button>
         </div>
@@ -216,7 +216,7 @@ export function Dashboard() {
                   to={`/datasets/${dataset.id}`}
                   className="group relative flex flex-col justify-between overflow-hidden rounded-lg border border-(--border-subtle) bg-(--app-bg) p-3 transition-colors hover:border-(--border-default) hover:bg-(--surface-2)"
                 >
-                  <div className="absolute top-0 left-0 bottom-0 w-[3px] transition-transform"
+                  <div className="absolute top-0 left-0 bottom-0 w-0.75 transition-transform"
                     style={{ background: accentColor }} />
 
                   <div className="flex items-start justify-between gap-2 mb-2 pl-1.5">

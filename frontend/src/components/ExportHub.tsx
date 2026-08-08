@@ -7,6 +7,7 @@ interface ExportHubProps {
   onClose: () => void
   analysisId: number
   onDownloadCsv: () => void
+  onDownloadDriversCsv?: () => void
   onDownloadJson: () => void
   onPrint: () => void
   onDecisionBrief?: () => void
@@ -18,6 +19,7 @@ export function ExportHub({
   onClose,
   analysisId,
   onDownloadCsv,
+  onDownloadDriversCsv,
   onDownloadJson,
   onPrint,
   onDecisionBrief,
@@ -27,10 +29,25 @@ export function ExportHub({
 
   const copyShareLink = () => {
     const url = `${window.location.origin}/analyses/${analysisId}`
-    void navigator.clipboard.writeText(url).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
+    if (navigator.clipboard?.writeText) {
+      void navigator.clipboard.writeText(url).then(() => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      })
+    } else {
+      const el = document.createElement('textarea')
+      el.value = url
+      document.body.appendChild(el)
+      el.select()
+      try {
+        document.execCommand('copy')
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      } catch {
+        // ignore
+      }
+      document.body.removeChild(el)
+    }
   }
 
   if (!open) return null
@@ -39,7 +56,7 @@ export function ExportHub({
     {
       id: 'csv',
       icon: FileSpreadsheet,
-      label: 'Download CSV',
+      label: 'Download KPI Summary CSV',
       desc: 'KPI summary as a spreadsheet-ready CSV',
       color: 'var(--success)',
       bg: 'var(--success-bg)',
@@ -47,6 +64,17 @@ export function ExportHub({
       onClick: () => { onDownloadCsv(); onClose() },
       disabled: !canExport,
     },
+    ...(onDownloadDriversCsv ? [{
+      id: 'drivers-csv',
+      icon: FileSpreadsheet,
+      label: 'Download Drivers & Features CSV',
+      desc: 'Ranked root-cause drivers with SHAP shares and confidence',
+      color: 'var(--success)',
+      bg: 'var(--success-bg)',
+      border: 'var(--success-border)',
+      onClick: () => { onDownloadDriversCsv(); onClose() },
+      disabled: !canExport,
+    }] : []),
     {
       id: 'json',
       icon: FileJson,
@@ -84,7 +112,7 @@ export function ExportHub({
       id: 'share',
       icon: copied ? CheckCircle2 : Share2,
       label: copied ? 'Link copied!' : 'Copy share link',
-      desc: 'Shareable URL — preserves the current tab via ?tab= parameter',
+      desc: 'Shareable URL — preserves current view state',
       color: copied ? 'var(--success)' : 'var(--warning)',
       bg: copied ? 'var(--success-bg)' : 'var(--warning-bg)',
       border: copied ? 'var(--success-border)' : 'var(--warning-border)',

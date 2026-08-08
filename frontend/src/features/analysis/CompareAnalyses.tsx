@@ -187,7 +187,7 @@ export function CompareAnalyses() {
             description="Positive delta (green) means Run B improved vs. Run A."
           />
           <Card padding="lg" className="mt-4 overflow-x-auto border border-(--border-subtle)">
-            <table className="w-full min-w-[480px]">
+            <table className="w-full min-w-120">
               <thead>
                 <tr className="border-b border-(--border-default)">
                   <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3)">Metric</th>
@@ -216,7 +216,7 @@ export function CompareAnalyses() {
         <section>
           <SectionHeader eyebrow="Model Performance" title="Metric Comparison" />
           <Card padding="lg" className="mt-4 overflow-x-auto border border-(--border-subtle)">
-            <table className="w-full min-w-[480px]">
+            <table className="w-full min-w-120">
               <thead>
                 <tr className="border-b border-(--border-default)">
                   <th className="pb-3 pr-4 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-(--text-3)">Metric</th>

@@ -161,7 +161,7 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
             </p>
           </Card>
 
-          <div className="grid gap-3 max-h-[500px] overflow-auto custom-scrollbar pr-2">
+          <div className="grid gap-3 max-h-125 overflow-auto custom-scrollbar pr-2">
             {ds.columns.map(c => (
               <DatasetColumnCard key={c.name} col={c} />
             ))}
@@ -176,7 +176,7 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
               description="First rows of the dataset."
             />
             <Card padding="none" tone="strong" className="overflow-hidden border border-(--border-subtle)">
-              <div className="max-h-[500px] overflow-auto custom-scrollbar rounded-lg">
+              <div className="max-h-125 overflow-auto custom-scrollbar rounded-lg">
                 <DataTable className="border-0">
                   <THead>
                     <TR>
@@ -193,7 +193,7 @@ function DatasetDetailInner({ datasetId }: { datasetId: number }) {
                         {preview.columns.map((col) => (
                           <TD
                             key={col}
-                            className={`max-w-[200px] truncate font-mono text-[11px] tabular-nums text-(--text-2)`}
+                            className={`max-w-50 truncate font-mono text-[11px] tabular-nums text-(--text-2)`}
                             title={row[col] ?? ''}
                           >
                             {row[col] ?? ''}

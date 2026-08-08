@@ -12,7 +12,7 @@ export function DatasetsLayout() {
   const isDetailView = !!id
 
   return (
-    <div className={`flex w-full transition-all duration-300 ${isDetailView ? 'flex-col lg:flex-row gap-6 min-h-[500px] lg:h-[calc(100vh-var(--app-header-height)-90px)] lg:overflow-hidden' : 'flex-col'}`}>
+    <div className={`flex w-full transition-all duration-300 ${isDetailView ? 'flex-col lg:flex-row gap-6 min-h-125 lg:h-[calc(100vh-var(--app-header-height)-90px)] lg:overflow-hidden' : 'flex-col'}`}>
       
       {/* ── Mobile Back Link ── */}
       {isDetailView && (

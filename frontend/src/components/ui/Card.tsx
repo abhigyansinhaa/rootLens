@@ -74,7 +74,7 @@ export function Card({
       {accentColor && accentTop && (
         <div
           aria-hidden
-          className="absolute top-0 left-0 right-0 h-[2px]"
+          className="absolute top-0 left-0 right-0 h-0.5"
           style={{ background: accentColor }}
         />
       )}

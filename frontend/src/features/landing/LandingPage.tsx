@@ -113,7 +113,7 @@ export function LandingPage() {
            ───────────────────────────────────────────────────────────────────────────── */}
         <section className="relative pt-16 pb-20 sm:pt-24 sm:pb-32 overflow-hidden border-b border-(--border-subtle)">
           {/* Subtle background glow */}
-          <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-(--brand)/5 blur-[120px] rounded-full" />
+          <div className="pointer-events-none absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-87.5 bg-(--brand)/5 blur-[120px] rounded-full" />
 
           <div className="max-w-(--page-max-width) mx-auto px-4 sm:px-6">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">

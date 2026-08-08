@@ -19,6 +19,7 @@ import {
 } from '../../components/ui'
 import { ExportHub } from '../../components/ExportHub'
 import { formatDriverLabel } from '../../lib/driverLabels'
+import { categoryForDriver, controllabilityForFeature } from '../../components/kpi/driverMeta'
 import type { Analysis, Dataset, KpiHistoryResponse } from '../../types'
 import { StickyExecutiveStrip } from '../../components/kpi/StickyExecutiveStrip'
 import { TrustAccordion } from '../../components/kpi/TrustAccordion'
@@ -201,6 +202,34 @@ export function AnalysisResult() {
     }, 200)
   }
 
+  const downloadDriversCsv = () => {
+    if (!data?.report?.kpis?.drivers?.length) return
+    const rows: string[][] = [
+      ['rank', 'feature', 'label', 'share_pct', 'controllability', 'category'],
+      ...data.report.kpis.drivers.map((d, i) => [
+        String(i + 1),
+        d.feature,
+        formatDriverLabel(d.feature, rawColumnNames),
+        (d.share * 100).toFixed(2),
+        controllabilityForFeature(d.feature),
+        categoryForDriver(d.feature),
+      ]),
+    ]
+    const esc = (s: string) => `"${String(s).replace(/"/g, '""')}"`
+    const body = rows.map((r) => r.map(esc).join(',')).join('\n')
+    const blob = new Blob([body], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `analysis-${data.id}-drivers.csv`
+    document.body.appendChild(a)
+    a.click()
+    setTimeout(() => {
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    }, 200)
+  }
+
   if (!Number.isFinite(analysisId)) {
     return (
       <Card padding="lg" tone="risk">
@@ -366,6 +395,7 @@ export function AnalysisResult() {
         onClose={() => setExportOpen(false)}
         analysisId={data.id}
         onDownloadCsv={downloadCsvSummary}
+        onDownloadDriversCsv={downloadDriversCsv}
         onDownloadJson={downloadJson}
         onPrint={() => window.print()}
         onDecisionBrief={() => window.print()}
@@ -425,7 +455,7 @@ export function AnalysisResult() {
               <div
                 className="rounded-lg bg-(--surface-1) p-5 flex flex-col max-h-[inherit] border border-(--border-subtle)"
               >
-                <AICopilot {...copilotProps} className="min-h-[480px]" />
+                <AICopilot {...copilotProps} className="min-h-120" />
               </div>
             </aside>
           )}

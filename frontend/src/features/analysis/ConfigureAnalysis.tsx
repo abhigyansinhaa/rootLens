@@ -280,7 +280,7 @@ export function ConfigureAnalysis({ dataset }: { dataset: Dataset }) {
               <div className="flex items-center justify-between gap-3 min-w-0">
                 <span className="text-(--text-3) shrink-0">Value Column</span>
                 <span
-                  className="font-mono text-xs font-semibold text-(--text-1) truncate max-w-[150px] text-right"
+                  className="font-mono text-xs font-semibold text-(--text-1) truncate max-w-37.5 text-right"
                   title={resolvedValueCol || 'None'}
                 >
                   {resolvedValueCol || 'None'}

@@ -128,7 +128,7 @@ export function DriverImpactCard({
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[200px] max-w-xs">
+        <div className="relative flex-1 min-w-50 max-w-xs">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-(--text-3)" aria-hidden />
           <input
             ref={searchInputRef}
@@ -204,7 +204,7 @@ export function DriverImpactCard({
                     ].join(' ')}
                   >
                     <td className="px-4 py-3 tabular-nums text-(--text-3)">{idx + 1}</td>
-                    <td className="px-4 py-3 min-w-[140px] max-w-[220px]">
+                    <td className="px-4 py-3 min-w-35 max-w-55">
                       <p className="font-semibold text-(--text-1) truncate">{formatDriverLabel(r.feature, rawColumns)}</p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-xs text-(--text-3)">{categoryForDriver(r.feature)}</span>

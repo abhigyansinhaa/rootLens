@@ -155,7 +155,7 @@ export function Upload() {
         onDrop={onDrop}
         className={[
           'relative flex flex-col items-center justify-center rounded-md',
-          'min-h-[200px] transition-all duration-200',
+          'min-h-50 transition-all duration-200',
           'border border-dashed',
           drag
             ? 'border-(--brand) bg-(--brand-dim)'
