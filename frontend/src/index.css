@@ -388,6 +388,13 @@ input[type='range']::-moz-range-thumb {
    PRINT STYLES
    ───────────────────────────────────────────────────────────────────────────── */
 @media print {
+  html, body, #root, #main-content {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+
   body {
     background: white !important;
     background-image: none !important;

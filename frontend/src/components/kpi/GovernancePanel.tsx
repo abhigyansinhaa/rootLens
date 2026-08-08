@@ -7,7 +7,7 @@ function row(key: string, value: ReactNode) {
       <dt className="text-[11px] font-bold uppercase tracking-[0.12em] text-(--text-3)">
         {key}
       </dt>
-      <dd className="max-w-[70%] text-right text-sm text-(--text-1) font-medium">{value}</dd>
+      <dd className="max-w-[70%] text-right text-sm text-(--text-1) font-medium break-words break-all">{value}</dd>
     </div>
   )
 }

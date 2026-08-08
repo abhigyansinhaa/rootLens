@@ -1,19 +1,19 @@
 # rootLens — Railway monorepo service definitions
 #
-# MySQL and Redis are provisioned as Railway Add-ons (one-click in the dashboard).
+# Postgres and Redis are provisioned as Railway Add-ons (one-click in the dashboard).
 # Railway injects their connection URLs automatically; we reference them below via
 # Variable References so no secret is ever hardcoded here.
 #
 # REQUIRED dashboard actions after first deploy:
-#   1. Add MySQL add-on  → Railway injects ${{MySQL.MYSQL_URL}}
+#   1. Add Postgres add-on → Railway injects ${{Postgres.DATABASE_URL}} automatically
+#      (managed add-on generates its own credentials — no POSTGRES_PASSWORD to set here,
+#      unlike the self-hosted Docker Compose setup used for local dev)
 #   2. Add Redis add-on  → Railway injects ${{Redis.REDIS_URL}}
 #   3. Attach a Volume to `backend` and `worker` services, mount path: /data
 #      (prevents upload/artifact loss on redeploy — ~$0.25/GB/month)
 #   4. Set shared variables:
 #        SECRET_KEY    = <openssl rand -hex 32>
 #        CORS_ORIGINS  = https://rootlens.ai,https://app.rootlens.ai
-#        MYSQL_PASSWORD      = <strong password>
-#        MYSQL_ROOT_PASSWORD = <strong password>
 
 [project]
 name = "rootlens"
@@ -36,8 +36,8 @@ name = "rootlens"
     APP_ENV      = "production"
     LOG_LEVEL    = "WARNING"
     SECRET_KEY   = "${{SECRET_KEY}}"
-    # Railway MySQL add-on — scheme coerced to mysql+pymysql:// automatically by config.py
-    DATABASE_URL = "${{MySQL.MYSQL_URL}}"
+    # Railway Postgres add-on — scheme coerced to postgresql+psycopg2:// automatically by config.py
+    DATABASE_URL = "${{Postgres.DATABASE_URL}}"
     REDIS_URL    = "${{Redis.REDIS_URL}}"
     CORS_ORIGINS = "${{CORS_ORIGINS}}"
     # Injected by Railway at build time — used by /api/version endpoint
@@ -59,7 +59,7 @@ name = "rootlens"
     APP_ENV      = "production"
     LOG_LEVEL    = "WARNING"
     SECRET_KEY   = "${{SECRET_KEY}}"
-    DATABASE_URL = "${{MySQL.MYSQL_URL}}"
+    DATABASE_URL = "${{Postgres.DATABASE_URL}}"
     REDIS_URL    = "${{Redis.REDIS_URL}}"
     APP_VERSION  = "${{RAILWAY_GIT_COMMIT_SHA}}"
 

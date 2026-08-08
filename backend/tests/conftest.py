@@ -1,7 +1,7 @@
 """Pytest configuration.
 
 The HTTP test suite uses an on-disk SQLite database. Schema is applied with
-**Alembic** (``upgrade head``) so tests track the same migration path as MySQL.
+**Alembic** (``upgrade head``) so tests track the same migration path as Postgres.
 
 The database file is removed at session start before migrations run.
 """

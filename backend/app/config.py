@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60 * 24 * 7
 
     # ── Database ──────────────────────────────────────────────────────────────
-    database_url: str = Field(description="SQLAlchemy URL, e.g. mysql+pymysql://user:pass@host:3306/db")
+    database_url: str = Field(description="SQLAlchemy URL, e.g. postgresql+psycopg2://user:pass@host:5432/db")
 
     # ── Storage ───────────────────────────────────────────────────────────────
     data_dir: Path = Field(default_factory=_default_data_dir)
@@ -78,9 +78,16 @@ class Settings(BaseSettings):
     @field_validator("database_url", mode="before")
     @classmethod
     def coerce_db_scheme(cls, v: str) -> str:
-        """Railway MySQL add-on injects 'mysql://' — SQLAlchemy needs 'mysql+pymysql://'."""
-        if isinstance(v, str) and v.startswith("mysql://"):
-            return v.replace("mysql://", "mysql+pymysql://", 1)
+        """Most Postgres hosts (Render, Neon, Heroku-style URLs) inject a bare
+        'postgres://' or 'postgresql://' — SQLAlchemy needs the driver named
+        explicitly ('postgresql+psycopg2://') to pick psycopg2 over psycopg3
+        or any other installed driver.
+        """
+        if isinstance(v, str):
+            if v.startswith("postgres://"):
+                return v.replace("postgres://", "postgresql+psycopg2://", 1)
+            if v.startswith("postgresql://"):
+                return v.replace("postgresql://", "postgresql+psycopg2://", 1)
         return v
 
     @field_validator("secret_key")

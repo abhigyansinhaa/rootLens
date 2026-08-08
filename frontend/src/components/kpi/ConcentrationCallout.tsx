@@ -48,9 +48,9 @@ export function ConcentrationCallout({ kpis }: { kpis: AnalysisKpis }) {
     <div
       id="concentration-section"
       data-print-tier="2"
-      className="rounded-lg bg-(--surface-1) p-6 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between border border-(--border-subtle)"
+      className="rounded-lg bg-(--surface-1) p-6 flex flex-col gap-6 w-full min-w-0 overflow-hidden border border-(--border-subtle)"
     >
-      <div className="max-w-md space-y-3">
+      <div className="w-full space-y-3">
         <CardEyebrow>Pareto concentration</CardEyebrow>
         <p className="text-xl font-semibold leading-tight text-(--text-1)">
           Top{' '}
@@ -78,8 +78,7 @@ export function ConcentrationCallout({ kpis }: { kpis: AnalysisKpis }) {
               max={cutOptions.length - 1}
               value={idx}
               onChange={(e) => setIdx(Number(e.target.value))}
-              className="w-full accent-(--brand)"
-              aria-label="Pareto tail threshold"
+              className="w-full accent-(--brand) cursor-pointer"
             />
             {selected && (
               <dl className="mt-3 grid gap-1.5 text-sm text-(--text-2)">
@@ -105,7 +104,7 @@ export function ConcentrationCallout({ kpis }: { kpis: AnalysisKpis }) {
         )}
       </div>
 
-      <div className="flex w-full min-w-[240px] max-w-lg flex-col">
+      <div className="flex w-full min-w-0 flex-col pt-2 border-t border-(--border-subtle)">
         <div className="h-52 w-full">
           {pts.length ? (
             <ResponsiveContainer width="100%" height="100%">

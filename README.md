@@ -2,7 +2,7 @@
 
 Web app for uploading tabular datasets, choosing a target variable, and getting **root-cause-style insights**, **feature importance**, **SHAP explanations**, and **rule-based business recommendations**.
 
-- **Backend:** FastAPI, SQLAlchemy (MySQL), JWT auth, XGBoost, SHAP  
+- **Backend:** FastAPI, SQLAlchemy (Postgres), JWT auth, XGBoost, SHAP  
 - **Frontend:** React, Vite, TypeScript, Tailwind CSS, TanStack Query, Recharts  
 
 **Architecture & scalability:** [docs/ARCHITECTURE_AND_SCALABILITY.md](docs/ARCHITECTURE_AND_SCALABILITY.md) — full stack, ML pipeline, and future scaling. **PDF:** [docs/ARCHITECTURE_AND_SCALABILITY.pdf](docs/ARCHITECTURE_AND_SCALABILITY.pdf). Regenerate with `python scripts/generate_architecture_pdf.py` (requires `pip install markdown xhtml2pdf`).
@@ -11,23 +11,23 @@ Web app for uploading tabular datasets, choosing a target variable, and getting 
 
 Copy [`env.example`](env.example) to `.env` in the repo root and set **`SECRET_KEY`** (minimum 32 characters; generate with `python -c "import secrets; print(secrets.token_hex(32))"`).
 
-Optional: set **`MYSQL_PASSWORD`** and **`MYSQL_ROOT_PASSWORD`** in `.env` for non-default database credentials. Compose substitutes them into the MySQL service and into **`DATABASE_URL`** for the backend and worker (defaults match [`env.example`](env.example)).
+Optional: set **`POSTGRES_PASSWORD`** in `.env` for non-default database credentials. Compose substitutes it into the Postgres service and into **`DATABASE_URL`** for the backend and worker (defaults match [`env.example`](env.example)).
 
 ```bash
 docker compose up --build
 ```
 
-On first boot the backend runs **`alembic upgrade head`** then serves the API. Schema DDL is managed by Alembic (see [`backend/alembic`](backend/alembic)); MySQL only mounts [`backend/sql/mysql_init.sql`](backend/sql/mysql_init.sql) as a no-op bootstrap marker.
+On first boot the backend runs **`alembic upgrade head`** then serves the API. Schema DDL is managed by Alembic (see [`backend/alembic`](backend/alembic)); Postgres creates the database/user directly from the `POSTGRES_DB`/`POSTGRES_USER`/`POSTGRES_PASSWORD` env vars, no bootstrap script needed.
 
 - **UI:** http://localhost:8080 (nginx serving the production build; proxies `/api` to the backend)  
 - **API:** http://localhost:8000/api/health  
-- Data (uploads, artifacts) persist under `./data`; MySQL data persists in Docker volume `mysql_data`.
+- Data (uploads, artifacts) persist under `./data`; Postgres data persists in Docker volume `postgres_data`.
 
 Additional backend-only variables are documented in [`backend/.env.example`](backend/.env.example).
 
 ## Development
 
-- **Backend tests:** `cd backend` then `python -m pytest tests -q` (or `-v` for verbose). The suite applies **Alembic** `upgrade head` to a throwaway SQLite file so migrations stay aligned with MySQL.
+- **Backend tests:** `cd backend` then `python -m pytest tests -q` (or `-v` for verbose). The suite applies **Alembic** `upgrade head` to a throwaway SQLite file so migrations stay aligned with Postgres.
 - **Frontend lint:** `cd frontend` then `npm run lint`.
 - **New schema changes:** add an Alembic revision under [`backend/alembic/versions`](backend/alembic/versions) and run `alembic upgrade head` locally or rely on the backend container startup (see [`backend/Dockerfile`](backend/Dockerfile)). **Do not edit migrations that may already be applied** on shared environments; add a new revision (or an idempotent repair like [`005_ensure_core_columns.py`](backend/alembic/versions/005_ensure_core_columns.py)) instead. Full workflow and rules: [`backend/alembic/README.md`](backend/alembic/README.md).
 
@@ -58,10 +58,10 @@ Set **`SECRET_KEY`** and **`DATABASE_URL`** in `backend/.env` (see [backend/.env
 Example database URL:
 
 ```bash
-set DATABASE_URL=mysql+pymysql://rootLens_user:rootLens_pass@127.0.0.1:3306/rootLens_db
+set DATABASE_URL=postgresql+psycopg2://rootLens_user:rootLens_pass@127.0.0.1:5432/rootLens_db
 ```
 
-Then run MySQL separately (or with Docker compose). Uploads and artifacts are stored under `data/`.
+Then run Postgres separately (or with Docker compose). Uploads and artifacts are stored under `data/`.
 
 ### Frontend
 
@@ -108,10 +108,9 @@ The compose **`frontend`** service builds a static bundle plus nginx (production
 
 ```
 backend/app/          # FastAPI app, ML pipeline, jobs
-backend/scripts/      # e.g. run_local_api.{ps1,sh} — migrate + Uvicorn for local MySQL
+backend/scripts/      # e.g. run_local_api.{ps1,sh} — migrate + Uvicorn for local Postgres
 frontend/src/         # React UI
 data/                 # uploads + analysis artifacts (gitignored contents)
-backend/sql/          # MySQL container bootstrap (DDL via Alembic)
 ```
 
 ## Notes

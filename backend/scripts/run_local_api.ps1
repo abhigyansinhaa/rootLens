@@ -1,5 +1,5 @@
 # Run from repo root: ``docker compose up`` (see README). This script is for
-# **local Uvicorn** against MySQL you started yourself (e.g. Compose ``mysql``
+# **local Uvicorn** against Postgres you started yourself (e.g. Compose ``postgres``
 # only, or a local install): it runs migrations then the API (single worker).
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"

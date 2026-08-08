@@ -140,7 +140,7 @@ export function DriverImpactCard({
             aria-label="Search drivers"
           />
         </div>
-        <div className="flex items-center gap-1.5" role="group" aria-label="Filter by controllability">
+        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filter by controllability">
           <Filter className="h-3.5 w-3.5 text-(--text-3) shrink-0" aria-hidden />
           {(['all', 'controllable', 'observational', 'mixed'] as const).map((c) => (
             <button
@@ -204,7 +204,7 @@ export function DriverImpactCard({
                     ].join(' ')}
                   >
                     <td className="px-4 py-3 tabular-nums text-(--text-3)">{idx + 1}</td>
-                    <td className="px-4 py-3 min-w-[160px]">
+                    <td className="px-4 py-3 min-w-[140px] max-w-[220px]">
                       <p className="font-semibold text-(--text-1) truncate">{formatDriverLabel(r.feature, rawColumns)}</p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-xs text-(--text-3)">{categoryForDriver(r.feature)}</span>

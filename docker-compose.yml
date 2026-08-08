@@ -4,24 +4,18 @@ services:
     restart: unless-stopped
     # No host port — only backend/worker need Redis; access via compose network
 
-  mysql:
-    image: mysql:8.4
+  postgres:
+    image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: rootLens_db
-      MYSQL_USER: rootLens_user
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env — see env.example}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env — see env.example}
-    # No host port — only backend/worker need MySQL; access via compose network
+      POSTGRES_DB: rootLens_db
+      POSTGRES_USER: rootLens_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env — see env.example}
+    # No host port — only backend/worker need Postgres; access via compose network
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./backend/sql/mysql_init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent && mysql -uroot -p$$MYSQL_ROOT_PASSWORD -e 'SELECT 1' rootLens_db",
-        ]
+      test: ["CMD-SHELL", "pg_isready -U rootLens_user -d rootLens_db"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -35,7 +29,7 @@ services:
       - ./data:/data
     environment:
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env — see env.example}
-      DATABASE_URL: mysql+pymysql://rootLens_user:${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}@mysql:3306/rootLens_db
+      DATABASE_URL: postgresql+psycopg2://rootLens_user:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/rootLens_db
       REDIS_URL: redis://redis:6379/0
       ANALYSIS_TIMEOUT_S: ${ANALYSIS_TIMEOUT_S:-1800}
     command:
@@ -43,7 +37,7 @@ services:
       - "-c"
       - "until alembic upgrade head; do echo 'DB not ready, retrying in 3s...'; sleep 3; done && exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --timeout-keep-alive 30"
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_started
@@ -67,11 +61,11 @@ services:
       - ./data:/data
     environment:
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env — see env.example}
-      DATABASE_URL: mysql+pymysql://rootLens_user:${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in .env}@mysql:3306/rootLens_db
+      DATABASE_URL: postgresql+psycopg2://rootLens_user:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/rootLens_db
       REDIS_URL: redis://redis:6379/0
       ANALYSIS_TIMEOUT_S: ${ANALYSIS_TIMEOUT_S:-1800}
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_started
@@ -99,4 +93,4 @@ services:
         condition: service_healthy
 
 volumes:
-  mysql_data:
+  postgres_data:

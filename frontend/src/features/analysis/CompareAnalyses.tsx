@@ -151,9 +151,9 @@ export function CompareAnalyses() {
               <StatusBadge tone={statusTone(run.status)}>{run.status}</StatusBadge>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs text-(--text-2)">
-              <div>
+              <div className="min-w-0">
                 <p className="text-(--text-3) mb-0.5">Target</p>
-                <p className="font-semibold text-(--brand)">{run.target}</p>
+                <p className="font-semibold text-(--brand) truncate" title={run.target}>{run.target}</p>
               </div>
               <div>
                 <p className="text-(--text-3) mb-0.5">Task type</p>
